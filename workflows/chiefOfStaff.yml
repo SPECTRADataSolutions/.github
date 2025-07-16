@@ -18,9 +18,13 @@ on:
 jobs:
   enforceChiefOfStaff:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      - name: Checkout triggering repo
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -28,4 +32,10 @@ jobs:
           python-version: "3.11"
 
       - name: Run Chief of Staff Enforcement
-        run: python scripts/enforceChiefOfStaff.py
+        run: |
+          if [ -f organisation/scripts/enforceChiefOfStaff.py ]; then
+            python organisation/scripts/enforceChiefOfStaff.py
+          else
+            echo "❌ Script not found in target repo!"
+            exit 1
+          fi

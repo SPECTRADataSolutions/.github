@@ -1,0 +1,31 @@
+name: Chief of Staff Enforcement
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "people/registry/employmentLogIndex.json"
+      - "organisation/contracts/chiefOfStaff.json"
+      - "organisation/scripts/enforceChiefOfStaff.py"
+      - "people/**"
+  pull_request:
+    paths:
+      - "people/registry/employmentLogIndex.json"
+      - "organisation/contracts/chiefOfStaff.json"
+      - "organisation/scripts/enforceChiefOfStaff.py"
+      - "people/**"
+
+jobs:
+  enforceChiefOfStaff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run Chief of Staff Enforcement
+        run: python scripts/enforceChiefOfStaff.py

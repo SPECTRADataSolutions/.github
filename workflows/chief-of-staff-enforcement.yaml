@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "people/registry/employmentLogIndex.json"
+      - "agents/registry/employmentLogIndex.json"
       - "organisation/contracts/chiefOfStaff.json"
       - "organisation/scripts/enforceChiefOfStaff.py"
       - "people/**"

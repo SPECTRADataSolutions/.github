@@ -29,5 +29,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 🚀 Run createGitHubIssues.py
-        run: python .codex/scripts/createGitHubIssues.py
+      - name: 🛠 Create GitHub Issues from backlog
+        run: python portal/scripts/createGitHubIssues.py

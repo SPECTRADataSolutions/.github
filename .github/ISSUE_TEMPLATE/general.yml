@@ -1,0 +1,118 @@
+name: General Issue
+description: Standard issue template for bugs, features, tasks, and documentation requests
+title: "[ISSUE]: "
+labels: ["triage-required"]
+assignees:
+  - copilot
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for contributing to our project! Please fill out the sections below to help us understand your request. 
+        
+        **Guidance for Copilot & AI Agents**: If you're unsure about categorisation or assignment, please assign to @copilot for triage. Do not duplicate templates in individual projects—use this organisation-wide template as the single source of truth.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: One sentence summary of the issue
+      placeholder: "Brief, clear description in one sentence"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Detailed context and background information
+      placeholder: |
+        Provide comprehensive details about:
+        - What you're trying to achieve
+        - Current behaviour or situation
+        - Expected outcome or desired state
+        - Any relevant background context
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Specific, measurable outcomes that define completion (plain English checklist)
+      options:
+        - label: "Define your acceptance criteria below (replace these examples)"
+        - label: "Criterion 1: [Replace with specific outcome]"
+        - label: "Criterion 2: [Replace with specific outcome]"
+        - label: "Criterion 3: [Replace with specific outcome]"
+
+  - type: textarea
+    id: context-references
+    attributes:
+      label: Context & References
+      description: Links, related issues, stakeholders, or additional resources
+      placeholder: |
+        - Related issues: #123, #456
+        - Stakeholders: @username1, @username2
+        - Documentation: [Link to relevant docs]
+        - External resources: [Any relevant links]
+        - Dependencies: [Other work that blocks or relates to this]
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: If this is a bug or problem, provide reproduction steps (remove this section if not applicable)
+      placeholder: |
+        1. First step
+        2. Second step
+        3. Third step
+        4. Expected result vs actual result
+        
+        **Environment details** (if relevant):
+        - OS: [e.g. Windows 11, macOS 13, Ubuntu 22.04]
+        - Browser: [e.g. Chrome 118, Firefox 119]
+        - Version: [e.g. 1.2.3]
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How urgent is this issue?
+      options:
+        - "Low - Nice to have"
+        - "Medium - Should be addressed"
+        - "High - Important for current milestone"
+        - "Critical - Blocking work"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Issue Type
+      description: What category best describes this issue?
+      options:
+        - "Bug - Something isn't working correctly"
+        - "Feature - New functionality or enhancement"
+        - "Task - Work item or chore"
+        - "Documentation - Improvements to docs or guides"
+        - "Question - Need clarification or guidance"
+    validations:
+      required: true
+
+  - type: input
+    id: milestone
+    attributes:
+      label: Milestone
+      description: Target milestone (if known, otherwise leave blank)
+      placeholder: "e.g., Sprint 24, v2.1.0, Q4 2024"
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        **For SPECTRA Standards**: All engineering practices, naming conventions, and documentation standards should follow the [SPECTRA framework](). Please do not improvise locally—refer to our established guidelines.
+        
+        **Template Policy**: This template is the organisation-wide standard. Local overrides must be justified and documented in your project's CONTRIBUTING.md file.

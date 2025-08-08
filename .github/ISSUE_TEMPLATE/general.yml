@@ -1,0 +1,108 @@
+name: General Issue
+description: Create a comprehensive issue following SPECTRA Data Solutions standards
+title: "[Brief Summary]: "
+labels: ["needs-triage"]
+assignees:
+  - copilot
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: A single, clear sentence describing what needs to be done or what problem needs solving.
+      placeholder: "Implement user authentication system for the dashboard application"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Provide detailed context about the issue, including background information, current state, and desired outcome.
+      placeholder: |
+        Describe the issue in detail:
+        - What is the current situation?
+        - What needs to change?
+        - Why is this important?
+        - What are the expected benefits?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Define what constitutes completion of this issue in plain English using checkboxes.
+      placeholder: |
+        - [ ] Users can log in with email and password
+        - [ ] Session management is implemented
+        - [ ] Invalid credentials show appropriate error messages
+        - [ ] Password reset functionality is available
+        - [ ] All authentication flows are tested
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: If this is a bug or issue that can be reproduced, provide step-by-step instructions. Remove this section if not applicable.
+      placeholder: |
+        1. Navigate to the login page
+        2. Enter invalid credentials
+        3. Click the login button
+        4. Observe the error behaviour
+        
+        **Note: Remove this section if not applicable to your issue**
+    validations:
+      required: false
+
+  - type: textarea
+    id: context-references
+    attributes:
+      label: Context & References
+      description: Provide links to related issues, documentation, stakeholders, or external resources.
+      placeholder: |
+        - Related issues: #123, #456
+        - Documentation: [Authentication Guide](https://docs.example.com/auth)
+        - Stakeholders: @username1, @username2
+        - External resources: [OAuth 2.0 Specification](https://tools.ietf.org/html/rfc6749)
+    validations:
+      required: false
+
+  - type: input
+    id: project
+    attributes:
+      label: Project
+      description: Specify which project or component this issue belongs to.
+      placeholder: "Dashboard, API, Documentation, Infrastructure"
+    validations:
+      required: true
+
+  - type: input
+    id: milestone
+    attributes:
+      label: Milestone
+      description: Target milestone or release for this issue (leave blank if not yet determined).
+      placeholder: "v2.1.0, Q1 2024, Sprint 15"
+    validations:
+      required: false
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        ## 🤖 Copilot Guidance
+        
+        **For reviewers and triagers:**
+        - If you're unsure about classification, priority, or assignment, please assign to @copilot for initial triage
+        - Follow the SPECTRA framework for all engineering standards and naming conventions
+        - Do not duplicate issue templates in individual project repositories
+        
+        **Quality standards:**
+        - Ensure all required metadata is complete before moving from triage
+        - Acceptance criteria should be testable and specific
+        - References should include relevant stakeholders and documentation
+        
+        This template enforces SPECTRA Data Solutions governance and metadata completeness standards.

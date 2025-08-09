@@ -111,7 +111,7 @@ All engineering standards, naming conventions, and documentation practices are d
 
 ## 📚 Related Resources
 
-- **SPECTRA Framework**: [Link to framework documentation]
+- **SPECTRA Framework**: Documentation link coming soon
 - **Contributing Guidelines**: See CONTRIBUTING.md in this repository
 - **Template Examples**: Review .github/ISSUE_TEMPLATE/ for structure
 - **Override Documentation**: Guidelines in CONTRIBUTING.md

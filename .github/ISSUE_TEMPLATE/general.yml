@@ -5,6 +5,13 @@ labels: ["needs-triage"]
 assignees:
   - copilot
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for contributing to our project! Please fill out the sections below to help us understand your request. 
+        
+        **Guidance for Copilot & AI Agents**: If you're unsure about categorisation or assignment, please assign to @copilot for triage. Do not duplicate templates in individual projects—use this organisation-wide template as the single source of truth.
+
   - type: input
     id: summary
     attributes:
@@ -70,6 +77,33 @@ body:
     validations:
       required: false
 
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How urgent is this issue?
+      options:
+        - "Low - Nice to have"
+        - "Medium - Should be addressed"
+        - "High - Important for current milestone"
+        - "Critical - Blocking work"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Issue Type
+      description: What category best describes this issue?
+      options:
+        - "Bug - Something isn't working correctly"
+        - "Feature - New functionality or enhancement"
+        - "Task - Work item or chore"
+        - "Documentation - Improvements to docs or guides"
+        - "Question - Need clarification or guidance"
+    validations:
+      required: true
+
   - type: input
     id: project
     attributes:
@@ -93,16 +127,6 @@ body:
       value: |
         ---
         
-        ## 🤖 Copilot Guidance
+        **For SPECTRA Standards**: All engineering practices, naming conventions, and documentation standards should follow the [SPECTRA framework](). Please do not improvise locally—refer to our established guidelines.
         
-        **For reviewers and triagers:**
-        - If you're unsure about classification, priority, or assignment, please assign to @copilot for initial triage
-        - Follow the SPECTRA framework for all engineering standards and naming conventions
-        - Do not duplicate issue templates in individual project repositories
-        
-        **Quality standards:**
-        - Ensure all required metadata is complete before moving from triage
-        - Acceptance criteria should be testable and specific
-        - References should include relevant stakeholders and documentation
-        
-        This template enforces SPECTRA Data Solutions governance and metadata completeness standards.
+        **Template Policy**: This template is the organisation-wide standard. Local overrides must be justified and documented in your project's CONTRIBUTING.md file.

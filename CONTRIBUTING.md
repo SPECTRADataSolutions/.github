@@ -56,7 +56,7 @@ If your project requires template overrides, you **must**:
 ## Engineering Standards
 
 ### SPECTRA Framework Compliance
-All engineering practices must follow the [SPECTRA framework]():
+All engineering practices must follow the [SPECTRA framework](URL_TO_BE_ADDED):
 
 - **Naming conventions**: Use British English and camelCase throughout
 - **Code structure**: Follow established patterns and architectural guidelines  

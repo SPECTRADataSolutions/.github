@@ -1,103 +1,173 @@
-# Contributing to SPECTRA Projects
+# Contributing to SPECTRA Data Solutions
 
-Welcome to our development community! This guide explains how to contribute effectively using our organisation-wide templates and standards.
+Welcome to SPECTRA Data Solutions. This document explains how to contribute effectively using our organisation-wide standards and templates.
 
-## Template Usage
+## 📋 Template Usage
 
 ### Issue Templates
-All SPECTRA repositories inherit issue templates from this `.github` organisation repository. When creating issues:
 
-1. **Use the provided template**: Our YAML-based issue template ensures consistency and completeness
-2. **Fill all required fields**: Summary, Description, Acceptance Criteria, Priority, and Issue Type are mandatory
-3. **Provide context**: Include relevant references, stakeholders, and background information
-4. **Write clear acceptance criteria**: Use plain English checklists that define specific, measurable outcomes
+All issues should use the [General Issue template](.github/ISSUE_TEMPLATE/general.yml) which ensures:
+- **Complete metadata**: labels, project assignment, milestone visibility
+- **Structured information**: separate Summary and Description fields
+- **Acceptance criteria**: plain English checklists defining completion
+- **Context & references**: links to stakeholders, related issues, and documentation
+- **Reproduction steps**: when applicable (with guidance to remove if not relevant)
+
+**Required fields:**
+- Summary (one clear sentence)
+- Description (detailed context)
+- Acceptance Criteria (testable checkboxes)
+- Project specification
+
+**Optional but encouraged:**
+- Steps to Reproduce (remove if not applicable)
+- Context & References
+- Milestone assignment
 
 ### Pull Request Templates
-Our organisation-wide PR template includes:
 
-- **Summary and Description**: Clear, concise explanation of changes
-- **Acceptance Criteria**: Verification checklist for completion
-- **Testing requirements**: Ensure all changes are properly tested
-- **Review checklist**: Guidelines for effective code review
-- **Deployment considerations**: Special requirements or dependencies
+All pull requests should follow the [PR template](PULL_REQUEST_TEMPLATE.md) structure:
+- Clear summary and detailed description
+- Testing approach and verification
+- Complete metadata and project assignment
+- Reference to related issues and stakeholders
 
-### Default Assignments
-- **Issues**: Default assignee is `@copilot` for triage and initial categorisation
-- **Copilot guidance**: If unsure about assignment or categorisation, always assign to `@copilot`
-- **Milestone field**: Always present but not required—use for planning and tracking
+## 🏛️ Governance Model
 
-## Template Override Policy
+### Template Inheritance
 
-### When Overrides Are Permitted
-Local template overrides are **strongly discouraged** but may be justified in exceptional circumstances:
+This `.github` repository serves as the **single source of truth** for:
+- Issue and PR templates
+- Workflow automation
+- Engineering standards
+- Governance policies
 
-1. **Project-specific requirements**: Unique workflow needs that cannot be accommodated by the standard template
-2. **Regulatory compliance**: Industry-specific requirements (e.g., medical, financial, aerospace)
-3. **Legacy integration**: Temporary accommodation during migration periods
+**Inheritance rules:**
+- Templates automatically apply to all SPECTRA repositories
+- Local overrides are **strongly discouraged**
+- Any local override must be:
+  - Documented in the project's README
+  - Justified with business requirements
+  - Approved by the engineering team
+  - Regularly reviewed for necessity
 
-### Documentation Requirements for Overrides
-If your project requires template overrides, you **must**:
+### Override Policy
 
-1. **Document in local CONTRIBUTING.md**: Explain the specific need and justification
-2. **Reference this organisation template**: Clearly state what differs and why
-3. **Maintain consistency**: Preserve the spirit and structure of organisation standards
-4. **Regular review**: Evaluate whether overrides are still necessary during retrospectives
+**When local overrides are permitted:**
+- Highly specific project requirements that cannot be generalised
+- Temporary workarounds with defined expiration dates
+- Domain-specific metadata requirements
 
-### Example Override Documentation
+**When local overrides are prohibited:**
+- Style preferences
+- Personal workflow preferences
+- Convenience modifications
+- Duplicate functionality
+
+**Override documentation requirements:**
 ```markdown
-## Local Template Overrides
+## Template Overrides
 
-**Override**: Custom issue template for security vulnerabilities
-**Justification**: Regulatory compliance requires additional security classification fields
-**Standard template**: Inherits from organisation template with added security section
-**Review date**: Quarterly evaluation of continued necessity
+### Issue Template Modification
+- **Justification**: [Business requirement]
+- **Approval**: [Team lead/Engineering manager]
+- **Review date**: [Quarterly review date]
+- **Expiration**: [When this override should be reconsidered]
 ```
 
-## Engineering Standards
+## 🤖 Copilot & AI Assistance
 
-### SPECTRA Framework Compliance
-All engineering practices must follow the [SPECTRA framework](URL_TO_BE_ADDED):
+### Assignment Guidelines
 
-- **Naming conventions**: Use British English and camelCase throughout
-- **Code structure**: Follow established patterns and architectural guidelines  
-- **Documentation**: Maintain comprehensive, up-to-date documentation
-- **Testing**: Implement appropriate test coverage for all changes
-- **Security**: Follow security best practices and review requirements
+**Default assignment policy:**
+- New issues: automatically assigned to `@copilot` for initial triage
+- Uncertain classification: assign to `@copilot`
+- Complex architectural decisions: involve `@copilot` in review
 
-### Do Not Improvise Locally
-**Important**: Never improvise engineering standards at the project level. All guidelines, conventions, and practices are defined in the SPECTRA framework. If you identify a gap or need clarification:
+**Copilot responsibilities:**
+- Initial issue triage and labelling
+- Priority assessment
+- Appropriate team member assignment
+- Standards compliance verification
 
-1. Consult the SPECTRA framework documentation
-2. Raise an issue in the appropriate governance repository
-3. Follow existing patterns until official guidance is available
+### AI-Assisted Development
 
-## Workflow Guidelines
+When working with AI tools:
+- Reference SPECTRA framework standards explicitly
+- Include context about organisational conventions
+- Verify AI suggestions against established patterns
+- Ensure all generated code follows naming conventions
 
-### For Contributors
-1. **Review templates**: Familiarise yourself with issue and PR templates before contributing
-2. **Follow the process**: Use templates as intended—complete all sections thoughtfully
-3. **Reference standards**: Always follow SPECTRA framework guidelines
-4. **Seek guidance**: When in doubt, assign to `@copilot` or ask maintainers
+## 📚 Engineering Standards
 
-### For Maintainers
-1. **Enforce templates**: Ensure contributors use templates appropriately
-2. **Triage assignments**: Review `@copilot` assignments and redistribute as needed
-3. **Maintain consistency**: Uphold organisation standards across all projects
-4. **Document exceptions**: Clearly justify and document any necessary deviations
+### SPECTRA Framework Reference
 
-### For Copilot & AI Agents
-- **Triage role**: Accept assignments for categorisation and initial review
-- **Template enforcement**: Remind users to use organisation templates, not project duplicates
-- **Standards guidance**: Reference SPECTRA framework for all engineering decisions
-- **Escalation**: Assign to appropriate human maintainers when specialised knowledge is required
+**All engineering decisions must reference the SPECTRA framework:**
+- **Naming conventions**: camelCase for variables and functions
+- **Documentation standards**: British English, professional tone
+- **Code organisation**: follow established patterns
+- **Testing requirements**: comprehensive coverage expectations
+- **Security practices**: follow established protocols
 
-## Getting Help
+**Framework locations:**
+- Main documentation: [SPECTRA Engineering Standards](https://spectra.internal/standards)
+- Naming conventions: [SPECTRA Naming Guide](https://spectra.internal/naming)
+- Architecture patterns: [SPECTRA Architecture](https://spectra.internal/architecture)
 
-- **Template questions**: Create an issue in this `.github` repository
-- **SPECTRA framework**: Consult the framework documentation or create a governance issue
-- **Project-specific queries**: Contact project maintainers or use project channels
-- **Urgent matters**: Tag relevant stakeholders or escalate through appropriate channels
+### Local Standards Prohibition
+
+**Do not improvise local standards for:**
+- Naming conventions
+- Code formatting
+- Documentation structure
+- Testing patterns
+- Security practices
+- API design
+
+**Always reference SPECTRA framework instead of:**
+- Creating project-specific rules
+- Copying standards from external sources
+- Implementing personal preferences
+- Following outdated practices
+
+## 🔍 Quality Assurance
+
+### Pre-submission Checklist
+
+Before creating issues or PRs:
+- [ ] All required metadata is complete
+- [ ] Summary is clear and concise (one sentence)
+- [ ] Acceptance criteria are testable
+- [ ] British English spelling and grammar
+- [ ] Professional, encouraging tone
+- [ ] SPECTRA framework compliance
+- [ ] Appropriate stakeholder references
+
+### Review Standards
+
+Reviewers should verify:
+- Template compliance
+- Metadata completeness
+- Standards alignment
+- Clear acceptance criteria
+- Appropriate testing approach
+
+## 🚀 Getting Started
+
+1. **Read the SPECTRA framework** documentation before contributing
+2. **Use the issue template** for all new issues
+3. **Follow the PR template** for all pull requests
+4. **Assign to @copilot** when uncertain about classification
+5. **Reference relevant stakeholders** in Context & References
+6. **Include clear acceptance criteria** for all work items
+
+## 📞 Support
+
+- **Template issues**: Create an issue in this repository
+- **Standards questions**: Reference SPECTRA framework documentation
+- **Technical guidance**: Assign to `@copilot` for assistance
+- **Process clarification**: Contact the engineering team
 
 ---
 
-**Remember**: This `.github` repository serves as the single source of truth for all organisation-wide templates and automation. Consistency across projects ensures efficient collaboration and maintains our engineering standards.
+*This contributing guide enforces SPECTRA Data Solutions governance and ensures consistent, high-quality contributions across all repositories.*

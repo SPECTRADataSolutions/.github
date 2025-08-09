@@ -1,7 +1,7 @@
 name: General Issue
-description: Standard issue template for bugs, features, tasks, and documentation requests
-title: "[ISSUE]: "
-labels: ["triage-required"]
+description: Create a comprehensive issue following SPECTRA Data Solutions standards
+title: "[Brief Summary]: "
+labels: ["needs-triage"]
 assignees:
   - copilot
 body:
@@ -16,8 +16,8 @@ body:
     id: summary
     attributes:
       label: Summary
-      description: One sentence summary of the issue
-      placeholder: "Brief, clear description in one sentence"
+      description: A single, clear sentence describing what needs to be done or what problem needs solving.
+      placeholder: "Implement user authentication system for the dashboard application"
     validations:
       required: true
 
@@ -25,54 +25,57 @@ body:
     id: description
     attributes:
       label: Description
-      description: Detailed context and background information
+      description: Provide detailed context about the issue, including background information, current state, and desired outcome.
       placeholder: |
-        Provide comprehensive details about:
-        - What you're trying to achieve
-        - Current behaviour or situation
-        - Expected outcome or desired state
-        - Any relevant background context
+        Describe the issue in detail:
+        - What is the current situation?
+        - What needs to change?
+        - Why is this important?
+        - What are the expected benefits?
     validations:
       required: true
 
-  - type: checkboxes
+  - type: textarea
     id: acceptance-criteria
     attributes:
       label: Acceptance Criteria
-      description: Specific, measurable outcomes that define completion (plain English checklist)
-      options:
-        - label: "Define your acceptance criteria below (replace these examples)"
-        - label: "Criterion 1: [Replace with specific outcome]"
-        - label: "Criterion 2: [Replace with specific outcome]"
-        - label: "Criterion 3: [Replace with specific outcome]"
-
-  - type: textarea
-    id: context-references
-    attributes:
-      label: Context & References
-      description: Links, related issues, stakeholders, or additional resources
+      description: Define what constitutes completion of this issue in plain English using checkboxes.
       placeholder: |
-        - Related issues: #123, #456
-        - Stakeholders: @username1, @username2
-        - Documentation: [Link to relevant docs]
-        - External resources: [Any relevant links]
-        - Dependencies: [Other work that blocks or relates to this]
+        - [ ] Users can log in with email and password
+        - [ ] Session management is implemented
+        - [ ] Invalid credentials show appropriate error messages
+        - [ ] Password reset functionality is available
+        - [ ] All authentication flows are tested
+    validations:
+      required: true
 
   - type: textarea
     id: steps-to-reproduce
     attributes:
       label: Steps to Reproduce
-      description: If this is a bug or problem, provide reproduction steps (remove this section if not applicable)
+      description: If this is a bug or issue that can be reproduced, provide step-by-step instructions. Remove this section if not applicable.
       placeholder: |
-        1. First step
-        2. Second step
-        3. Third step
-        4. Expected result vs actual result
+        1. Navigate to the login page
+        2. Enter invalid credentials
+        3. Click the login button
+        4. Observe the error behaviour
         
-        **Environment details** (if relevant):
-        - OS: [e.g. Windows 11, macOS 13, Ubuntu 22.04]
-        - Browser: [e.g. Chrome 118, Firefox 119]
-        - Version: [e.g. 1.2.3]
+        **Note: Remove this section if not applicable to your issue**
+    validations:
+      required: false
+
+  - type: textarea
+    id: context-references
+    attributes:
+      label: Context & References
+      description: Provide links to related issues, documentation, stakeholders, or external resources.
+      placeholder: |
+        - Related issues: #123, #456
+        - Documentation: [Authentication Guide](https://docs.example.com/auth)
+        - Stakeholders: @username1, @username2
+        - External resources: [OAuth 2.0 Specification](https://tools.ietf.org/html/rfc6749)
+    validations:
+      required: false
 
   - type: dropdown
     id: priority
@@ -102,11 +105,22 @@ body:
       required: true
 
   - type: input
+    id: project
+    attributes:
+      label: Project
+      description: Specify which project or component this issue belongs to.
+      placeholder: "Dashboard, API, Documentation, Infrastructure"
+    validations:
+      required: true
+
+  - type: input
     id: milestone
     attributes:
       label: Milestone
-      description: Target milestone (if known, otherwise leave blank)
-      placeholder: "e.g., Sprint 24, v2.1.0, Q4 2024"
+      description: Target milestone or release for this issue (leave blank if not yet determined).
+      placeholder: "v2.1.0, Q1 2024, Sprint 15"
+    validations:
+      required: false
 
   - type: markdown
     attributes:

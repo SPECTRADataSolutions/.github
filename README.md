@@ -1,121 +1,154 @@
-# ⚙️ .github – Organisation-Wide GitHub Templates & Automation
+# ⚙️ .github – Organisation-wide GitHub Templates & Automation
 
-This repository serves as the **single source of truth** for all SPECTRA Data Solutions' GitHub configuration, templates, and automation workflows. It enforces governance, metadata completeness, and internal engineering standards across all organisation repositories.
-
----
-
-## 📦 Contents
-
-| File / Directory | Purpose | Coverage |
-|-----------------|---------|----------|
-| `.github/ISSUE_TEMPLATE/` | YAML-based structured issue forms with complete metadata requirements | All repositories |
-| `.github/PULL_REQUEST_TEMPLATE.md` | Standard PR template with acceptance criteria and review checklists | All repositories |
-| `CONTRIBUTING.md` | Template usage guidance, override policy, and SPECTRA framework references | Organisation-wide |
-| `workflows/` | GitHub Actions for automation and enforcement | All repositories |
-| `README.md` | This file - explains inheritance model and coverage | Documentation |
+This repository serves as the **single source of truth** for GitHub configuration across all SPECTRA Data Solutions repositories. It provides standardised templates, workflows, and governance policies that ensure consistency, quality, and compliance with SPECTRA framework standards.
 
 ---
 
-## 🏗️ Inheritance Model
+## 🎯 Purpose & Coverage
 
-### Automatic Application
-This configuration **automatically applies** to all repositories in the SPECTRA Data Solutions GitHub organisation through GitHub's inheritance mechanism:
+### Governance Model
+This repository implements organisation-wide standards that:
+- **Enforce metadata completeness** across all issues and pull requests
+- **Standardise communication** with professional, consistent templates
+- **Automate quality assurance** through structured workflows
+- **Centralise engineering standards** to prevent local improvisation
+- **Enable AI-assisted development** with clear Copilot guidance
 
-- **Issue templates**: Inherited by all repos unless locally overridden
-- **PR templates**: Applied organisation-wide as the default
-- **Workflows**: Available to all repositories
-- **Standards**: Referenced in CONTRIBUTING.md as the authoritative source
+### Coverage Scope
+Templates and automation apply to:
+- ✅ All SPECTRA Data Solutions repositories
+- ✅ Public and private repositories
+- ✅ New and existing projects
+- ✅ All team members and external contributors
+
+---
+
+## 📦 Repository Contents
+
+| Component | Purpose | Inheritance |
+|-----------|---------|-------------|
+| **`.github/ISSUE_TEMPLATE/`** | YAML-based issue forms with required metadata | Automatic |
+| **`PULL_REQUEST_TEMPLATE.md`** | Standardised PR structure and quality checks | Automatic |
+| **`CONTRIBUTING.md`** | Template usage, override policy, SPECTRA standards | Organisation-wide |
+| **`workflows/`** | GitHub Actions for automation and governance | Automatic |
+| **`README.md`** | This governance documentation | Reference |
 
 ### Template Features
-Our templates enforce:
 
-- **Complete metadata**: Labels, project assignment, milestone fields (always present)
-- **Default assignee**: `@copilot` for triage and initial categorisation
-- **Structured content**: Separate Summary (one sentence) and Description (detailed context)
-- **Acceptance criteria**: Plain English checklists for measurable outcomes
-- **Context & references**: Links, stakeholders, and background information
-- **Professional tone**: Encouraging, clear instructions using British English
-- **SPECTRA compliance**: All standards reference the official framework
+**Issue Templates:**
+- Complete metadata requirements (labels, project, assignee, milestone)
+- Structured Summary and Description fields
+- Plain English Acceptance Criteria checklists
+- Context & References for stakeholder information
+- Steps to Reproduce (with removal guidance)
+- Default assignment to `@copilot` for triage
+
+**Pull Request Template:**
+- Comprehensive change documentation
+- Testing verification requirements
+- Standards compliance checklist
+- Clear reviewer guidance
+
+---
+
+## 🔄 Template Inheritance Model
+
+### Automatic Application
+Templates in this repository **automatically apply** to all organisation repositories through GitHub's [default community health files](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file) feature.
 
 ### Override Policy
-Local template overrides are **strongly discouraged** but permitted when:
+Local template overrides are **strongly discouraged** and must be:
+- ✋ **Documented** with business justification
+- ✋ **Approved** by engineering leadership  
+- ✋ **Reviewed** quarterly for continued necessity
+- ✋ **Compliant** with SPECTRA framework standards
 
-1. **Justified by specific needs**: Regulatory compliance, legacy integration, unique workflows
-2. **Properly documented**: Must be explained in project's CONTRIBUTING.md
-3. **Regularly reviewed**: Evaluated for continued necessity
+**Permitted overrides:**
+- Domain-specific metadata requirements
+- Highly specialised project workflows
+- Temporary workarounds with expiration dates
+
+**Prohibited overrides:**
+- Style or personal preferences
+- Convenience modifications
+- Duplicate functionality
+- Non-compliant standards
 
 ---
 
-## 🎯 Coverage & Scope
+## 🤖 GitHub Automation & AI Integration
 
-### What This Repository Governs
-- ✅ Issue and PR templates across all projects
-- ✅ Contribution guidelines and workflow standards  
-- ✅ GitHub automation and enforcement workflows
-- ✅ Template inheritance and override policies
-- ✅ Copilot and AI agent guidance
+### Copilot Integration
+- **Default assignee** for all new issues: `@copilot`
+- **Triage automation** for uncertain classifications
+- **Standards verification** through AI-assisted review
+- **Quality assurance** for template compliance
 
-### What Individual Projects Should Handle
-- 🏠 Project-specific documentation
-- 🏠 Local build and deployment scripts
-- 🏠 Repository-specific configurations
-- 🏠 Custom labels beyond the standard set
+### Workflow Automation
+- **Template compliance** checking
+- **Metadata validation** enforcement
+- **Standards adherence** monitoring
+- **Quality gate** implementation
+
+### AI-Assisted Development
+This repository enables AI tools to:
+- Understand SPECTRA framework standards
+- Apply consistent naming conventions (camelCase)
+- Follow British English documentation standards
+- Reference appropriate stakeholders and documentation
+
+---
+
+## 📋 Standards & Framework Compliance
 
 ### SPECTRA Framework Integration
-All engineering standards, naming conventions, and documentation practices are defined in the **SPECTRA framework**. This repository:
+All templates and automation reference the **SPECTRA framework** for:
+- **Engineering standards**: architecture, patterns, practices
+- **Naming conventions**: camelCase, British English
+- **Documentation standards**: structure, tone, completeness
+- **Quality requirements**: testing, validation, compliance
 
-- References framework standards without duplication
-- Enforces framework compliance through templates
-- Provides guidance on framework application
-- **Never improvises** local standards—always defers to the framework
+### Framework Locations
+- 📚 [SPECTRA Engineering Standards](https://spectra.internal/standards)
+- 🏷️ [Naming Conventions Guide](https://spectra.internal/naming)
+- 🏗️ [Architecture Patterns](https://spectra.internal/architecture)
+- 📝 [Documentation Standards](https://spectra.internal/documentation)
 
----
-
-## 🤖 Copilot & Agent Guidance
-
-### Assignment Protocol
-- **Default assignment**: All new issues assigned to `@copilot` for triage
-- **Categorisation**: Copilot reviews and assigns to appropriate maintainers
-- **Template enforcement**: Agents should guide users to organisation templates
-- **No duplication**: Never create project-specific template copies
-
-### AI Agent Responsibilities
-1. **Triage**: Review incoming issues and categorise appropriately
-2. **Standards enforcement**: Ensure SPECTRA framework compliance
-3. **Template guidance**: Direct users to correct templates and procedures
-4. **Escalation**: Assign to human maintainers when specialised knowledge required
+### Local Standards Prohibition
+**Do not create local standards for:**
+- Naming conventions → Use SPECTRA framework
+- Code formatting → Use SPECTRA patterns  
+- Documentation structure → Use SPECTRA templates
+- Testing approaches → Use SPECTRA guidelines
 
 ---
 
-## 🔄 Usage Instructions
+## 🚀 Getting Started
 
 ### For Contributors
-1. Use the inherited templates when creating issues or PRs
-2. Fill all required fields completely and thoughtfully
-3. Follow SPECTRA framework standards for all engineering work
-4. Consult CONTRIBUTING.md for detailed guidance
+1. **Read** [CONTRIBUTING.md](CONTRIBUTING.md) for complete template guidance
+2. **Use** the provided issue and PR templates
+3. **Reference** SPECTRA framework for all engineering decisions
+4. **Assign** to `@copilot` when uncertain about classification
 
 ### For Maintainers
-1. Review `@copilot` assignments and redistribute as needed
-2. Enforce template usage and completeness
-3. Maintain consistency with organisation standards
-4. Document any necessary local overrides
+1. **Review** template compliance in all repositories
+2. **Monitor** override requests and justifications
+3. **Update** templates based on framework evolution
+4. **Ensure** AI guidance remains current and effective
 
-### For Project Teams
-1. Rely on inherited templates as the default
-2. Only override when absolutely necessary and properly justified
-3. Reference this repository in local documentation
-4. Regularly review override necessity
+### For New Repositories
+Templates apply automatically - no setup required! 🎉
 
 ---
 
-## 📚 Related Resources
+## 📞 Support & Contact
 
-- **SPECTRA Framework**: Documentation link coming soon
-- **Contributing Guidelines**: See CONTRIBUTING.md in this repository
-- **Template Examples**: Review .github/ISSUE_TEMPLATE/ for structure
-- **Override Documentation**: Guidelines in CONTRIBUTING.md
+- **Template issues**: Create an issue in this repository
+- **Standards questions**: Reference SPECTRA framework documentation
+- **Override requests**: Contact engineering leadership
+- **AI assistance**: Assign to `@copilot` for guidance
 
 ---
 
-> 🎯 **Purpose**: Ensure consistent, high-quality collaboration across all SPECTRA projects through standardised templates, clear governance, and automated enforcement.
+> 🏛️ **Governance Principle**: If it governs how we work on GitHub across SPECTRA Data Solutions, it lives here as the single source of truth.

@@ -1,0 +1,112 @@
+name: New Initiative
+description: Strategic or operational work starting point. Auto-generates projects, epics, stories, tasks, work packages, and sprint plans.
+title: "🚀 [Initiative] <shortTitle>"
+labels: ["type:initiative","status:planning"]
+body:
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      options: [governance, product, engineering, operations, marketing, sales]
+    validations: { required: true }
+
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      placeholder: "visionAndStrategyExecution"
+    validations: { required: true }
+
+  - type: input
+    id: initiativeTitle
+    attributes:
+      label: initiativeTitle
+      description: short, clear name
+      placeholder: "spectraverseCompanyAsCode"
+    validations: { required: true }
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: purpose
+      description: one sentence explaining why this initiative exists and the outcome it aims to achieve
+    validations: { required: true }
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: scope
+      description: define inScope and outOfScope
+      placeholder: |
+        inScope: ...
+        outOfScope: ...
+    validations: { required: true }
+
+  - type: textarea
+    id: capabilityAreas
+    attributes:
+      label: capabilityAreas
+      description: one-per-line; becomes epics 1:1
+      placeholder: |
+        immersiveVisionDefinition
+        dynamicStructureGeneration
+        interactiveEditing
+    validations: { required: true }
+
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: deliverables
+      description: bullet list of concrete outputs expected from this initiative
+      placeholder: |
+        - vrOnboardingFlow
+        - liveRoadmap
+        - deltaMemoryStore
+    validations: { required: true }
+
+  - type: textarea
+    id: successIndicators
+    attributes:
+      label: successIndicators
+      description: measurable outcomes
+      placeholder: |
+        - blueprintCreatedIn<=30min
+        - instantVisualUpdates
+        - zeroManualBacklogEdits
+    validations: { required: true }
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: constraints
+      description: tech/budget/resource rules
+      placeholder: |
+        - fabricFirst
+        - deltaForMemory
+        - camelCaseEverywhere
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: dependencies
+      description: related initiatives, repos, systems
+
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      description: choose what runs on submit
+      options:
+        - label: generateInitiativeIdAndUuid
+        - label: generateProjectsEpicsStories
+        - label: generateWorkPackagesAndSprintPlan
+        - label: runImpactAnalysis
+        - label: runFutureConsequenceSimulation
+        - label: computeExecutionReadinessScore
+        - label: generateMaturityForecastTimeline
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: notes
+      description: links/references

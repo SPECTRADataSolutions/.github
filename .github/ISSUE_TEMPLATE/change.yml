@@ -1,0 +1,39 @@
+name: "✏️ Change"
+description: Propose and review a change to an existing work item.
+title: "✏️ [Change] <shortTitle>"
+labels: ["type:change","status:review"]
+body:
+  - type: input
+    id: targetRef
+    attributes:
+      label: targetRef
+      description: link or id of the work item being changed (initiative, epic, etc.)
+    validations: { required: true }
+
+  - type: textarea
+    id: changeSummary
+    attributes:
+      label: changeSummary
+      description: describe the change being proposed
+    validations: { required: true }
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: rationale
+      description: why this change is needed
+    validations: { required: true }
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: impact
+      description: potential effects of making this change
+
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: runImpactAnalysis
+        - label: updateDependencyGraph

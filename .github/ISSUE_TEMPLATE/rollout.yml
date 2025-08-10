@@ -1,0 +1,14 @@
+name: "✅ Rollout"
+description: Final checklist before enabling a change or feature.
+title: "✅ [Rollout] <shortTitle>"
+labels: ["type:rollout","status:review"]
+body:
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: checklist
+      options:
+        - label: observabilityDashboardsLive
+        - label: errorBudgetsReviewed
+        - label: commsPrepared
+        - label: rollbackTested

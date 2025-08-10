@@ -1,0 +1,26 @@
+name: "🛤️ Migration"
+description: Plan the safe transition from an old system or process to a new one.
+title: "🛤️ [Migration] <shortTitle>"
+labels: ["type:migration","status:planning"]
+body:
+  - type: textarea
+    id: currentState
+    attributes:
+      label: currentState
+      description: describe the existing setup
+    validations: { required: true }
+
+  - type: textarea
+    id: targetState
+    attributes:
+      label: targetState
+      description: describe the desired future state
+    validations: { required: true }
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: steps
+      description: ordered list of migration steps
+      placeholder: "1.\n2.\n3."
+    validations: { required: true }

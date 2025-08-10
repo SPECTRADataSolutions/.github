@@ -1,0 +1,61 @@
+name: "⚖️ Decision"
+description: Record and approve a decision with its context, rationale, consequences, and follow-up actions.
+title: "⚖️ [Decision] <shortTitle>"
+labels: ["type:decision","status:review"]
+body:
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      options: [governance, product, engineering, operations, marketing, sales]
+    validations: { required: true }
+
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      placeholder: "platformEngineering"
+    validations: { required: true }
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: summary
+      description: what is being decided and why now?
+    validations: { required: true }
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: rationale
+      description: why we are making this decision
+    validations: { required: true }
+
+  - type: textarea
+    id: consequences
+    attributes:
+      label: consequences
+      description: near-term and long-term outcomes if approved
+    validations: { required: true }
+
+  - type: textarea
+    id: actions
+    attributes:
+      label: actions
+      description: follow-up steps (one per line)
+
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: updateDependencyGraph
+        - label: createTasksForActions
+        - label: runFutureConsequenceSimulation
+
+  - type: dropdown
+    id: status
+    attributes:
+      label: status
+      options: [proposed, approved, rejected]
+    validations: { required: true }

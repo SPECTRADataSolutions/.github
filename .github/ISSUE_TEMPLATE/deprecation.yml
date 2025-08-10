@@ -1,0 +1,24 @@
+name: "🪦 Deprecation"
+description: Retire a component, service, or process in a controlled manner.
+title: "🪦 [Deprecation] <shortTitle>"
+labels: ["type:deprecation","status:planning"]
+body:
+  - type: input
+    id: target
+    attributes:
+      label: target
+      description: component, service, or process to retire
+    validations: { required: true }
+
+  - type: textarea
+    id: replacement
+    attributes:
+      label: replacement
+      description: new path forward or replacement system
+
+  - type: textarea
+    id: timeline
+    attributes:
+      label: timeline
+      description: key dates and milestones for deprecation
+      placeholder: "- stageOne: date\n- stageTwo: date"

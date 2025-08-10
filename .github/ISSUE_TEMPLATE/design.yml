@@ -1,0 +1,53 @@
+name: "🎨 Design"
+description: Document a proposed design before implementation.
+title: "🎨 [Design] <shortTitle>"
+labels: ["type:design","status:review"]
+body:
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      options: [governance, product, engineering, operations, marketing, sales]
+    validations: { required: true }
+
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      placeholder: "interactionLayer"
+    validations: { required: true }
+
+  - type: textarea
+    id: context
+    attributes:
+      label: context
+      description: background and constraints
+    validations: { required: true }
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: proposal
+      description: the approach, data flows, and interfaces
+    validations: { required: true }
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: alternatives
+      description: considered and rejected options
+
+  - type: textarea
+    id: successMeasures
+    attributes:
+      label: successMeasures
+      description: how we will measure success
+    validations: { required: true }
+
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: runImpactAnalysis
+        - label: createEpicOnApproval

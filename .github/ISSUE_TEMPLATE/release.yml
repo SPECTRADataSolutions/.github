@@ -1,0 +1,26 @@
+name: "📦 Release"
+description: Plan a release with scope, readiness checks, and rollback steps.
+title: "📦 [Release] <shortTitle>"
+labels: ["type:release","status:planning"]
+body:
+  - type: textarea
+    id: scope
+    attributes:
+      label: scope
+      description: what is being released
+    validations: { required: true }
+
+  - type: textarea
+    id: checks
+    attributes:
+      label: checks
+      description: readiness checks before release
+      placeholder: "- observability\n- featureFlags\n- smokeTests"
+    validations: { required: true }
+
+  - type: textarea
+    id: rollbackPlan
+    attributes:
+      label: rollbackPlan
+      description: steps to revert if necessary
+    validations: { required: true }

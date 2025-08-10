@@ -1,0 +1,30 @@
+name: "📚 Knowledge"
+description: Record a lesson, method, or best practice for future reference.
+title: "📚 [Knowledge] <shortTitle>"
+labels: ["type:knowledge","status:review"]
+body:
+  - type: input
+    id: sourceRef
+    attributes:
+      label: sourceRef
+      description: link to the work item where this was learned (initiative, epic, story, etc.)
+
+  - type: textarea
+    id: insight
+    attributes:
+      label: insight
+      description: what did we learn?
+    validations: { required: true }
+
+  - type: textarea
+    id: application
+    attributes:
+      label: application
+      description: where and how should this be applied?
+
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: addToKnowledgeBase

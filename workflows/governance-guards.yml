@@ -1,0 +1,49 @@
+name: governanceGuards
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: enforceMinimumFields
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = (context.payload.issue.body || '').toLowerCase();
+            const required = [
+              'initiativeTitle',
+              'pillar',
+              'domain',
+              'purpose',
+              'scope',
+              'capabilityAreas',
+              'deliverables',
+              'successIndicators'
+            ];
+            const missing = required.filter(k => !body.includes(k.toLowerCase()));
+            if (missing.length) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: `❌ Missing fields: ${missing.join(', ')}`
+              });
+              core.setFailed('Missing required fields');
+            }
+
+      - name: enforceCamelCaseTitle
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.issue.title || '';
+            const noPrefix = title.replace(/\[.*?\]\s*/, ''); // strip [Type] prefix
+            if (/[A-Z_]/.test(noPrefix)) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: '❌ Use camelCase in titles after the [Type] prefix'
+              });
+              core.setFailed('Title not in camelCase');
+            }

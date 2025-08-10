@@ -1,0 +1,53 @@
+name: "🩹 Diagnosis"
+description: Investigate and document the root cause of an incident or failure, with corrective actions.
+title: "🩹 [Diagnosis] <shortTitle>"
+labels: ["type:diagnosis","status:analysis","severity:high"]
+body:
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      options: [governance, product, engineering, operations, marketing, sales]
+    validations: { required: true }
+
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      placeholder: "siteReliability"
+
+  - type: textarea
+    id: incidentSummary
+    attributes:
+      label: incidentSummary
+      description: what happened, when, and the impact
+    validations: { required: true }
+
+  - type: textarea
+    id: timeline
+    attributes:
+      label: timeline
+      description: chronological events from detection to resolution
+
+  - type: textarea
+    id: rootCause
+    attributes:
+      label: rootCause
+      description: use five whys or causal tree
+    validations: { required: true }
+
+  - type: textarea
+    id: correctiveActions
+    attributes:
+      label: correctiveActions
+      description: actions with owners (one per line)
+    validations: { required: true }
+
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: createTasksForActions
+        - label: updateRunbooksAndDocs
+        - label: addIncidentToRiskModels

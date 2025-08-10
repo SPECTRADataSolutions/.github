@@ -1,0 +1,47 @@
+name: Task
+description: Internal or technical work in one sprint.
+title: "🔧 [Task] <shortTitle>"
+labels: ["type:task","status:todo"]
+body:
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      options: [governance, product, engineering, operations, marketing, sales]
+    validations: { required: true }
+
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      placeholder: "platformEngineering"
+    validations: { required: true }
+
+  - type: input
+    id: parentEpic
+    attributes:
+      label: parentEpic
+      description: link to parent epic if applicable
+
+  - type: textarea
+    id: description
+    attributes:
+      label: description
+    validations: { required: true }
+
+  - type: textarea
+    id: doneDefinition
+    attributes:
+      label: doneDefinition
+      description: definition of done (one per line)
+      placeholder: |
+        - tests
+        - docs
+        - security
+    validations: { required: true }
+
+  - type: input
+    id: effortEstimate
+    attributes:
+      label: effortEstimate
+      placeholder: "2d"

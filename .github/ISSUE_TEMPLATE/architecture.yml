@@ -1,0 +1,61 @@
+name: "🏛️ Architecture"
+description: Record a key technical decision with rationale and consequences.
+title: "🏛️ [Architecture] <shortTitle>"
+labels: ["type:architecture","status:final"]
+body:
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      options: [governance, product, engineering, operations, marketing, sales]
+    validations: { required: true }
+
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      placeholder: "dataPlatform"
+    validations: { required: true }
+
+  - type: input
+    id: decisionDate
+    attributes:
+      label: decisionDate
+      placeholder: "YYYY-MM-DD"
+    validations: { required: true }
+
+  - type: textarea
+    id: decision
+    attributes:
+      label: decision
+      description: what was decided
+    validations: { required: true }
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: rationale
+      description: why this choice was made
+    validations: { required: true }
+
+  - type: textarea
+    id: consequences
+    attributes:
+      label: consequences
+      description: near-term and long-term effects
+    validations: { required: true }
+
+  - type: textarea
+    id: followUpActions
+    attributes:
+      label: followUpActions
+      placeholder: "- action one\n- action two"
+
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: updateDependencyGraph
+        - label: notifyAffectedRepos
+        - label: createTasksForFollowUpActions

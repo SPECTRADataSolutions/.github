@@ -1,0 +1,58 @@
+name: "🐛 Bug"
+description: Report a defect with clear steps and expected behaviour.
+title: "🐛 [Bug] <shortTitle>"
+labels: ["type:bug","status:triage"]
+body:
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      options: [governance, product, engineering, operations, marketing, sales]
+    validations: { required: true }
+
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      placeholder: "platformEngineering"
+    validations: { required: true }
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: summary
+      description: short description
+    validations: { required: true }
+
+  - type: textarea
+    id: stepsToReproduce
+    attributes:
+      label: stepsToReproduce
+      placeholder: "1.\n2.\n3."
+    validations: { required: true }
+
+  - type: textarea
+    id: expectedBehaviour
+    attributes:
+      label: expectedBehaviour
+    validations: { required: true }
+
+  - type: textarea
+    id: actualBehaviour
+    attributes:
+      label: actualBehaviour
+    validations: { required: true }
+
+  - type: input
+    id: environment
+    attributes:
+      label: environment
+      placeholder: "os, browser, device, version"
+
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: createFixTask
+        - label: linkToIncidentIfExists

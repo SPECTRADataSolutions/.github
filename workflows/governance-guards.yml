@@ -15,7 +15,7 @@ jobs:
             const body = (context.payload.issue.body || '').toLowerCase();
             const required = [
               'initiativeTitle',
-              'pillar',
+              'archetype',
               'domain',
               'purpose',
               'scope',

@@ -1,0 +1,46 @@
+# SPECTRA Context Manifest
+# Declarative configuration for MCP server context sources
+# This is a sample/template - actual implementation would be in SPECTRADataSolutions/context repository
+
+version: "1.0"
+
+allowedOwners:
+  - "SPECTRADataSolutions"
+
+repositories:
+  - owner: "SPECTRADataSolutions"
+    repo: ".github"
+    pinnedRef: "a1b2c3d4e5f6789012345678901234567890abcd"  # Example SHA
+    allowedPaths:
+      - "README.md"
+      - "docs/canonicalOrganisationalStructure.md"
+      - "contracts/orgStructureMetadata.json"
+      - ".spectra/metadata.yml"
+    checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    
+  - owner: "SPECTRADataSolutions"
+    repo: "framework"
+    pinnedRef: "b2c3d4e5f6789012345678901234567890abcdef"  # Example SHA
+    allowedPaths:
+      - "standards/governance.md"
+      - "policies/privacy.md"
+      - "contracts/context/contextManifest.json"
+      - "contracts/context/anchor.json"
+    checksum: "f1c2e4b8d5a3c7e9f2b4d6a8c1e3f5b7d9c2e4f6a8b1d3f5c7e9b2d4f6a8c1e3"
+
+policies:
+  maxFileSizeKB: 1024
+  allowedMimeTypes:
+    - "text/plain"
+    - "text/markdown" 
+    - "application/json"
+    - "application/yaml"
+  redactionEnabled: true
+  defaultDenyPrivateRepos: true
+  logContent: false
+
+cache:
+  ttlSeconds: 3600
+  maxEntries: 1000
+  enableETag: true
+  requestCoalescing: true

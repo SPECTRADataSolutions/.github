@@ -1,0 +1,167 @@
+name: validate-context-manifest
+
+on:
+  push:
+    paths:
+      - 'context/config/contextManifest.yaml'
+      - '.github/workflows/validate-context-manifest.yml'
+  pull_request:
+    paths:
+      - 'context/config/contextManifest.yaml'
+      - '.github/workflows/validate-context-manifest.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-manifest:
+    runs-on: ubuntu-latest
+    name: validate context manifest against SPECTRA contracts
+    
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+        
+      - name: setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: install ajv for JSON schema validation
+        run: npm install -g ajv-cli
+        
+      - name: validate manifest schema
+        run: |
+          if [[ -f "context/config/contextManifest.yaml" ]]; then
+            # Convert YAML to JSON for validation
+            npm install -g js-yaml
+            js-yaml context/config/contextManifest.yaml > /tmp/manifest.json
+            
+            # Validate against schema
+            ajv validate \
+              --spec draft7 \
+              --schema contracts/context/contextManifest.json \
+              --data /tmp/manifest.json \
+              --verbose
+          else
+            echo "⚠️ No context manifest found at context/config/contextManifest.yaml"
+            exit 1
+          fi
+          
+      - name: validate repository refs are SHAs
+        run: |
+          if [[ -f "context/config/contextManifest.yaml" ]]; then
+            # Check that all pinnedRef values are 40-character SHA hashes
+            invalid_refs=$(js-yaml context/config/contextManifest.yaml | \
+              jq -r '.repositories[]?.pinnedRef // empty' | \
+              grep -v '^[a-f0-9]\{40\}$' || true)
+            
+            if [[ -n "$invalid_refs" ]]; then
+              echo "❌ Invalid pinned refs found (must be 40-character SHA hashes):"
+              echo "$invalid_refs"
+              exit 1
+            fi
+            
+            echo "✅ All pinned refs are valid SHA hashes"
+          fi
+          
+      - name: validate allowed owners
+        run: |
+          if [[ -f "context/config/contextManifest.yaml" ]]; then
+            # Check that only SPECTRADataSolutions is in allowedOwners
+            invalid_owners=$(js-yaml context/config/contextManifest.yaml | \
+              jq -r '.allowedOwners[]?' | \
+              grep -v '^SPECTRADataSolutions$' || true)
+            
+            if [[ -n "$invalid_owners" ]]; then
+              echo "❌ Invalid allowed owners found (only SPECTRADataSolutions permitted):"
+              echo "$invalid_owners"
+              exit 1
+            fi
+            
+            echo "✅ All allowed owners are valid"
+          fi
+          
+      - name: validate file size limits
+        run: |
+          if [[ -f "context/config/contextManifest.yaml" ]]; then
+            # Check that maxFileSizeKB is within bounds
+            max_size=$(js-yaml context/config/contextManifest.yaml | \
+              jq -r '.policies.maxFileSizeKB // 1024')
+            
+            if (( max_size > 10240 )); then
+              echo "❌ maxFileSizeKB ($max_size) exceeds maximum allowed (10240)"
+              exit 1
+            fi
+            
+            echo "✅ File size limits are within bounds"
+          fi
+          
+      - name: validate MIME type allowlist
+        run: |
+          if [[ -f "context/config/contextManifest.yaml" ]]; then
+            # Check that only safe MIME types are allowed
+            safe_types="text/plain text/markdown application/json application/yaml"
+            unsafe_types=$(js-yaml context/config/contextManifest.yaml | \
+              jq -r '.policies.allowedMimeTypes[]?' | \
+              grep -v -E '^(text/(plain|markdown)|application/(json|yaml))$' || true)
+            
+            if [[ -n "$unsafe_types" ]]; then
+              echo "❌ Potentially unsafe MIME types found:"
+              echo "$unsafe_types"
+              echo "Only allowed: $safe_types"
+              exit 1
+            fi
+            
+            echo "✅ All MIME types are safe"
+          fi
+          
+      - name: validate privacy settings
+        run: |
+          if [[ -f "context/config/contextManifest.yaml" ]]; then
+            # Ensure privacy-critical settings are correct
+            redaction_enabled=$(js-yaml context/config/contextManifest.yaml | \
+              jq -r '.policies.redactionEnabled // true')
+            default_deny=$(js-yaml context/config/contextManifest.yaml | \
+              jq -r '.policies.defaultDenyPrivateRepos // true')
+            log_content=$(js-yaml context/config/contextManifest.yaml | \
+              jq -r '.policies.logContent // false')
+            
+            if [[ "$redaction_enabled" != "true" ]]; then
+              echo "❌ redactionEnabled must be true for privacy compliance"
+              exit 1
+            fi
+            
+            if [[ "$default_deny" != "true" ]]; then
+              echo "❌ defaultDenyPrivateRepos must be true for security"
+              exit 1
+            fi
+            
+            if [[ "$log_content" != "false" ]]; then
+              echo "❌ logContent must be false to prevent data leaks"
+              exit 1
+            fi
+            
+            echo "✅ Privacy settings are compliant"
+          fi
+
+      - name: comment on PR with validation results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const success_message = `✅ **Context Manifest Validation Passed**
+
+            All validation checks completed successfully:
+            - Schema validation against SPECTRA contracts
+            - Repository refs are valid SHA hashes  
+            - Allowed owners restricted to SPECTRADataSolutions
+            - File size limits within bounds
+            - MIME types are safe
+            - Privacy settings are compliant
+
+            The manifest is ready for deployment.`;
+
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body: success_message
+            });

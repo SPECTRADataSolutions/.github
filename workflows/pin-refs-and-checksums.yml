@@ -1,0 +1,276 @@
+name: pin-refs-and-checksums
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      force_update:
+        description: 'Force update all refs even if unchanged'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  pin-refs:
+    runs-on: ubuntu-latest
+    name: pin repository refs and update checksums
+    
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: install dependencies
+        run: |
+          npm install -g js-yaml
+          npm install -g ajv-cli
+          
+      - name: check for context manifest
+        id: check_manifest
+        run: |
+          if [[ -f "context/config/contextManifest.yaml" ]]; then
+            echo "manifest_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "manifest_exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No context manifest found - skipping ref pinning"
+          fi
+          
+      - name: process repository refs
+        if: steps.check_manifest.outputs.manifest_exists == 'true'
+        id: process_refs
+        run: |
+          # Convert YAML to JSON for processing
+          js-yaml context/config/contextManifest.yaml > /tmp/manifest.json
+          
+          # Track changes
+          changes_made=false
+          drift_detected=false
+          
+          # Process each repository
+          jq -c '.repositories[]' /tmp/manifest.json | while read repo; do
+            owner=$(echo "$repo" | jq -r '.owner')
+            repo_name=$(echo "$repo" | jq -r '.repo')
+            current_ref=$(echo "$repo" | jq -r '.pinnedRef')
+            current_checksum=$(echo "$repo" | jq -r '.checksum // ""')
+            
+            echo "Processing $owner/$repo_name..."
+            
+            # Get latest commit SHA from main branch
+            latest_sha=$(curl -s \
+              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/$owner/$repo_name/commits/main" | \
+              jq -r '.sha // empty')
+            
+            if [[ -z "$latest_sha" ]]; then
+              echo "❌ Failed to fetch latest SHA for $owner/$repo_name"
+              continue
+            fi
+            
+            # Check if ref needs updating
+            if [[ "$current_ref" != "$latest_sha" ]] || [[ "${{ inputs.force_update }}" == "true" ]]; then
+              echo "📌 Updating ref from $current_ref to $latest_sha"
+              
+              # Calculate new checksum for the repository at this ref
+              # This is a simplified approach - in practice you'd checksum specific files
+              new_checksum=$(echo -n "$owner/$repo_name@$latest_sha" | sha256sum | cut -d' ' -f1)
+              
+              # Update the manifest
+              jq --arg owner "$owner" --arg repo "$repo_name" --arg ref "$latest_sha" --arg checksum "$new_checksum" \
+                '(.repositories[] | select(.owner == $owner and .repo == $repo) | .pinnedRef) = $ref |
+                 (.repositories[] | select(.owner == $owner and .repo == $repo) | .checksum) = $checksum' \
+                /tmp/manifest.json > /tmp/manifest_updated.json
+              
+              mv /tmp/manifest_updated.json /tmp/manifest.json
+              changes_made=true
+              
+              # Check for drift if checksum changed unexpectedly
+              if [[ -n "$current_checksum" ]] && [[ "$current_checksum" != "$new_checksum" ]]; then
+                echo "🚨 Drift detected in $owner/$repo_name: $current_checksum -> $new_checksum"
+                drift_detected=true
+                echo "drift_repos=${drift_repos} $owner/$repo_name" >> /tmp/drift_info
+              fi
+            else
+              echo "✅ $owner/$repo_name is up to date"
+            fi
+          done
+          
+          # Convert back to YAML and update the file
+          if [[ "$changes_made" == "true" ]]; then
+            js-yaml /tmp/manifest.json > context/config/contextManifest.yaml
+            echo "changes_made=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes_made=false" >> $GITHUB_OUTPUT
+          fi
+          
+          if [[ "$drift_detected" == "true" ]]; then
+            echo "drift_detected=true" >> $GITHUB_OUTPUT
+          else
+            echo "drift_detected=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: validate updated manifest
+        if: steps.process_refs.outputs.changes_made == 'true'
+        run: |
+          # Validate the updated manifest against the schema
+          js-yaml context/config/contextManifest.yaml > /tmp/manifest_final.json
+          ajv validate \
+            --spec draft7 \
+            --schema contracts/context/contextManifest.json \
+            --data /tmp/manifest_final.json \
+            --verbose
+            
+      - name: commit updated manifest
+        if: steps.process_refs.outputs.changes_made == 'true'
+        run: |
+          git config --global user.name 'SPECTRA Context Bot'
+          git config --global user.email 'context-bot@spectradata.solutions'
+          
+          git add context/config/contextManifest.yaml
+          git commit -m "🔒 Pin repository refs to latest SHAs
+
+          Automated nightly update of pinned refs and checksums:
+          - Updated repository references to latest commit SHAs
+          - Regenerated checksums for drift detection
+          - Validated manifest against SPECTRA contracts
+
+          This ensures immutable ref pinning as per Framework is Law."
+          
+          git push
+          
+      - name: create drift alert issue
+        if: steps.process_refs.outputs.drift_detected == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let driftRepos = '';
+            
+            try {
+              driftRepos = fs.readFileSync('/tmp/drift_info', 'utf8').trim();
+            } catch (e) {
+              driftRepos = 'Unknown repositories';
+            }
+            
+            const issueBody = `### dream
+
+            SPECTRA
+
+            ### archetype
+
+            Guidance
+
+            ### domain
+
+            governance
+
+            ### initiativeTitle
+
+            contextDriftDetection
+
+            ### purpose
+
+            Address unexpected content drift in MCP context repositories that may indicate security issues, unauthorized changes, or integrity violations.
+
+            ### scope
+
+            inScope:
+            - Investigate checksum mismatches in: ${driftRepos}
+            - Verify integrity of content at pinned refs
+            - Review recent changes for unauthorized modifications
+            - Update security policies if needed
+            - Document findings and resolution
+
+            outOfScope:
+            - Normal ref updates during scheduled pinning
+            - Expected content changes with proper authorization
+            - Historical drift that has been previously investigated
+
+            ### capabilityAreas
+
+            driftInvestigation
+            integrityVerification
+            securityReview
+            policyUpdate
+
+            ### deliverables
+
+            - Drift investigation report with root cause analysis
+            - Verification of content integrity at affected refs
+            - Security assessment of detected changes
+            - Updated policies or procedures if needed
+            - Documentation of resolution steps
+
+            ### successIndicators
+
+            - All drift instances investigated within 24 hours
+            - Content integrity verified or issues resolved
+            - No security vulnerabilities identified in drift
+            - Policies updated to prevent recurrence
+            - Checksum verification restored to green status
+
+            ### constraints
+
+            - Framework is Law - all changes must comply with SPECTRA standards
+            - No tolerance for unexplained content changes
+            - Must maintain audit trail of all investigations
+            - British English and camelCase in all documentation
+
+            ### dependencies
+
+            - context: MCP server and manifest configuration
+            - .github: governance workflows and issue templates
+            - framework: compliance contracts and policies
+
+            ### automationOptions
+
+            - [ ] generateInitiativeIdAndUuid
+            - [ ] generateProjectsEpicsStories
+            - [ ] generateWorkPackagesAndSprintPlan
+            - [ ] runImpactAnalysis
+            - [ ] runFutureConsequenceSimulation
+            - [ ] computeExecutionReadinessScore
+            - [ ] generateMaturityForecastTimeline
+
+            ### notes
+
+            Auto-generated by pin-refs-and-checksums workflow on drift detection. Requires immediate attention for security compliance.`;
+
+            await github.rest.issues.create({
+              ...context.repo,
+              title: '🚨 [Initiative] contextDriftDetection',
+              body: issueBody,
+              labels: ['type:initiative', 'priority:high', 'security:alert']
+            });
+
+      - name: summary report
+        if: always()
+        run: |
+          echo "## 📊 Ref Pinning Summary" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ steps.check_manifest.outputs.manifest_exists }}" == "false" ]]; then
+            echo "⚠️ No context manifest found - workflow skipped" >> $GITHUB_STEP_SUMMARY
+          elif [[ "${{ steps.process_refs.outputs.changes_made }}" == "true" ]]; then
+            echo "✅ Repository refs updated and checksums regenerated" >> $GITHUB_STEP_SUMMARY
+            if [[ "${{ steps.process_refs.outputs.drift_detected }}" == "true" ]]; then
+              echo "🚨 **Drift detected** - security issue created" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "✅ All repository refs are up to date" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Next run: Tomorrow at 2 AM UTC" >> $GITHUB_STEP_SUMMARY

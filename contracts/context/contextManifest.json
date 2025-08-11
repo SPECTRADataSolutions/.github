@@ -1,0 +1,151 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/contextManifest.json",
+  "title": "SPECTRA Context Manifest Schema",
+  "description": "Declarative manifest for MCP server context configuration with allowlists, ref pinning, and size constraints",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "Schema version for compatibility tracking"
+    },
+    "allowedOwners": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9-]+$"
+      },
+      "description": "GitHub organisation/user allowlist for repository access",
+      "default": ["SPECTRADataSolutions"]
+    },
+    "repositories": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/repositoryConfig"
+      },
+      "description": "Repository configurations with pinned refs and path allowlists"
+    },
+    "policies": {
+      "$ref": "#/definitions/policies",
+      "description": "Privacy, size, and security policies"
+    },
+    "cache": {
+      "$ref": "#/definitions/cacheConfig",
+      "description": "Cache configuration for performance optimization"
+    }
+  },
+  "required": ["version", "allowedOwners", "repositories", "policies"],
+  "additionalProperties": false,
+  "definitions": {
+    "repositoryConfig": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9-]+$",
+          "description": "Repository owner (must be in allowedOwners)"
+        },
+        "repo": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._-]+$",
+          "description": "Repository name"
+        },
+        "pinnedRef": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$",
+          "description": "Pinned commit SHA (40-character hex string)"
+        },
+        "allowedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9/_.-]+$"
+          },
+          "description": "Allowlisted file/directory paths within the repository"
+        },
+        "checksum": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 checksum for drift detection"
+        }
+      },
+      "required": ["owner", "repo", "pinnedRef", "allowedPaths", "checksum"],
+      "additionalProperties": false
+    },
+    "policies": {
+      "type": "object",
+      "properties": {
+        "maxFileSizeKB": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10240,
+          "default": 1024,
+          "description": "Maximum file size in KB"
+        },
+        "allowedMimeTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]+/[a-z0-9.-]+$"
+          },
+          "default": [
+            "text/plain",
+            "text/markdown",
+            "application/json",
+            "application/yaml"
+          ],
+          "description": "Allowlisted MIME types for file access"
+        },
+        "redactionEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable privacy redaction for sensitive content"
+        },
+        "defaultDenyPrivateRepos": {
+          "type": "boolean",
+          "default": true,
+          "description": "Default deny access to private repositories"
+        },
+        "logContent": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to log file contents (should be false for privacy)"
+        }
+      },
+      "required": ["maxFileSizeKB", "allowedMimeTypes", "redactionEnabled", "defaultDenyPrivateRepos", "logContent"],
+      "additionalProperties": false
+    },
+    "cacheConfig": {
+      "type": "object",
+      "properties": {
+        "ttlSeconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400,
+          "default": 3600,
+          "description": "Time-to-live for cached entries in seconds"
+        },
+        "maxEntries": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 10000,
+          "default": 1000,
+          "description": "Maximum number of cached entries (LRU eviction)"
+        },
+        "enableETag": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ETag-based cache validation"
+        },
+        "requestCoalescing": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable request coalescing for duplicate requests"
+        }
+      },
+      "required": ["ttlSeconds", "maxEntries", "enableETag", "requestCoalescing"],
+      "additionalProperties": false
+    }
+  }
+}

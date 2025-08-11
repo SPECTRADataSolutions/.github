@@ -1,0 +1,135 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/anchor.json",
+  "title": "SPECTRA Anchor Schema",
+  "description": "Schema for anchor responses from spectra.anchor.get MCP calls",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9._/-]+$",
+      "description": "Unique identifier for the anchor"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the anchor"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the anchor's purpose"
+    },
+    "repository": {
+      "$ref": "#/definitions/repositoryRef",
+      "description": "Repository reference where the anchor is located"
+    },
+    "path": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9/_.-]+$",
+      "description": "File path within the repository"
+    },
+    "content": {
+      "type": "string",
+      "description": "File content (subject to redaction policies)"
+    },
+    "metadata": {
+      "$ref": "#/definitions/anchorMetadata",
+      "description": "Additional metadata about the anchor"
+    },
+    "checksum": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 checksum of the content for integrity verification"
+    },
+    "lastModified": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last modification"
+    },
+    "redacted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether content has been redacted for privacy"
+    }
+  },
+  "required": ["id", "name", "repository", "path", "content", "checksum", "lastModified"],
+  "additionalProperties": false,
+  "definitions": {
+    "repositoryRef": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9-]+$",
+          "description": "Repository owner"
+        },
+        "repo": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._-]+$",
+          "description": "Repository name"
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$",
+          "description": "Pinned commit SHA"
+        }
+      },
+      "required": ["owner", "repo", "ref"],
+      "additionalProperties": false
+    },
+    "anchorMetadata": {
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "type": "string",
+          "pattern": "^[a-z]+/[a-z0-9.-]+$",
+          "description": "MIME type of the content"
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Content size in bytes"
+        },
+        "encoding": {
+          "type": "string",
+          "enum": ["utf-8", "ascii", "base64"],
+          "default": "utf-8",
+          "description": "Content encoding"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          },
+          "description": "Classification tags for the anchor"
+        },
+        "spectraMetadata": {
+          "$ref": "#/definitions/spectraMetadata",
+          "description": "SPECTRA organisational metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "spectraMetadata": {
+      "type": "object",
+      "properties": {
+        "dream": {
+          "type": "string",
+          "enum": ["SPECTRA"],
+          "description": "Organisational dream"
+        },
+        "archetype": {
+          "type": "string",
+          "enum": ["Guidance", "Innovation", "Engagement", "Operations", "Protection", "Sustenance", "Growth"],
+          "description": "Capability archetype"
+        },
+        "domain": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z]*$",
+          "description": "Domain within archetype"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

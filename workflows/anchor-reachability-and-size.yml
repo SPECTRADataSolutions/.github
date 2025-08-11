@@ -1,0 +1,294 @@
+name: anchor-reachability-and-size
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      coverage_threshold:
+        description: 'Minimum coverage percentage for anchors'
+        required: false
+        default: '95'
+        type: string
+
+jobs:
+  check-anchors:
+    runs-on: ubuntu-latest
+    name: verify anchor reachability and size compliance
+    
+    permissions:
+      contents: read
+      issues: write
+      
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+        
+      - name: setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: install dependencies
+        run: |
+          npm install -g js-yaml
+          
+      - name: check for context manifest
+        id: check_manifest
+        run: |
+          if [[ -f "context/config/contextManifest.yaml" ]]; then
+            echo "manifest_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "manifest_exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No context manifest found - skipping anchor checks"
+          fi
+          
+      - name: scan anchor reachability
+        if: steps.check_manifest.outputs.manifest_exists == 'true'
+        id: scan_anchors
+        run: |
+          # Convert YAML to JSON for processing
+          js-yaml context/config/contextManifest.yaml > /tmp/manifest.json
+          
+          # Track statistics
+          total_anchors=0
+          reachable_anchors=0
+          oversized_anchors=0
+          unreachable_anchors=0
+          
+          # Get size limits from manifest
+          max_size_kb=$(jq -r '.policies.maxFileSizeKB // 1024' /tmp/manifest.json)
+          max_size_bytes=$((max_size_kb * 1024))
+          
+          echo "📊 Scanning anchors with size limit: ${max_size_kb}KB"
+          echo "" > /tmp/anchor_report.md
+          echo "# Anchor Reachability Report" >> /tmp/anchor_report.md
+          echo "" >> /tmp/anchor_report.md
+          
+          # Process each repository
+          jq -c '.repositories[]' /tmp/manifest.json | while read repo; do
+            owner=$(echo "$repo" | jq -r '.owner')
+            repo_name=$(echo "$repo" | jq -r '.repo')
+            pinned_ref=$(echo "$repo" | jq -r '.pinnedRef')
+            allowed_paths=$(echo "$repo" | jq -r '.allowedPaths[]')
+            
+            echo "## Repository: $owner/$repo_name" >> /tmp/anchor_report.md
+            echo "**Pinned Ref:** \`$pinned_ref\`" >> /tmp/anchor_report.md
+            echo "" >> /tmp/anchor_report.md
+            
+            # Check each allowed path
+            for path in $allowed_paths; do
+              echo "Checking $owner/$repo_name:$path at $pinned_ref..."
+              total_anchors=$((total_anchors + 1))
+              
+              # Get file info from GitHub API
+              file_info=$(curl -s \
+                -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/$owner/$repo_name/contents/$path?ref=$pinned_ref")
+              
+              # Check if file exists and is reachable
+              if echo "$file_info" | jq -e '.message == "Not Found"' > /dev/null; then
+                echo "❌ Unreachable: $path"
+                echo "- ❌ **$path** - Not Found" >> /tmp/anchor_report.md
+                unreachable_anchors=$((unreachable_anchors + 1))
+                echo "unreachable_anchor=$owner/$repo_name:$path" >> /tmp/unreachable_list
+                continue
+              fi
+              
+              # Get file size
+              file_size=$(echo "$file_info" | jq -r '.size // 0')
+              
+              if [[ "$file_size" -gt "$max_size_bytes" ]]; then
+                echo "⚠️ Oversized: $path (${file_size} bytes > ${max_size_bytes} bytes)"
+                echo "- ⚠️ **$path** - Oversized (${file_size} bytes)" >> /tmp/anchor_report.md
+                oversized_anchors=$((oversized_anchors + 1))
+                echo "oversized_anchor=$owner/$repo_name:$path:$file_size" >> /tmp/oversized_list
+              else
+                echo "✅ Reachable: $path (${file_size} bytes)"
+                echo "- ✅ **$path** - OK (${file_size} bytes)" >> /tmp/anchor_report.md
+                reachable_anchors=$((reachable_anchors + 1))
+              fi
+            done
+            
+            echo "" >> /tmp/anchor_report.md
+          done
+          
+          # Calculate coverage
+          if [[ "$total_anchors" -gt 0 ]]; then
+            coverage_percent=$(( (reachable_anchors * 100) / total_anchors ))
+          else
+            coverage_percent=0
+          fi
+          
+          # Store results
+          echo "total_anchors=$total_anchors" >> $GITHUB_OUTPUT
+          echo "reachable_anchors=$reachable_anchors" >> $GITHUB_OUTPUT
+          echo "oversized_anchors=$oversized_anchors" >> $GITHUB_OUTPUT
+          echo "unreachable_anchors=$unreachable_anchors" >> $GITHUB_OUTPUT
+          echo "coverage_percent=$coverage_percent" >> $GITHUB_OUTPUT
+          
+          # Check if coverage meets threshold
+          threshold="${{ inputs.coverage_threshold || '95' }}"
+          if [[ "$coverage_percent" -ge "$threshold" ]]; then
+            echo "coverage_ok=true" >> $GITHUB_OUTPUT
+          else
+            echo "coverage_ok=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: create coverage gap issue
+        if: steps.scan_anchors.outputs.coverage_ok == 'false' && steps.check_manifest.outputs.manifest_exists == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const totalAnchors = '${{ steps.scan_anchors.outputs.total_anchors }}';
+            const reachableAnchors = '${{ steps.scan_anchors.outputs.reachable_anchors }}';
+            const coveragePercent = '${{ steps.scan_anchors.outputs.coverage_percent }}';
+            const threshold = '${{ inputs.coverage_threshold || "95" }}';
+            
+            let unreachableList = '';
+            let oversizedList = '';
+            
+            try {
+              unreachableList = fs.readFileSync('/tmp/unreachable_list', 'utf8').trim();
+            } catch (e) {
+              unreachableList = 'None identified';
+            }
+            
+            try {
+              oversizedList = fs.readFileSync('/tmp/oversized_list', 'utf8').trim();
+            } catch (e) {
+              oversizedList = 'None identified';
+            }
+
+            const issueBody = `### dream
+
+            SPECTRA
+
+            ### archetype
+
+            Guidance
+
+            ### domain
+
+            governance
+
+            ### initiativeTitle
+
+            anchorCoverageGapRemediation
+
+            ### purpose
+
+            Address anchor coverage gaps in MCP context server to ensure reliable access to canonical SPECTRA knowledge and maintain compliance with coverage SLOs.
+
+            ### scope
+
+            inScope:
+            - Investigate ${totalAnchors - reachableAnchors} unreachable/oversized anchors
+            - Current coverage: ${coveragePercent}% (below ${threshold}% threshold)
+            - Fix unreachable paths: ${unreachableList}
+            - Resolve oversized files: ${oversizedList}
+            - Update manifest allowlists if paths have moved
+            - Verify ref pinning and checksum integrity
+            - Document resolution and prevention measures
+
+            outOfScope:
+            - Adding new anchors beyond existing allowlist scope
+            - Changing coverage thresholds without governance approval
+            - Modifying source repositories to meet size constraints
+
+            ### capabilityAreas
+
+            anchorInvestigation
+            pathReachabilityFix
+            sizeComplianceRemediation
+            manifestCorrection
+            coverageRestoration
+
+            ### deliverables
+
+            - Root cause analysis of coverage gaps
+            - Fixed unreachable anchor paths
+            - Resolution of oversized file issues
+            - Updated contextManifest.yaml if needed
+            - Verification of ${threshold}%+ coverage restoration
+            - Documentation of preventive measures
+
+            ### successIndicators
+
+            - Anchor coverage restored to ≥${threshold}% within 24 hours
+            - All unreachable anchors resolved or removed from allowlist
+            - Oversized files addressed through compression or exemption
+            - Manifest validation passes in CI
+            - Coverage scanning returns to green status
+            - Zero anchor reachability failures for 7 consecutive days
+
+            ### constraints
+
+            - Framework is Law - all fixes must comply with SPECTRA standards
+            - Maintain ref pinning integrity during fixes
+            - No violation of size/MIME type policies
+            - British English and camelCase in all documentation
+            - Must not compromise security or privacy policies
+
+            ### dependencies
+
+            - context: MCP server anchor configuration and manifest
+            - .github: governance workflows and validation contracts  
+            - framework: compliance policies and size constraints
+            - Individual source repositories for path corrections
+
+            ### automationOptions
+
+            - [ ] generateInitiativeIdAndUuid
+            - [ ] generateProjectsEpicsStories
+            - [ ] generateWorkPackagesAndSprintPlan
+            - [ ] runImpactAnalysis
+            - [ ] runFutureConsequenceSimulation
+            - [ ] computeExecutionReadinessScore
+            - [ ] generateMaturityForecastTimeline
+
+            ### notes
+
+            Auto-generated by anchor-reachability-and-size workflow. Current coverage: ${reachableAnchors}/${totalAnchors} anchors (${coveragePercent}%). Requires immediate attention to maintain MCP service reliability.`;
+
+            await github.rest.issues.create({
+              ...context.repo,
+              title: '📊 [Initiative] anchorCoverageGapRemediation',
+              body: issueBody,
+              labels: ['type:initiative', 'priority:high', 'coverage:gap']
+            });
+            
+      - name: upload coverage report
+        if: steps.check_manifest.outputs.manifest_exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: anchor-coverage-report
+          path: /tmp/anchor_report.md
+          retention-days: 30
+          
+      - name: summary report
+        if: always()
+        run: |
+          echo "## 📊 Anchor Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ steps.check_manifest.outputs.manifest_exists }}" == "false" ]]; then
+            echo "⚠️ No context manifest found - workflow skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Total Anchors:** ${{ steps.scan_anchors.outputs.total_anchors }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Reachable:** ${{ steps.scan_anchors.outputs.reachable_anchors }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Unreachable:** ${{ steps.scan_anchors.outputs.unreachable_anchors }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Oversized:** ${{ steps.scan_anchors.outputs.oversized_anchors }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Coverage:** ${{ steps.scan_anchors.outputs.coverage_percent }}%" >> $GITHUB_STEP_SUMMARY
+            
+            if [[ "${{ steps.scan_anchors.outputs.coverage_ok }}" == "true" ]]; then
+              echo "✅ **Status:** Coverage meets threshold" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Status:** Coverage below threshold - issue created" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Next scan: Tomorrow at 6 AM UTC" >> $GITHUB_STEP_SUMMARY

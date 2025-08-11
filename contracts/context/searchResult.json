@@ -1,0 +1,199 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/searchResult.json",
+  "title": "SPECTRA Search Result Schema",
+  "description": "Schema for search responses from spectra.search.find MCP calls",
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "string",
+      "description": "Original search query"
+    },
+    "totalResults": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of matching results"
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/searchResultItem"
+      },
+      "description": "Array of search result items"
+    },
+    "pagination": {
+      "$ref": "#/definitions/pagination",
+      "description": "Pagination information"
+    },
+    "filters": {
+      "$ref": "#/definitions/appliedFilters",
+      "description": "Applied search filters"
+    },
+    "executionTime": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Search execution time in milliseconds"
+    }
+  },
+  "required": ["query", "totalResults", "results"],
+  "additionalProperties": false,
+  "definitions": {
+    "searchResultItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._/-]+$",
+          "description": "Unique identifier for the result"
+        },
+        "title": {
+          "type": "string",
+          "description": "Result title or filename"
+        },
+        "snippet": {
+          "type": "string",
+          "description": "Content snippet with search matches highlighted"
+        },
+        "repository": {
+          "$ref": "#/definitions/repositoryRef",
+          "description": "Repository where the result is located"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9/_.-]+$",
+          "description": "File path within the repository"
+        },
+        "relevanceScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Relevance score between 0 and 1"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of last modification"
+        },
+        "metadata": {
+          "$ref": "#/definitions/resultMetadata",
+          "description": "Additional metadata about the result"
+        }
+      },
+      "required": ["id", "title", "repository", "path", "relevanceScore"],
+      "additionalProperties": false
+    },
+    "repositoryRef": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9-]+$",
+          "description": "Repository owner"
+        },
+        "repo": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._-]+$",
+          "description": "Repository name"
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$",
+          "description": "Pinned commit SHA"
+        }
+      },
+      "required": ["owner", "repo", "ref"],
+      "additionalProperties": false
+    },
+    "resultMetadata": {
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "type": "string",
+          "pattern": "^[a-z]+/[a-z0-9.-]+$",
+          "description": "MIME type of the content"
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Content size in bytes"
+        },
+        "matchCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of search term matches in the content"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          },
+          "description": "Classification tags"
+        }
+      },
+      "additionalProperties": false
+    },
+    "pagination": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Current page number"
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Number of results per page"
+        },
+        "totalPages": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Total number of pages"
+        },
+        "hasNext": {
+          "type": "boolean",
+          "description": "Whether there are more pages available"
+        },
+        "hasPrevious": {
+          "type": "boolean",
+          "description": "Whether there are previous pages available"
+        }
+      },
+      "required": ["page", "pageSize", "totalPages", "hasNext", "hasPrevious"],
+      "additionalProperties": false
+    },
+    "appliedFilters": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9-]+$",
+          "description": "Filter by repository owner"
+        },
+        "repo": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._-]+$",
+          "description": "Filter by repository name"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9/_.-]+$",
+          "description": "Filter by path pattern"
+        },
+        "mimeType": {
+          "type": "string",
+          "pattern": "^[a-z]+/[a-z0-9.-]+$",
+          "description": "Filter by MIME type"
+        },
+        "maxSizeKB": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum file size filter in KB"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,224 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/hierarchyResponse.json",
+  "title": "SPECTRA Hierarchy Response Schema",
+  "description": "Schema for organisation hierarchy responses from spectra.org.hierarchy MCP calls",
+  "type": "object",
+  "properties": {
+    "hierarchy": {
+      "$ref": "#/definitions/organisationHierarchy",
+      "description": "Complete organisational hierarchy"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/role"
+      },
+      "description": "Available roles in the organisation"
+    },
+    "version": {
+      "type": "string",
+      "description": "Hierarchy version or timestamp"
+    },
+    "source": {
+      "$ref": "#/definitions/sourceRef",
+      "description": "Source reference for the hierarchy data"
+    }
+  },
+  "required": ["hierarchy", "roles", "version", "source"],
+  "additionalProperties": false,
+  "definitions": {
+    "organisationHierarchy": {
+      "type": "object",
+      "properties": {
+        "dream": {
+          "type": "string",
+          "enum": ["SPECTRA"],
+          "description": "Organisational dream"
+        },
+        "archetypes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/archetype"
+          },
+          "description": "High-level capability archetypes"
+        }
+      },
+      "required": ["dream", "archetypes"],
+      "additionalProperties": false
+    },
+    "archetype": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "enum": ["Guidance", "Innovation", "Engagement", "Operations", "Protection", "Sustenance", "Growth"],
+          "description": "Archetype name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Archetype description"
+        },
+        "domains": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/domain"
+          },
+          "description": "Domains within this archetype"
+        }
+      },
+      "required": ["name", "description", "domains"],
+      "additionalProperties": false
+    },
+    "domain": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z]*$",
+          "description": "Domain name in camelCase"
+        },
+        "description": {
+          "type": "string",
+          "description": "Domain description"
+        },
+        "repositories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/repositoryInfo"
+          },
+          "description": "Repositories within this domain"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          },
+          "description": "Role IDs associated with this domain"
+        }
+      },
+      "required": ["name", "description", "repositories"],
+      "additionalProperties": false
+    },
+    "repositoryInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._-]+$",
+          "description": "Repository name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Repository description"
+        },
+        "owner": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9-]+$",
+          "description": "Repository owner"
+        },
+        "visibility": {
+          "type": "string",
+          "enum": ["public", "private"],
+          "description": "Repository visibility"
+        },
+        "primaryLanguage": {
+          "type": "string",
+          "description": "Primary programming language"
+        }
+      },
+      "required": ["name", "description", "owner", "visibility"],
+      "additionalProperties": false
+    },
+    "role": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "description": "Unique role identifier"
+        },
+        "title": {
+          "type": "string",
+          "description": "Human-readable role title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Role description and responsibilities"
+        },
+        "level": {
+          "type": "string",
+          "enum": ["dream", "archetype", "domain", "repository"],
+          "description": "Hierarchical level where this role operates"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["read", "write", "admin", "maintain"]
+          },
+          "description": "Permissions associated with this role"
+        },
+        "scope": {
+          "$ref": "#/definitions/roleScope",
+          "description": "Scope of the role within the hierarchy"
+        }
+      },
+      "required": ["id", "title", "description", "level", "permissions"],
+      "additionalProperties": false
+    },
+    "roleScope": {
+      "type": "object",
+      "properties": {
+        "archetypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["Guidance", "Innovation", "Engagement", "Operations", "Protection", "Sustenance", "Growth"]
+          },
+          "description": "Archetypes this role has access to"
+        },
+        "domains": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z]*$"
+          },
+          "description": "Domains this role has access to"
+        },
+        "repositories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9._-]+$"
+          },
+          "description": "Repositories this role has access to"
+        }
+      },
+      "additionalProperties": false
+    },
+    "sourceRef": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9-]+/[a-zA-Z0-9._-]+$",
+          "description": "Source repository in owner/repo format"
+        },
+        "ref": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$",
+          "description": "Pinned commit SHA"
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9/_.-]+$",
+          "description": "Path to hierarchy file"
+        }
+      },
+      "required": ["repository", "ref", "path"],
+      "additionalProperties": false
+    }
+  }
+}

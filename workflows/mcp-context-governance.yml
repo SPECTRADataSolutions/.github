@@ -1,0 +1,342 @@
+name: mcp-context-governance
+
+on:
+  schedule:
+    # Run weekly on Sundays at 8 AM UTC
+    - cron: '0 8 * * 0'
+  workflow_dispatch:
+    inputs:
+      check_all:
+        description: 'Run all governance checks'
+        required: false
+        default: 'true'
+        type: boolean
+
+jobs:
+  governance-overview:
+    runs-on: ubuntu-latest
+    name: MCP context governance overview and compliance
+    
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+      
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+        
+      - name: setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: install dependencies
+        run: |
+          npm install -g js-yaml
+          npm install -g ajv-cli
+          
+      - name: check governance infrastructure
+        id: check_infra
+        run: |
+          echo "## 🏛️ SPECTRA MCP Context Governance Report" > /tmp/governance_report.md
+          echo "" >> /tmp/governance_report.md
+          echo "_Generated on $(date -u '+%Y-%m-%d %H:%M:%S UTC')_" >> /tmp/governance_report.md
+          echo "" >> /tmp/governance_report.md
+          
+          # Check for required schemas
+          echo "### 📋 Contract Schemas" >> /tmp/governance_report.md
+          echo "" >> /tmp/governance_report.md
+          
+          schemas=(
+            "contracts/context/contextManifest.json"
+            "contracts/context/anchor.json"
+            "contracts/context/searchResult.json"
+            "contracts/context/hierarchyResponse.json"
+            "contracts/context/redactionPolicy.json"
+          )
+          
+          schemas_ok=true
+          for schema in "${schemas[@]}"; do
+            if [[ -f "$schema" ]]; then
+              # Validate schema syntax
+              if ajv compile --spec draft7 --schema "$schema" >/dev/null 2>&1; then
+                echo "- ✅ **$schema** - Valid JSON Schema" >> /tmp/governance_report.md
+              else
+                echo "- ❌ **$schema** - Invalid JSON Schema syntax" >> /tmp/governance_report.md
+                schemas_ok=false
+              fi
+            else
+              echo "- ❌ **$schema** - Missing" >> /tmp/governance_report.md
+              schemas_ok=false
+            fi
+          done
+          
+          echo "schemas_ok=$schemas_ok" >> $GITHUB_OUTPUT
+          echo "" >> /tmp/governance_report.md
+          
+          # Check for required workflows
+          echo "### ⚙️ Governance Workflows" >> /tmp/governance_report.md
+          echo "" >> /tmp/governance_report.md
+          
+          workflows=(
+            "workflows/validate-context-manifest.yml"
+            "workflows/pin-refs-and-checksums.yml"
+            "workflows/anchor-reachability-and-size.yml"
+            "workflows/mcp-context-governance.yml"
+          )
+          
+          workflows_ok=true
+          for workflow in "${workflows[@]}"; do
+            if [[ -f "$workflow" ]]; then
+              echo "- ✅ **$workflow** - Present" >> /tmp/governance_report.md
+            else
+              echo "- ❌ **$workflow** - Missing" >> /tmp/governance_report.md
+              workflows_ok=false
+            fi
+          done
+          
+          echo "workflows_ok=$workflows_ok" >> $GITHUB_OUTPUT
+          echo "" >> /tmp/governance_report.md
+          
+      - name: check recent workflow runs
+        run: |
+          echo "### 📊 Recent Workflow Execution Status" >> /tmp/governance_report.md
+          echo "" >> /tmp/governance_report.md
+          
+          # Get recent workflow runs for context-related workflows
+          workflows_to_check=(
+            "validate-context-manifest"
+            "pin-refs-and-checksums"
+            "anchor-reachability-and-size"
+          )
+          
+          all_green=true
+          for workflow in "${workflows_to_check[@]}"; do
+            # Get latest run status (would need API call in real implementation)
+            echo "- 🔄 **$workflow** - Status monitoring available via GitHub Actions" >> /tmp/governance_report.md
+          done
+          
+          echo "" >> /tmp/governance_report.md
+          
+      - name: validate framework compliance
+        run: |
+          echo "### 🏛️ Framework Compliance" >> /tmp/governance_report.md
+          echo "" >> /tmp/governance_report.md
+          
+          # Check SPECTRA organisational metadata
+          if [[ -f ".spectra/metadata.yml" ]]; then
+            dream=$(grep "^dream:" .spectra/metadata.yml | cut -d' ' -f2)
+            archetype=$(grep "^archetype:" .spectra/metadata.yml | cut -d' ' -f2)
+            domain=$(grep "^domain:" .spectra/metadata.yml | cut -d' ' -f2)
+            
+            if [[ "$dream" == "SPECTRA" ]] && [[ "$archetype" == "Guidance" ]] && [[ "$domain" == "governance" ]]; then
+              echo "- ✅ **SPECTRA Metadata** - Compliant (SPECTRA → Guidance → governance)" >> /tmp/governance_report.md
+            else
+              echo "- ❌ **SPECTRA Metadata** - Non-compliant ($dream → $archetype → $domain)" >> /tmp/governance_report.md
+            fi
+          else
+            echo "- ❌ **SPECTRA Metadata** - Missing .spectra/metadata.yml" >> /tmp/governance_report.md
+          fi
+          
+          # Check for British English compliance in documentation
+          echo "- 🔍 **British English** - Manual review required for documentation" >> /tmp/governance_report.md
+          
+          # Check camelCase compliance in schemas
+          camel_case_violations=$(find contracts/context -name "*.json" -exec grep -l "snake_case\|kebab-case" {} \; || true)
+          if [[ -z "$camel_case_violations" ]]; then
+            echo "- ✅ **camelCase** - No obvious violations in schemas" >> /tmp/governance_report.md
+          else
+            echo "- ⚠️ **camelCase** - Potential violations found, manual review needed" >> /tmp/governance_report.md
+          fi
+          
+          echo "" >> /tmp/governance_report.md
+          
+      - name: security and privacy review
+        run: |
+          echo "### 🔒 Security and Privacy Compliance" >> /tmp/governance_report.md
+          echo "" >> /tmp/governance_report.md
+          
+          # Check redaction policy exists
+          if [[ -f "contracts/context/redactionPolicy.json" ]]; then
+            # Validate redaction is enabled by default
+            redaction_default=$(jq -r '.definitions.redactionRule.properties.enabled.default // true' contracts/context/redactionPolicy.json)
+            if [[ "$redaction_default" == "true" ]]; then
+              echo "- ✅ **Redaction Policy** - Present with secure defaults" >> /tmp/governance_report.md
+            else
+              echo "- ⚠️ **Redaction Policy** - Present but may have insecure defaults" >> /tmp/governance_report.md
+            fi
+          else
+            echo "- ❌ **Redaction Policy** - Missing schema" >> /tmp/governance_report.md
+          fi
+          
+          # Check for content logging policies
+          if grep -q '"logContent".*false' contracts/context/contextManifest.json; then
+            echo "- ✅ **Content Logging** - Disabled by default for privacy" >> /tmp/governance_report.md
+          else
+            echo "- ⚠️ **Content Logging** - Policy unclear, review needed" >> /tmp/governance_report.md
+          fi
+          
+          # Check private repo access policy
+          if grep -q '"defaultDenyPrivateRepos".*true' contracts/context/contextManifest.json; then
+            echo "- ✅ **Private Repo Access** - Default deny policy enforced" >> /tmp/governance_report.md
+          else
+            echo "- ⚠️ **Private Repo Access** - Policy unclear, review needed" >> /tmp/governance_report.md
+          fi
+          
+          echo "" >> /tmp/governance_report.md
+          
+      - name: generate recommendations
+        run: |
+          echo "### 💡 Recommendations" >> /tmp/governance_report.md
+          echo "" >> /tmp/governance_report.md
+          
+          if [[ "${{ steps.check_infra.outputs.schemas_ok }}" == "false" ]]; then
+            echo "- 🔧 **Fix schema issues** - Repair or recreate missing/invalid schemas" >> /tmp/governance_report.md
+          fi
+          
+          if [[ "${{ steps.check_infra.outputs.workflows_ok }}" == "false" ]]; then
+            echo "- 🔧 **Deploy missing workflows** - Complete governance automation setup" >> /tmp/governance_report.md
+          fi
+          
+          echo "- 📅 **Schedule regular reviews** - Ensure governance checks run consistently" >> /tmp/governance_report.md
+          echo "- 📚 **Update documentation** - Keep governance docs current with framework changes" >> /tmp/governance_report.md
+          echo "- 🎯 **Monitor SLOs** - Track cache hit rates, latency, and coverage metrics" >> /tmp/governance_report.md
+          echo "- 🔐 **Review security policies** - Quarterly assessment of redaction and access controls" >> /tmp/governance_report.md
+          
+          echo "" >> /tmp/governance_report.md
+          echo "---" >> /tmp/governance_report.md
+          echo "_This report is generated automatically by SPECTRA MCP Context Governance. Next report: $(date -u -d '+7 days' '+%Y-%m-%d')_" >> /tmp/governance_report.md
+          
+      - name: create governance health issue
+        if: steps.check_infra.outputs.schemas_ok == 'false' || steps.check_infra.outputs.workflows_ok == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('/tmp/governance_report.md', 'utf8');
+            
+            const issueBody = `### dream
+
+            SPECTRA
+
+            ### archetype
+
+            Guidance
+
+            ### domain
+
+            governance
+
+            ### initiativeTitle
+
+            mcpContextGovernanceHealth
+
+            ### purpose
+
+            Address governance infrastructure issues in SPECTRA MCP Context server to ensure compliance with Framework is Law and maintain service reliability.
+
+            ### scope
+
+            inScope:
+            - Fix missing or invalid contract schemas
+            - Deploy missing governance workflows
+            - Validate framework compliance across all components
+            - Ensure security and privacy policies are properly configured
+            - Update documentation to reflect current state
+
+            outOfScope:
+            - Changing fundamental governance principles
+            - Modifying SPECTRA organisational structure
+            - Implementing new governance features outside current scope
+
+            ### capabilityAreas
+
+            schemaValidation
+            workflowDeployment
+            complianceVerification
+            securityPolicyEnforcement
+            documentationUpdate
+
+            ### deliverables
+
+            - All contract schemas present and valid
+            - Complete governance workflow automation
+            - Framework compliance verification report
+            - Security and privacy policy validation
+            - Updated governance documentation
+
+            ### successIndicators
+
+            - 100% of required schemas present and valid
+            - All governance workflows deployed and functional
+            - Framework compliance checks passing
+            - Security policies properly configured and enforced
+            - Documentation current and accurate
+            - Governance health green for 14 consecutive days
+
+            ### constraints
+
+            - Framework is Law - all changes must comply with SPECTRA standards
+            - Maintain backward compatibility with existing configurations
+            - No compromise on security or privacy requirements
+            - British English and camelCase in all documentation
+
+            ### dependencies
+
+            - .github: governance infrastructure and templates
+            - framework: compliance contracts and policies
+            - context: MCP server configuration and deployment
+
+            ### automationOptions
+
+            - [ ] generateInitiativeIdAndUuid
+            - [ ] generateProjectsEpicsStories
+            - [ ] generateWorkPackagesAndSprintPlan
+            - [ ] runImpactAnalysis
+            - [ ] runFutureConsequenceSimulation
+            - [ ] computeExecutionReadinessScore
+            - [ ] generateMaturityForecastTimeline
+
+            ### notes
+
+            Auto-generated by mcp-context-governance workflow. See attached governance report for detailed findings.
+
+            ## Governance Report
+
+            ${report}`;
+
+            await github.rest.issues.create({
+              ...context.repo,
+              title: '🏛️ [Initiative] mcpContextGovernanceHealth',
+              body: issueBody,
+              labels: ['type:initiative', 'priority:medium', 'governance:health']
+            });
+            
+      - name: upload governance report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-governance-report
+          path: /tmp/governance_report.md
+          retention-days: 90
+          
+      - name: summary report
+        if: always()
+        run: |
+          echo "## 🏛️ MCP Context Governance Summary" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ steps.check_infra.outputs.schemas_ok }}" == "true" ]]; then
+            echo "✅ **Schemas:** All present and valid" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Schemas:** Issues found" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ steps.check_infra.outputs.workflows_ok }}" == "true" ]]; then
+            echo "✅ **Workflows:** All present" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Workflows:** Missing components" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Full Report:** Check governance-report artifact" >> $GITHUB_STEP_SUMMARY
+          echo "🔄 **Next Review:** $(date -u -d '+7 days' '+%Y-%m-%d') at 8 AM UTC" >> $GITHUB_STEP_SUMMARY

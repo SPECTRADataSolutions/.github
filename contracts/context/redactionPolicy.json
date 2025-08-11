@@ -1,0 +1,196 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/redactionPolicy.json",
+  "title": "SPECTRA Redaction Policy Schema",
+  "description": "Schema for privacy redaction policies in MCP context server",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "enum": ["1.0"],
+      "description": "Policy version for compatibility tracking"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether redaction is enabled globally"
+    },
+    "redactionRules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/redactionRule"
+      },
+      "description": "List of redaction rules to apply"
+    },
+    "defaultRedactionMask": {
+      "type": "string",
+      "default": "[REDACTED]",
+      "description": "Default mask to use for redacted content"
+    },
+    "counters": {
+      "$ref": "#/definitions/countersConfig",
+      "description": "Configuration for redaction counters and metrics"
+    },
+    "exemptions": {
+      "$ref": "#/definitions/exemptions",
+      "description": "Exemptions from redaction policies"
+    }
+  },
+  "required": ["version", "enabled", "redactionRules"],
+  "additionalProperties": false,
+  "definitions": {
+    "redactionRule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "description": "Unique identifier for the rule"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name for the rule"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of what this rule redacts"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Regular expression pattern to match sensitive content"
+        },
+        "replacement": {
+          "type": "string",
+          "description": "Replacement text for matched content"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Severity level of the sensitive data"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether this rule is enabled"
+        },
+        "scope": {
+          "$ref": "#/definitions/ruleScope",
+          "description": "Scope where this rule applies"
+        }
+      },
+      "required": ["id", "name", "pattern", "replacement", "severity"],
+      "additionalProperties": false
+    },
+    "ruleScope": {
+      "type": "object",
+      "properties": {
+        "mimeTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]+/[a-z0-9.-]+$"
+          },
+          "description": "MIME types this rule applies to"
+        },
+        "pathPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "File path patterns this rule applies to"
+        },
+        "repositories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9-]+/[a-zA-Z0-9._-]+$"
+          },
+          "description": "Repositories this rule applies to (owner/repo format)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "countersConfig": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to count redactions"
+        },
+        "includePatternMatches": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to include pattern match details in counters"
+        },
+        "alertThresholds": {
+          "$ref": "#/definitions/alertThresholds",
+          "description": "Thresholds for alerting on redaction counts"
+        }
+      },
+      "additionalProperties": false
+    },
+    "alertThresholds": {
+      "type": "object",
+      "properties": {
+        "perFile": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 10,
+          "description": "Alert if more than this many redactions in a single file"
+        },
+        "perHour": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 100,
+          "description": "Alert if more than this many redactions per hour"
+        },
+        "perDay": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1000,
+          "description": "Alert if more than this many redactions per day"
+        }
+      },
+      "additionalProperties": false
+    },
+    "exemptions": {
+      "type": "object",
+      "properties": {
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9/_.-]+$"
+          },
+          "description": "File paths exempt from redaction"
+        },
+        "repositories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9-]+/[a-zA-Z0-9._-]+$"
+          },
+          "description": "Repositories exempt from redaction"
+        },
+        "mimeTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z]+/[a-z0-9.-]+$"
+          },
+          "description": "MIME types exempt from redaction"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]+$"
+          },
+          "description": "Specific rule IDs to exempt"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,250 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#", 
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/searchResult.json",
+  "title": "SPECTRA Context Search Result Schema",
+  "description": "Schema for search results returned by spectra.search.find endpoint",
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "Original search query text"
+        },
+        "filters": {
+          "type": "object",
+          "properties": {
+            "dream": {
+              "type": "string",
+              "enum": ["SPECTRA"]
+            },
+            "archetype": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["Guidance", "Innovation", "Engagement", "Operations", "Protection", "Sustenance", "Growth"]
+              },
+              "uniqueItems": true
+            },
+            "domain": {
+              "type": "array", 
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z]*$"
+              },
+              "uniqueItems": true
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*$"
+              },
+              "uniqueItems": true
+            },
+            "roles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "mimeType": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "text/plain",
+                  "text/markdown",
+                  "application/json", 
+                  "application/yaml",
+                  "text/yaml",
+                  "application/xml",
+                  "text/xml"
+                ]
+              },
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 10,
+          "description": "Maximum number of results to return"
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Number of results to skip for pagination"
+        }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "anchorId": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9]*$",
+            "description": "Reference to anchor.id"
+          },
+          "title": {
+            "type": "string",
+            "description": "Anchor title for display"
+          },
+          "description": {
+            "type": "string",
+            "description": "Anchor description with search highlights"
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Relevance score (0-1, higher is more relevant)"
+          },
+          "highlights": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "enum": ["title", "description", "content", "tags"]
+                },
+                "snippet": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "description": "Text snippet with match highlighted"
+                },
+                "startPos": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "endPos": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": ["field", "snippet"],
+              "additionalProperties": false
+            },
+            "description": "Search term highlights within the content"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "dream": {
+                "type": "string",
+                "enum": ["SPECTRA"]
+              },
+              "archetype": {
+                "type": "string",
+                "enum": ["Guidance", "Innovation", "Engagement", "Operations", "Protection", "Sustenance", "Growth"]
+              },
+              "domain": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z]*$"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-zA-Z0-9]*$"
+                },
+                "uniqueItems": true
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
+              }
+            },
+            "required": ["dream", "archetype", "domain"],
+            "additionalProperties": false
+          },
+          "repository": {
+            "type": "object",
+            "properties": {
+              "owner": {
+                "type": "string",
+                "enum": ["SPECTRADataSolutions"]
+              },
+              "name": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9._-]+$"
+              },
+              "path": {
+                "type": "string"
+              }
+            },
+            "required": ["owner", "name", "path"],
+            "additionalProperties": false
+          }
+        },
+        "required": ["anchorId", "title", "description", "score", "metadata", "repository"],
+        "additionalProperties": false
+      },
+      "maxItems": 100,
+      "description": "Array of search results ordered by relevance"
+    },
+    "pagination": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of matching results"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "offset": {
+          "type": "integer", 
+          "minimum": 0
+        },
+        "hasMore": {
+          "type": "boolean",
+          "description": "Whether more results are available"
+        }
+      },
+      "required": ["total", "limit", "offset", "hasMore"],
+      "additionalProperties": false
+    },
+    "performance": {
+      "type": "object",
+      "properties": {
+        "queryTimeMs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Query execution time in milliseconds"
+        },
+        "cacheHit": {
+          "type": "boolean",
+          "description": "Whether result was served from cache"
+        },
+        "indexedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of anchors in search index"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": ["query", "results", "pagination"],
+  "additionalProperties": false
+}

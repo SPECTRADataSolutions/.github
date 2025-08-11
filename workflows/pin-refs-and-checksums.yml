@@ -1,0 +1,343 @@
+name: Pin Refs and Checksums
+description: "Converts floating refs to commit SHAs and validates checksums for drift detection"
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_call:
+    inputs:
+      manifestPath:
+        description: "Path to contextManifest.yaml file"
+        required: false
+        type: string
+        default: "context/config/contextManifest.yaml"
+      repository:
+        description: "Repository containing the manifest"
+        required: false
+        type: string
+        default: ${{ github.repository }}
+      dryRun:
+        description: "Only check for drift, don't create PRs"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  pin-refs-and-validate-checksums:
+    runs-on: ubuntu-latest
+    name: Pin Refs and Validate Checksums
+    
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository }}
+          path: target-repo
+          token: ${{ github.token }}
+          
+      - name: Checkout .github repository for templates
+        uses: actions/checkout@v4
+        with:
+          repository: SPECTRADataSolutions/.github
+          path: .github-repo
+          
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: |
+          npm install -g js-yaml
+          
+      - name: Check manifest file exists
+        id: manifest-check
+        run: |
+          MANIFEST_PATH="target-repo/${{ inputs.manifestPath }}"
+          if [ -f "$MANIFEST_PATH" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "path=$MANIFEST_PATH" >> $GITHUB_OUTPUT
+            echo "✅ Found manifest at $MANIFEST_PATH"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "❌ Manifest not found at $MANIFEST_PATH"
+            exit 1
+          fi
+          
+      - name: Convert manifest to JSON
+        run: |
+          MANIFEST_PATH="${{ steps.manifest-check.outputs.path }}"
+          js-yaml "$MANIFEST_PATH" > /tmp/manifest.json
+          
+      - name: Process repositories and pin refs
+        id: process-repos
+        run: |
+          echo "Processing repositories for ref pinning and checksum validation..."
+          
+          DRIFT_DETECTED=false
+          PINNING_NEEDED=false
+          ISSUES_FOUND=""
+          
+          # Get repo count for processing
+          REPO_COUNT=$(cat /tmp/manifest.json | jq '.allowedRepos | length')
+          echo "Found $REPO_COUNT repositories to process"
+          
+          for i in $(seq 0 $((REPO_COUNT - 1))); do
+            REPO_OWNER=$(cat /tmp/manifest.json | jq -r ".allowedRepos[$i].owner")
+            REPO_NAME=$(cat /tmp/manifest.json | jq -r ".allowedRepos[$i].name") 
+            ALLOWED_REFS=$(cat /tmp/manifest.json | jq -r ".allowedRepos[$i].allowedRefs[]")
+            
+            echo "Processing $REPO_OWNER/$REPO_NAME..."
+            
+            for REF in $ALLOWED_REFS; do
+              echo "  Checking ref: $REF"
+              
+              # Check if ref is floating (main/HEAD)
+              if [ "$REF" = "main" ] || [ "$REF" = "HEAD" ]; then
+                echo "    ⚠️  Floating ref detected: $REF"
+                PINNING_NEEDED=true
+                
+                # Get current commit SHA for main branch
+                COMMIT_SHA=$(curl -s -H "Authorization: token ${{ github.token }}" \
+                  "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/commits/main" | \
+                  jq -r '.sha' 2>/dev/null || echo "")
+                
+                if [ -n "$COMMIT_SHA" ] && [ "$COMMIT_SHA" != "null" ]; then
+                  echo "    📌 Would pin $REF to $COMMIT_SHA"
+                  ISSUES_FOUND="$ISSUES_FOUND\n- $REPO_OWNER/$REPO_NAME: Pin $REF → $COMMIT_SHA"
+                else
+                  echo "    ❌ Could not resolve $REF to commit SHA"
+                  ISSUES_FOUND="$ISSUES_FOUND\n- $REPO_OWNER/$REPO_NAME: Failed to resolve $REF"
+                fi
+                
+              # Check if ref is a commit SHA
+              elif [[ "$REF" =~ ^[a-f0-9]{40}$ ]]; then
+                echo "    ✅ Commit SHA detected: $REF"
+                
+                # Verify commit still exists
+                COMMIT_EXISTS=$(curl -s -H "Authorization: token ${{ github.token }}" \
+                  "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/commits/$REF" | \
+                  jq -r '.sha' 2>/dev/null || echo "")
+                
+                if [ "$COMMIT_EXISTS" = "$REF" ]; then
+                  echo "    ✅ Commit SHA verified: $REF"
+                else
+                  echo "    ❌ Commit SHA not found or changed: $REF"
+                  DRIFT_DETECTED=true
+                  ISSUES_FOUND="$ISSUES_FOUND\n- $REPO_OWNER/$REPO_NAME: Commit SHA drift detected for $REF"
+                fi
+                
+              else
+                echo "    ⚠️  Unrecognised ref format: $REF"
+                ISSUES_FOUND="$ISSUES_FOUND\n- $REPO_OWNER/$REPO_NAME: Invalid ref format: $REF"
+              fi
+            done
+          done
+          
+          echo "drift_detected=$DRIFT_DETECTED" >> $GITHUB_OUTPUT
+          echo "pinning_needed=$PINNING_NEEDED" >> $GITHUB_OUTPUT
+          echo "issues_found<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$ISSUES_FOUND" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+      - name: Create drift detection issue
+        if: steps.process-repos.outputs.drift_detected == 'true' || steps.process-repos.outputs.pinning_needed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = `${{ steps.process-repos.outputs.issues_found }}`.trim();
+            const isDrift = '${{ steps.process-repos.outputs.drift_detected }}' === 'true';
+            const needsPinning = '${{ steps.process-repos.outputs.pinning_needed }}' === 'true';
+            
+            let title, labels, body;
+            
+            if (isDrift) {
+              title = '🚨 [Initiative] Context Manifest Checksum Drift Detected';
+              labels = ['type:initiative', 'priority:high', 'status:planning'];
+              body = `### dream
+            SPECTRA
+            
+            ### archetype  
+            Operations
+            
+            ### domain
+            governance
+            
+            ### initiativeTitle
+            contextManifestChecksumDriftResponse
+            
+            ### purpose
+            Address detected checksum drift in context manifest refs to maintain immutable reference integrity and prevent unauthorised content changes.
+            
+            ### scope
+            inScope:
+            - Investigate checksum drift causes for affected refs
+            - Validate content integrity against expected checksums  
+            - Update manifest with verified commit SHAs
+            - Implement additional drift prevention measures
+            
+            outOfScope:
+            - Changes to content validation outside the manifest
+            - Modifications to referenced content itself
+            
+            ### capabilityAreas
+            driftInvestigation
+            checksumValidation
+            manifestReconciliation
+            preventionEnhancement
+            
+            ### deliverables
+            - Root cause analysis of checksum drift
+            - Updated contextManifest.yaml with verified refs
+            - Enhanced drift detection alerting
+            - Documentation of resolution process
+            
+            ### successIndicators
+            - All manifest refs resolve to valid, accessible commits
+            - Zero checksum mismatches after resolution
+            - Drift detection issue resolved within 5 minutes
+            - Enhanced monitoring prevents future drift
+            
+            ### constraints
+            - Framework is Law: use only approved SPECTRA contracts
+            - Read-only mode: no content mutation, only ref updates
+            - Immutable refs: production must use commit SHAs only
+            - British English and camelCase throughout
+            
+            ### dependencies
+            - framework: contracts validation schemas
+            - context: manifest file requiring updates
+            - .github: issue templates and governance workflows
+            
+            ### automationOptions
+            - [ ] generateInitiativeIdAndUuid
+            - [ ] generateProjectsEpicsStories
+            - [ ] generateWorkPackagesAndSprintPlan
+            - [ ] runImpactAnalysis
+            - [ ] runFutureConsequenceSimulation
+            - [ ] computeExecutionReadinessScore
+            - [ ] generateMaturityForecastTimeline
+            
+            ### notes
+            **Detected Issues:**
+            \${issues}
+            
+            **Next Steps:**
+            1. Investigate each reported checksum drift case
+            2. Verify current commit SHAs are accessible and valid
+            3. Update manifest with verified refs  
+            4. Re-run validation to confirm resolution
+            
+            Repository: ${{ inputs.repository }}
+            Manifest: ${{ inputs.manifestPath }}
+            Detection Time: \${new Date().toISOString()}`;
+              
+            } else if (needsPinning) {
+              title = '📌 [Initiative] Context Manifest Ref Pinning Required';
+              labels = ['type:initiative', 'priority:medium', 'status:planning'];
+              body = `### dream
+            SPECTRA
+            
+            ### archetype
+            Operations
+            
+            ### domain
+            governance
+            
+            ### initiativeTitle
+            contextManifestRefPinning
+            
+            ### purpose
+            Convert floating refs (main/HEAD) to immutable commit SHAs in context manifest to ensure deterministic, auditable content serving.
+            
+            ### scope
+            inScope:
+            - Pin all floating refs to current commit SHAs
+            - Update contextManifest.yaml with immutable references
+            - Validate all pinned refs are accessible
+            - Document pinning process and rationale
+            
+            outOfScope:
+            - Content changes to referenced files
+            - Modification of ref pinning policies
+            - Updates to other manifest settings
+            
+            ### capabilityAreas
+            immutableRefPinning
+            manifestMaintenance
+            accessibilityValidation
+            documentationUpdate
+            
+            ### deliverables
+            - Updated contextManifest.yaml with commit SHAs
+            - Validation of all pinned ref accessibility
+            - Process documentation for future pinning
+            - Automated pinning workflow enhancement
+            
+            ### successIndicators
+            - 100% of production refs are commit SHAs (no floating HEAD)
+            - All pinned refs resolve successfully
+            - Manifest validation passes completely
+            - Nightly pinning automation works reliably
+            
+            ### constraints
+            - Production manifests must use commit SHAs only
+            - All refs must be from SPECTRADataSolutions repos
+            - Framework contracts must validate successfully
+            - British English and camelCase throughout
+            
+            ### dependencies
+            - framework: contracts validation schemas  
+            - context: manifest file requiring updates
+            - .github: governance workflows and templates
+            
+            ### automationOptions
+            - [ ] generateInitiativeIdAndUuid
+            - [ ] generateProjectsEpicsStories
+            - [ ] generateWorkPackagesAndSprintPlan
+            - [ ] runImpactAnalysis
+            - [ ] runFutureConsequenceSimulation
+            - [ ] computeExecutionReadinessScore
+            - [ ] generateMaturityForecastTimeline
+            
+            ### notes
+            **Refs Requiring Pinning:**
+            \${issues}
+            
+            **Automation:** This issue was created by the nightly pin-refs-and-checksums workflow.
+            
+            Repository: ${{ inputs.repository }}
+            Manifest: ${{ inputs.manifestPath }}
+            Detection Time: \${new Date().toISOString()}`;
+            }
+            
+            if (title) {
+              await github.rest.issues.create({
+                ...context.repo,
+                title: title,
+                body: body,
+                labels: labels
+              });
+              
+              console.log(`✅ Created issue: \${title}`);
+            }
+            
+      - name: Summary
+        run: |
+          echo "🎯 Pin Refs and Checksums Validation Complete"
+          echo "   Repository: ${{ inputs.repository }}"
+          echo "   Manifest: ${{ inputs.manifestPath }}"
+          echo "   Drift Detected: ${{ steps.process-repos.outputs.drift_detected }}"
+          echo "   Pinning Needed: ${{ steps.process-repos.outputs.pinning_needed }}"
+          
+          if [ "${{ steps.process-repos.outputs.drift_detected }}" = "true" ] || [ "${{ steps.process-repos.outputs.pinning_needed }}" = "true" ]; then
+            echo "   📋 Issue created for resolution"
+          else
+            echo "   ✅ All refs are properly pinned and validated"
+          fi

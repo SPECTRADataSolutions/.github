@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/contextManifest.json",
+  "title": "SPECTRA Context Manifest Schema",
+  "description": "Schema for contextManifest.yaml defining repo/ref/path allowlists and size/mime caps for MCP server",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Semantic version of the manifest schema"
+    },
+    "allowedOwners": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["SPECTRADataSolutions"]
+      },
+      "minItems": 1,
+      "description": "Allowed GitHub organisation owners (SPECTRA only)"
+    },
+    "allowedRepos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "type": "string",
+            "enum": ["SPECTRADataSolutions"]
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9._-]+$"
+          },
+          "allowedRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Commit SHAs (production) or 'main' (non-production only)"
+            },
+            "minItems": 1
+          },
+          "allowedPaths": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Allowed file/directory paths within the repository"
+            },
+            "minItems": 1
+          },
+          "private": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether repository is private (default-deny unless explicitly allowed)"
+          }
+        },
+        "required": ["owner", "name", "allowedRefs", "allowedPaths"],
+        "additionalProperties": false
+      },
+      "minItems": 1,
+      "description": "List of allowed repositories with path and ref constraints"
+    },
+    "sizeLimits": {
+      "type": "object",
+      "properties": {
+        "maxFileSizeKB": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10240,
+          "default": 1024,
+          "description": "Maximum file size in kilobytes"
+        },
+        "maxTotalSizeMB": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50,
+          "description": "Maximum total cache size in megabytes"
+        }
+      },
+      "additionalProperties": false,
+      "description": "File and cache size constraints"
+    },
+    "mimeTypeAllowlist": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "text/plain",
+          "text/markdown",
+          "application/json",
+          "application/yaml",
+          "text/yaml",
+          "application/xml",
+          "text/xml"
+        ]
+      },
+      "minItems": 1,
+      "description": "Allowed MIME types for file content"
+    },
+    "cacheSettings": {
+      "type": "object",
+      "properties": {
+        "ttlSeconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400,
+          "default": 3600,
+          "description": "Time-to-live for cached content in seconds"
+        },
+        "maxEntries": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 10000,
+          "default": 1000,
+          "description": "Maximum number of cache entries (LRU eviction)"
+        },
+        "enableETag": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ETag-based cache validation"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Cache configuration settings"
+    },
+    "privacySettings": {
+      "type": "object",
+      "properties": {
+        "redactTokens": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically redact tokens and secrets"
+        },
+        "redactEmails": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically redact email addresses"
+        },
+        "logContent": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether to log file contents (should be false for privacy)"
+        },
+        "defaultDenyPrivate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Default deny access to private repositories"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Privacy and redaction policy settings"
+    },
+    "rateLimits": {
+      "type": "object",
+      "properties": {
+        "requestsPerMinute": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 1000,
+          "default": 100,
+          "description": "Maximum requests per minute per client"
+        },
+        "backoffMultiplier": {
+          "type": "number",
+          "minimum": 1.0,
+          "maximum": 10.0,
+          "default": 2.0,
+          "description": "Exponential backoff multiplier for rate limiting"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Rate limiting configuration"
+    }
+  },
+  "required": [
+    "version",
+    "allowedOwners", 
+    "allowedRepos",
+    "sizeLimits",
+    "mimeTypeAllowlist",
+    "cacheSettings",
+    "privacySettings",
+    "rateLimits"
+  ],
+  "additionalProperties": false
+}

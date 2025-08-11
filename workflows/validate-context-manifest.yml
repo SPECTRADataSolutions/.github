@@ -1,0 +1,146 @@
+name: Context Manifest Validator
+description: "Validates contextManifest.yaml against SPECTRA context system contracts"
+
+on:
+  workflow_call:
+    inputs:
+      manifestPath:
+        description: "Path to contextManifest.yaml file"
+        required: false
+        type: string
+        default: "context/config/contextManifest.yaml"
+      repository:
+        description: "Repository containing the manifest"
+        required: false
+        type: string
+        default: ${{ github.repository }}
+
+jobs:
+  validate-context-manifest:
+    runs-on: ubuntu-latest
+    name: Validate Context Manifest
+    
+    steps:
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repository }}
+          path: target-repo
+          
+      - name: Checkout .github repository for schema
+        uses: actions/checkout@v4
+        with:
+          repository: SPECTRADataSolutions/.github
+          path: .github-repo
+          
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: |
+          npm install -g ajv-cli js-yaml
+          
+      - name: Check manifest file exists
+        id: manifest-check
+        run: |
+          MANIFEST_PATH="target-repo/${{ inputs.manifestPath }}"
+          if [ -f "$MANIFEST_PATH" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "path=$MANIFEST_PATH" >> $GITHUB_OUTPUT
+            echo "✅ Found manifest at $MANIFEST_PATH"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "❌ Manifest not found at $MANIFEST_PATH"
+          fi
+          
+      - name: Convert YAML to JSON for validation
+        if: steps.manifest-check.outputs.exists == 'true'
+        run: |
+          MANIFEST_PATH="${{ steps.manifest-check.outputs.path }}"
+          js-yaml "$MANIFEST_PATH" > /tmp/manifest.json
+          echo "Converted YAML to JSON for validation:"
+          cat /tmp/manifest.json | head -20
+          
+      - name: Validate manifest structure
+        if: steps.manifest-check.outputs.exists == 'true'
+        run: |
+          echo "Validating context manifest against schema..."
+          ajv validate \
+            -s .github-repo/contracts/context/contextManifest.json \
+            -d /tmp/manifest.json
+          echo "✅ Manifest structure is valid"
+          
+      - name: Validate SPECTRA compliance
+        if: steps.manifest-check.outputs.exists == 'true'
+        run: |
+          echo "Checking SPECTRA-specific compliance rules..."
+          
+          # Extract and validate allowedOwners
+          OWNERS=$(cat /tmp/manifest.json | jq -r '.allowedOwners[]' 2>/dev/null || echo "")
+          if [ "$OWNERS" != "SPECTRADataSolutions" ]; then
+            echo "❌ allowedOwners must contain only 'SPECTRADataSolutions'"
+            exit 1
+          fi
+          
+          # Validate all repos are SPECTRA-owned
+          NON_SPECTRA=$(cat /tmp/manifest.json | jq -r '.allowedRepos[] | select(.owner != "SPECTRADataSolutions") | .owner' 2>/dev/null || echo "")
+          if [ -n "$NON_SPECTRA" ]; then
+            echo "❌ All repositories must be owned by SPECTRADataSolutions"
+            echo "   Found non-SPECTRA owners: $NON_SPECTRA"
+            exit 1
+          fi
+          
+          # Check privacy settings are secure by default
+          LOG_CONTENT=$(cat /tmp/manifest.json | jq -r '.privacySettings.logContent' 2>/dev/null || echo "true")
+          if [ "$LOG_CONTENT" = "true" ]; then
+            echo "❌ privacySettings.logContent must be false for security"
+            exit 1
+          fi
+          
+          DEFAULT_DENY=$(cat /tmp/manifest.json | jq -r '.privacySettings.defaultDenyPrivate' 2>/dev/null || echo "false")
+          if [ "$DEFAULT_DENY" != "true" ]; then
+            echo "❌ privacySettings.defaultDenyPrivate must be true for security"
+            exit 1
+          fi
+          
+          echo "✅ SPECTRA compliance rules validated"
+          
+      - name: Validate ref constraints
+        if: steps.manifest-check.outputs.exists == 'true'
+        run: |
+          echo "Validating ref pinning constraints..."
+          
+          # Check for floating refs in production context
+          FLOATING_REFS=$(cat /tmp/manifest.json | jq -r '.allowedRepos[].allowedRefs[] | select(. == "main" or . == "HEAD")' 2>/dev/null || echo "")
+          if [ -n "$FLOATING_REFS" ]; then
+            echo "⚠️  Warning: Found floating refs (main/HEAD). These should be pinned to commit SHAs in production."
+            echo "   Floating refs found: $FLOATING_REFS"
+            echo "   Use the pin-refs-and-checksums workflow to resolve this."
+          fi
+          
+          # Validate SHA format for pinned refs
+          INVALID_SHAS=$(cat /tmp/manifest.json | jq -r '.allowedRepos[].allowedRefs[] | select(test("^[a-f0-9]{40}$") | not) | select(. != "main" and . != "HEAD")' 2>/dev/null || echo "")
+          if [ -n "$INVALID_SHAS" ]; then
+            echo "❌ Invalid SHA format in allowedRefs:"
+            echo "$INVALID_SHAS"
+            exit 1
+          fi
+          
+          echo "✅ Ref constraints validated"
+          
+      - name: Validation Summary
+        run: |
+          if [ "${{ steps.manifest-check.outputs.exists }}" = "true" ]; then
+            echo "🎯 Context Manifest Validation Complete"
+            echo "   Repository: ${{ inputs.repository }}"
+            echo "   Manifest: ${{ inputs.manifestPath }}"
+            echo "   ✅ All validations passed"
+          else
+            echo "❌ Context Manifest Validation Failed"
+            echo "   Repository: ${{ inputs.repository }}"
+            echo "   Manifest: ${{ inputs.manifestPath }}"
+            echo "   Issue: Manifest file not found"
+            exit 1
+          fi

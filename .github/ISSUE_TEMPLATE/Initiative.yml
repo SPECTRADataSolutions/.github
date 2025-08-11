@@ -4,9 +4,19 @@ title: "🚀 [Initiative] <shortTitle>"
 labels: ["type:initiative","status:planning"]
 body:
   - type: dropdown
+    id: dream
+    attributes:
+      label: dream
+      description: Organizational vision and aspiration
+      options: [SPECTRA]
+      default: 0
+    validations: { required: true }
+
+  - type: dropdown
     id: archetype
     attributes:
       label: archetype
+      description: High-level capability categorization (Dream → Archetype → Domain → Repo)
       options: [Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth]
     validations: { required: true }
 
@@ -14,7 +24,8 @@ body:
     id: domain
     attributes:
       label: domain
-      placeholder: "visionAndStrategyExecution"
+      description: Single-word camelCase domain pertinent to archetype
+      placeholder: "governance"
     validations: { required: true }
 
   - type: input

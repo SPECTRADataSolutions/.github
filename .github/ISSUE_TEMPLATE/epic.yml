@@ -1,4 +1,4 @@
-name: New Epic
+name: "🗂️ Epic"
 description: Multi-week deliverable aligned to governance; generates stories and tasks.
 title: "🗂️ [Epic] <shortTitle>"
 labels: ["type:epic","status:planning"]

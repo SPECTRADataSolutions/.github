@@ -1,4 +1,4 @@
-name: New Initiative
+name: "🚀 Initiative"
 description: Strategic or operational work starting point. Auto-generates projects, epics, stories, tasks, work packages, and sprint plans.
 title: "🚀 [Initiative] <shortTitle>"
 labels: ["type:initiative","status:planning"]

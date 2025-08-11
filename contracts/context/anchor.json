@@ -23,18 +23,49 @@
       "description": "Detailed description of the anchor content"
     },
     "repository": {
+      "$ref": "#/definitions/repository"
+    },
+    "content": {
+      "$ref": "#/definitions/content"
+    },
+    "metadata": {
+      "$ref": "#/definitions/metadata"
+    },
+    "cache": {
+      "$ref": "#/definitions/cache"
+    },
+    "privacy": {
+      "$ref": "#/definitions/privacy"
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "description",
+    "repository",
+    "content",
+    "metadata"
+  ],
+  "additionalProperties": false,
+  "definitions": {
+    "repository": {
       "type": "object",
       "properties": {
         "owner": {
           "type": "string",
-          "enum": ["SPECTRADataSolutions"]
+          "enum": [
+            "SPECTRADataSolutions"
+          ],
+          "description": "Repository owner (fixed for SPECTRA)"
         },
         "name": {
           "type": "string",
-          "pattern": "^[a-zA-Z0-9._-]+$"
+          "pattern": "^[a-zA-Z0-9._-]+$",
+          "description": "Repository name"
         },
         "ref": {
           "type": "string",
+          "pattern": "^[a-f0-9]{40}$",
           "description": "Immutable commit SHA (required for production)"
         },
         "path": {
@@ -43,7 +74,12 @@
           "description": "File path within the repository"
         }
       },
-      "required": ["owner", "name", "ref", "path"],
+      "required": [
+        "owner",
+        "name",
+        "ref",
+        "path"
+      ],
       "additionalProperties": false
     },
     "content": {
@@ -53,19 +89,20 @@
           "type": "string",
           "enum": [
             "text/plain",
-            "text/markdown", 
+            "text/markdown",
             "application/json",
             "application/yaml",
             "text/yaml",
             "application/xml",
             "text/xml"
-          ]
+          ],
+          "description": "MIME type of the content"
         },
         "sizeBytes": {
           "type": "integer",
           "minimum": 0,
           "maximum": 10485760,
-          "description": "Content size in bytes (max 10MB)"
+          "description": "Content size in bytes (maximum 10 MB)"
         },
         "checksum": {
           "type": "string",
@@ -74,11 +111,19 @@
         },
         "encoding": {
           "type": "string",
-          "enum": ["utf-8", "base64"],
-          "default": "utf-8"
+          "enum": [
+            "utf-8",
+            "base64"
+          ],
+          "default": "utf-8",
+          "description": "Content encoding"
         }
       },
-      "required": ["mimeType", "sizeBytes", "checksum"],
+      "required": [
+        "mimeType",
+        "sizeBytes",
+        "checksum"
+      ],
       "additionalProperties": false
     },
     "metadata": {
@@ -86,15 +131,28 @@
       "properties": {
         "dream": {
           "type": "string",
-          "enum": ["SPECTRA"]
+          "enum": [
+            "SPECTRA"
+          ],
+          "description": "Organisational dream"
         },
         "archetype": {
           "type": "string",
-          "enum": ["Guidance", "Innovation", "Engagement", "Operations", "Protection", "Sustenance", "Growth"]
+          "enum": [
+            "Guidance",
+            "Innovation",
+            "Engagement",
+            "Operations",
+            "Protection",
+            "Sustenance",
+            "Growth"
+          ],
+          "description": "Capability archetype"
         },
         "domain": {
           "type": "string",
-          "pattern": "^[a-z][a-zA-Z]*$"
+          "pattern": "^[a-z][a-zA-Z]*$",
+          "description": "Domain within the archetype"
         },
         "tags": {
           "type": "array",
@@ -114,7 +172,11 @@
           "description": "Applicable organisational roles from hierarchy.yaml"
         }
       },
-      "required": ["dream", "archetype", "domain"],
+      "required": [
+        "dream",
+        "archetype",
+        "domain"
+      ],
       "additionalProperties": false
     },
     "cache": {
@@ -152,12 +214,10 @@
         },
         "isPrivateRepo": {
           "type": "boolean",
-          "description": "Whether source repository is private"
+          "description": "Whether the source repository is private"
         }
       },
       "additionalProperties": false
     }
-  },
-  "required": ["id", "title", "description", "repository", "content", "metadata"],
-  "additionalProperties": false
+  }
 }

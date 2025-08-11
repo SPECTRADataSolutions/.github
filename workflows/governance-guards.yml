@@ -109,3 +109,44 @@ jobs:
             }
             
             console.log(`✅ Organizational structure validated: ${dream} → ${archetype} → ${domain}`);
+
+      - name: validateMcpContextCompliance
+        if: contains(github.event.issue.body, 'contextManifest') || contains(github.event.issue.body, 'context') || contains(github.event.issue.body, 'anchor')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body || '';
+            
+            // Check for context-related content
+            const contextKeywords = ['contextManifest', 'context', 'anchor', 'redaction', 'spectra.'];
+            const hasContextContent = contextKeywords.some(keyword => body.toLowerCase().includes(keyword.toLowerCase()));
+            
+            if (hasContextContent) {
+              console.log('🔍 Context content detected, validating compliance...');
+              
+              // Check for required privacy considerations
+              const privacyKeywords = ['redaction', 'privacy', 'logContent', 'defaultDeny'];
+              const hasPrivacyConsiderations = privacyKeywords.some(keyword => body.toLowerCase().includes(keyword.toLowerCase()));
+              
+              if (!hasPrivacyConsiderations) {
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number: context.issue.number,
+                  body: '⚠️ **Context Privacy Notice**: This issue relates to context functionality. Please ensure privacy and redaction policies are considered. Reference: contracts/context/redactionPolicy.json'
+                });
+              }
+              
+              // Check for Framework is Law compliance
+              const frameworkKeywords = ['framework', 'contract', 'schema', 'pinned', 'SHA'];
+              const hasFrameworkCompliance = frameworkKeywords.some(keyword => body.toLowerCase().includes(keyword.toLowerCase()));
+              
+              if (!hasFrameworkCompliance) {
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number: context.issue.number,
+                  body: '📋 **Framework is Law Reminder**: Context changes must comply with SPECTRA contracts in contracts/context/. Ensure refs are pinned to SHAs and validation is implemented.'
+                });
+              }
+              
+              console.log('✅ Context compliance validated');
+            }

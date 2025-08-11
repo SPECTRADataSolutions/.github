@@ -1,24 +1,48 @@
 name: Anchor Reachability and Size Validator
-description: "Validates that context anchors are reachable and within size limits"
+description: "Validates that context anchors (allowed paths/refs) are reachable, within size limits, and meet coverage SLOs"
 
 on:
+  # Reusable invocation from other workflows
   workflow_call:
     inputs:
       manifestPath:
-        description: "Path to contextManifest.yaml file"
+        description: "Path to contextManifest.yaml"
         required: false
         type: string
         default: "context/config/contextManifest.yaml"
       repository:
-        description: "Repository containing the manifest"
+        description: "Repository containing the manifest (owner/repo). Defaults to current."
         required: false
         type: string
-        default: ${{ github.repository }}
+        default: "${{ github.repository }}"
+      contractsRepository:
+        description: "Repository containing schema contracts (owner/repo)"
+        required: false
+        type: string
+        default: "SPECTRADataSolutions/.github"
       coverageThreshold:
-        description: "Minimum percentage of expected anchors that must be reachable"
+        description: "Minimum percentage of anchors that must be reachable"
         required: false
         type: number
         default: 95
+  # Direct manual trigger
+  workflow_dispatch:
+    inputs:
+      manifestPath:
+        description: "Path to contextManifest.yaml"
+        required: false
+        default: "context/config/contextManifest.yaml"
+      coverageThreshold:
+        description: "Minimum percentage of anchors that must be reachable"
+        required: false
+        default: "95"
+      contractsRepository:
+        description: "Contracts repository (owner/repo)"
+        required: false
+        default: "SPECTRADataSolutions/.github"
+  # Daily scheduled scan (06:00 UTC)
+  schedule:
+    - cron: "0 6 * * *"
 
 permissions:
   contents: read
@@ -28,358 +52,448 @@ jobs:
   validate-anchor-reachability:
     runs-on: ubuntu-latest
     name: Validate Anchor Reachability and Size
-    
+    env:
+      # Normalise inputs across trigger types
+      MANIFEST_PATH: ${{ inputs.manifestPath || github.event.inputs.manifestPath || 'context/config/contextManifest.yaml' }}
+      COVERAGE_THRESHOLD: ${{ inputs.coverageThreshold || github.event.inputs.coverageThreshold || 95 }}
+      CONTRACTS_REPO: ${{ inputs.contractsRepository || github.event.inputs.contractsRepository || 'SPECTRADataSolutions/.github' }}
+      TARGET_REPO: ${{ inputs.repository || github.repository }}
     steps:
+      - name: Derive target repository owner and name
+        id: derive-target
+        run: |
+          IFS='/' read -r TOwner TRepo <<< "${TARGET_REPO}"
+          echo "owner=$TOwner" >> $GITHUB_OUTPUT
+          echo "repo=$TRepo" >> $GITHUB_OUTPUT
+
       - name: Checkout target repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.repository }}
-          path: target-repo
-          
-      - name: Checkout .github repository for contracts
+            repository: ${{ env.TARGET_REPO }}
+            path: target-repo
+
+      - name: Checkout contracts repository
         uses: actions/checkout@v4
         with:
-          repository: SPECTRADataSolutions/.github
-          path: .github-repo
-          
+          repository: ${{ env.CONTRACTS_REPO }}
+          path: contracts-repo
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          
-      - name: Install dependencies
+          node-version: "20"
+
+      - name: Install tooling
         run: |
           npm install -g js-yaml ajv-cli
-          
-      - name: Check manifest file exists
-        id: manifest-check
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+
+      - name: Load and validate manifest structure
+        id: manifest-validate
         run: |
-          MANIFEST_PATH="target-repo/${{ inputs.manifestPath }}"
-          if [ -f "$MANIFEST_PATH" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "path=$MANIFEST_PATH" >> $GITHUB_OUTPUT
-            echo "✅ Found manifest at $MANIFEST_PATH"
-          else
+          set -e
+          MP="target-repo/${MANIFEST_PATH}"
+          if [ ! -f "$MP" ]; then
+            echo "::error title=Manifest Missing::No manifest file found at ${MANIFEST_PATH}"
             echo "exists=false" >> $GITHUB_OUTPUT
-            echo "❌ Manifest not found at $MANIFEST_PATH"
             exit 1
           fi
-          
-      - name: Load and validate manifest
+          echo "exists=true" >> $GITHUB_OUTPUT
+          js-yaml "$MP" > /tmp/manifest.json
+          # Validate with schema (assumes schema path from earlier accepted contract)
+          if [ ! -f "contracts-repo/contracts/context/contextManifest.json" ]; then
+            echo "::warning title=Schema Missing::Could not find contextManifest.json in contracts repository - skipping structural validation"
+          else
+            ajv validate -s contracts-repo/contracts/context/contextManifest.json -d /tmp/manifest.json
+            echo "✅ Manifest schema validation passed"
+          fi
+          # Basic semantic checks
+          ALLOWED_OWNER=$(jq -r '.allowedOwners[0]' /tmp/manifest.json)
+          if [ "$ALLOWED_OWNER" != "SPECTRADataSolutions" ]; then
+            echo "::warning title=Owner Mismatch::First allowed owner is $ALLOWED_OWNER (expected SPECTRADataSolutions)"
+          fi
+
+      - name: Extract limits
+        id: limits
         run: |
-          MANIFEST_PATH="${{ steps.manifest-check.outputs.path }}"
-          js-yaml "$MANIFEST_PATH" > /tmp/manifest.json
-          
-          # Validate manifest structure first
-          ajv validate \
-            -s .github-repo/contracts/context/contextManifest.json \
-            -d /tmp/manifest.json
-          echo "✅ Manifest structure validated"
-          
-      - name: Extract size limits from manifest
-        id: size-limits
+          set -e
+          MAX_FILE_KB=$(jq -r '.sizeLimits.maxFileSizeKB // 1024' /tmp/manifest.json)
+          MAX_TOTAL_MB=$(jq -r '.sizeLimits.maxTotalSizeMB // 50' /tmp/manifest.json)
+          echo "maxFileKB=$MAX_FILE_KB" >> $GITHUB_OUTPUT
+          echo "maxTotalMB=$MAX_TOTAL_MB" >> $GITHUB_OUTPUT
+          echo "Per-file limit: ${MAX_FILE_KB}KB; Total limit: ${MAX_TOTAL_MB}MB"
+
+      - name: Scan anchors (reachability, size, mime)
+        id: scan
         run: |
-          MAX_FILE_SIZE_KB=$(cat /tmp/manifest.json | jq -r '.sizeLimits.maxFileSizeKB // 1024')
-          MAX_TOTAL_SIZE_MB=$(cat /tmp/manifest.json | jq -r '.sizeLimits.maxTotalSizeMB // 50')
-          
-          echo "maxFileSizeKB=$MAX_FILE_SIZE_KB" >> $GITHUB_OUTPUT
-          echo "maxTotalSizeMB=$MAX_TOTAL_SIZE_MB" >> $GITHUB_OUTPUT
-          
-          echo "📏 Size limits: ${MAX_FILE_SIZE_KB}KB per file, ${MAX_TOTAL_SIZE_MB}MB total"
-          
-      - name: Test anchor reachability and size
-        id: anchor-validation
-        run: |
-          echo "🔍 Testing anchor reachability and size compliance..."
-          
+          set -e
+          MAX_FILE_KB=${{ steps.limits.outputs.maxFileKB }}
+          MAX_TOTAL_MB=${{ steps.limits.outputs.maxTotalMB }}
+          MAX_TOTAL_KB=$(( MAX_TOTAL_MB * 1024 ))
+
           TOTAL_ANCHORS=0
-          REACHABLE_ANCHORS=0
-          UNREACHABLE_ANCHORS=0
-          OVERSIZED_ANCHORS=0
-          TOTAL_SIZE_KB=0
-          FAILED_ANCHORS=""
-          OVERSIZED_FILES=""
-          
-          MAX_FILE_SIZE_KB=${{ steps.size-limits.outputs.maxFileSizeKB }}
-          MAX_TOTAL_SIZE_MB=${{ steps.size-limits.outputs.maxTotalSizeMB }}
-          MAX_TOTAL_SIZE_KB=$((MAX_TOTAL_SIZE_MB * 1024))
-          
-          # Get allowed MIME types
-          ALLOWED_MIMES=$(cat /tmp/manifest.json | jq -r '.mimeTypeAllowlist[]' | tr '\n' '|' | sed 's/|$//')
-          
-          # Process each repository
-          REPO_COUNT=$(cat /tmp/manifest.json | jq '.allowedRepos | length')
-          
-          for i in $(seq 0 $((REPO_COUNT - 1))); do
-            REPO_OWNER=$(cat /tmp/manifest.json | jq -r ".allowedRepos[$i].owner")
-            REPO_NAME=$(cat /tmp/manifest.json | jq -r ".allowedRepos[$i].name")
-            ALLOWED_REFS=$(cat /tmp/manifest.json | jq -r ".allowedRepos[$i].allowedRefs[]")
-            ALLOWED_PATHS=$(cat /tmp/manifest.json | jq -r ".allowedRepos[$i].allowedPaths[]")
-            
-            echo "📂 Processing $REPO_OWNER/$REPO_NAME..."
-            
-            for REF in $ALLOWED_REFS; do
-              echo "  📌 Checking ref: $REF"
-              
-              for PATH in $ALLOWED_PATHS; do
-                echo "    📁 Checking path: $PATH"
-                
-                # Get directory contents or file info
-                RESPONSE=$(curl -s -H "Authorization: token ${{ github.token }}" \
-                  "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/contents/$PATH?ref=$REF" || echo "[]")
-                
-                # Check if it's a file or directory
-                if echo "$RESPONSE" | jq -e '.type == "file"' >/dev/null 2>&1; then
-                  # Single file
-                  FILE_SIZE=$(echo "$RESPONSE" | jq -r '.size // 0')
-                  FILE_SIZE_KB=$((FILE_SIZE / 1024))
-                  FILE_NAME=$(echo "$RESPONSE" | jq -r '.name')
-                  DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.download_url // ""')
-                  
+            REACHABLE=0
+            UNREACHABLE=0
+            OVERSIZED=0
+            TOTAL_SIZE_KB=0
+
+          UNREACHABLE_LIST=""
+          OVERSIZED_LIST=""
+          UNSUPPORTED_MIME_LIST=""
+
+          # Build allowed MIME regex set
+          ALLOWED_MIME=$(jq -r '.mimeTypeAllowlist[]' /tmp/manifest.json | tr '\n' ' ')
+          echo "Allowed MIME types: $ALLOWED_MIME"
+
+          # Helper: determine mime from file extension
+          mime_from_ext () {
+            case "$1" in
+              md|markdown) echo "text/markdown" ;;
+              json) echo "application/json" ;;
+              yaml|yml) echo "application/yaml" ;;
+              xml) echo "application/xml" ;;
+              txt) echo "text/plain" ;;
+              *) echo "unknown" ;;
+            esac
+          }
+
+          # Enumerate allowed repos
+          REPO_COUNT=$(jq '.allowedRepos | length' /tmp/manifest.json)
+          if [ "$REPO_COUNT" -eq 0 ]; then
+            echo "::error title=No Repositories::allowedRepos array is empty"
+            exit 1
+          fi
+
+          echo "# Anchor Reachability Report" > /tmp/report.md
+          echo "" >> /tmp/report.md
+          echo "Coverage Threshold: ${COVERAGE_THRESHOLD}%" >> /tmp/report.md
+          echo "" >> /tmp/report.md
+
+          for i in $(seq 0 $(( REPO_COUNT - 1 ))); do
+            R_OWNER=$(jq -r ".allowedRepos[$i].owner" /tmp/manifest.json)
+            R_NAME=$(jq -r ".allowedRepos[$i].name" /tmp/manifest.json)
+            REFS=$(jq -r ".allowedRepos[$i].allowedRefs[]" /tmp/manifest.json)
+            PATHS=$(jq -r ".allowedRepos[$i].allowedPaths[]" /tmp/manifest.json)
+
+            echo "## Repository: $R_OWNER/$R_NAME" >> /tmp/report.md
+            echo "" >> /tmp/report.md
+
+            for REF in $REFS; do
+              echo "### Ref: $REF" >> /tmp/report.md
+              echo "" >> /tmp/report.md
+
+              for P in $PATHS; do
+                echo "Checking $R_OWNER/$R_NAME:$P@$REF"
+                # Use GitHub API for path
+                RESP=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                              -H "Accept: application/vnd.github.v3+json" \
+                              "https://api.github.com/repos/$R_OWNER/$R_NAME/contents/$P?ref=$REF")
+
+                # Distinguish file vs directory vs error
+                TYPE=$(echo "$RESP" | jq -r '.type // empty')
+                MESSAGE=$(echo "$RESP" | jq -r '.message // empty')
+
+                if [ "$MESSAGE" = "Not Found" ] || [ -z "$RESP" ]; then
                   TOTAL_ANCHORS=$((TOTAL_ANCHORS + 1))
-                  
-                  if [ -n "$DOWNLOAD_URL" ] && [ "$DOWNLOAD_URL" != "null" ]; then
-                    echo "      ✅ $FILE_NAME (${FILE_SIZE_KB}KB)"
-                    REACHABLE_ANCHORS=$((REACHABLE_ANCHORS + 1))
-                    TOTAL_SIZE_KB=$((TOTAL_SIZE_KB + FILE_SIZE_KB))
-                    
-                    # Check file size limit
-                    if [ $FILE_SIZE_KB -gt $MAX_FILE_SIZE_KB ]; then
-                      echo "      ⚠️  File exceeds size limit: ${FILE_SIZE_KB}KB > ${MAX_FILE_SIZE_KB}KB"
-                      OVERSIZED_ANCHORS=$((OVERSIZED_ANCHORS + 1))
-                      OVERSIZED_FILES="$OVERSIZED_FILES\n- $REPO_OWNER/$REPO_NAME/$PATH: ${FILE_SIZE_KB}KB (limit: ${MAX_FILE_SIZE_KB}KB)"
-                    fi
-                    
-                    # Validate MIME type if possible (basic heuristic)
-                    FILE_EXT="${FILE_NAME##*.}"
-                    case "$FILE_EXT" in
-                      "md"|"markdown") MIME_TYPE="text/markdown" ;;
-                      "json") MIME_TYPE="application/json" ;;
-                      "yaml"|"yml") MIME_TYPE="application/yaml" ;;
-                      "xml") MIME_TYPE="application/xml" ;;
-                      "txt") MIME_TYPE="text/plain" ;;
-                      *) MIME_TYPE="unknown" ;;
-                    esac
-                    
-                    if [ "$MIME_TYPE" != "unknown" ] && ! echo "$ALLOWED_MIMES" | grep -q "$MIME_TYPE"; then
-                      echo "      ⚠️  File type may not be allowed: $MIME_TYPE"
-                    fi
-                    
-                  else
-                    echo "      ❌ $FILE_NAME (unreachable)"
-                    UNREACHABLE_ANCHORS=$((UNREACHABLE_ANCHORS + 1))
-                    FAILED_ANCHORS="$FAILED_ANCHORS\n- $REPO_OWNER/$REPO_NAME/$PATH@$REF: File unreachable"
+                  UNREACHABLE=$((UNREACHABLE + 1))
+                  UNREACHABLE_LIST="${UNREACHABLE_LIST}\n- $R_OWNER/$R_NAME/$P@$REF (not found)"
+                  echo "- ❌ $P (not found)" >> /tmp/report.md
+                  continue
+                fi
+
+                if [ "$TYPE" = "file" ]; then
+                  TOTAL_ANCHORS=$((TOTAL_ANCHORS + 1))
+                  SIZE_BYTES=$(echo "$RESP" | jq -r '.size // 0')
+                  SIZE_KB=$(( (SIZE_BYTES + 1023) / 1024 ))
+                  EXT="${P##*.}"
+                  MIME=$(mime_from_ext "$EXT")
+                  REACHABLE=$((REACHABLE + 1))
+                  TOTAL_SIZE_KB=$((TOTAL_SIZE_KB + SIZE_KB))
+
+                  STATUS_ICON="✅"
+                  NOTE="OK ${SIZE_KB}KB"
+                  if [ "$SIZE_KB" -gt "$MAX_FILE_KB" ]; then
+                    OVERSIZED=$((OVERSIZED + 1))
+                    STATUS_ICON="⚠️"
+                    NOTE="Oversized ${SIZE_KB}KB > ${MAX_FILE_KB}KB"
+                    OVERSIZED_LIST="${OVERSIZED_LIST}\n- $R_OWNER/$R_NAME/$P@$REF (${SIZE_KB}KB)"
                   fi
-                  
-                elif echo "$RESPONSE" | jq -e 'type == "array"' >/dev/null 2>&1; then
-                  # Directory - count files recursively (basic implementation)
-                  DIR_FILES=$(echo "$RESPONSE" | jq -r '.[].name' | grep -E '\.(md|json|yaml|yml|xml|txt)$' || echo "")
-                  
-                  if [ -n "$DIR_FILES" ]; then
-                    DIR_FILE_COUNT=$(echo "$DIR_FILES" | wc -l)
-                    echo "      📁 Directory with $DIR_FILE_COUNT potential anchor files"
-                    
-                    # For directories, we estimate reachability based on API response success
-                    TOTAL_ANCHORS=$((TOTAL_ANCHORS + DIR_FILE_COUNT))
-                    REACHABLE_ANCHORS=$((REACHABLE_ANCHORS + DIR_FILE_COUNT))
+
+                  if [ "$MIME" != "unknown" ]; then
+                    echo "$ALLOWED_MIME" | tr ' ' '\n' | grep -qx "$MIME" || {
+                      UNSUPPORTED_MIME_LIST="${UNSUPPORTED_MIME_LIST}\n- $R_OWNER/$R_NAME/$P@$REF ($MIME)"
+                      NOTE="${NOTE}; MIME $MIME not allowlisted"
+                      [ "$STATUS_ICON" = "✅" ] && STATUS_ICON="⚠️"
+                    }
                   fi
-                  
+
+                  echo "- ${STATUS_ICON} $P (${NOTE})" >> /tmp/report.md
+
+                elif echo "$RESP" | jq -e 'type=="array"' >/dev/null 2>&1; then
+                  # Directory: iterate immediate files (non-recursive for speed; can be extended)
+                  FILES=$(echo "$RESP" | jq -r '.[] | select(.type=="file") | .path')
+                  for FP in $FILES; do
+                    # Recursive fetch per file
+                    FR=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                               -H "Accept: application/vnd.github.v3+json" \
+                               "https://api.github.com/repos/$R_OWNER/$R_NAME/contents/$FP?ref=$REF")
+                    SIZE_BYTES=$(echo "$FR" | jq -r '.size // 0')
+                    SIZE_KB=$(( (SIZE_BYTES + 1023) / 1024 ))
+                    EXT="${FP##*.}"
+                    MIME=$(mime_from_ext "$EXT")
+                    TOTAL_ANCHORS=$((TOTAL_ANCHORS + 1))
+                    REACHABLE=$((REACHABLE + 1))
+                    TOTAL_SIZE_KB=$((TOTAL_SIZE_KB + SIZE_KB))
+                    STATUS_ICON="✅"
+                    NOTE="OK ${SIZE_KB}KB"
+
+                    if [ "$SIZE_KB" -gt "$MAX_FILE_KB" ]; then
+                      OVERSIZED=$((OVERSIZED + 1))
+                      STATUS_ICON="⚠️"
+                      NOTE="Oversized ${SIZE_KB}KB > ${MAX_FILE_KB}KB"
+                      OVERSIZED_LIST="${OVERSIZED_LIST}\n- $R_OWNER/$R_NAME/$FP@$REF (${SIZE_KB}KB)"
+                    fi
+
+                    if [ "$MIME" != "unknown" ]; then
+                      echo "$ALLOWED_MIME" | tr ' ' '\n' | grep -qx "$MIME" || {
+                        UNSUPPORTED_MIME_LIST="${UNSUPPORTED_MIME_LIST}\n- $R_OWNER/$R_NAME/$FP@$REF ($MIME)"
+                        NOTE="${NOTE}; MIME $MIME not allowlisted"
+                        [ "$STATUS_ICON" = "✅" ] && STATUS_ICON="⚠️"
+                      }
+                    fi
+                    echo "- ${STATUS_ICON} $FP (${NOTE})" >> /tmp/report.md
+                  done
                 else
-                  echo "      ❌ Path not found or inaccessible"
                   TOTAL_ANCHORS=$((TOTAL_ANCHORS + 1))
-                  UNREACHABLE_ANCHORS=$((UNREACHABLE_ANCHORS + 1))
-                  FAILED_ANCHORS="$FAILED_ANCHORS\n- $REPO_OWNER/$REPO_NAME/$PATH@$REF: Path not found"
+                  UNREACHABLE=$((UNREACHABLE + 1))
+                  UNREACHABLE_LIST="${UNREACHABLE_LIST}\n- $R_OWNER/$R_NAME/$P@$REF (unsupported type)"
+                  echo "- ❌ $P (unsupported type)" >> /tmp/report.md
                 fi
               done
+              echo "" >> /tmp/report.md
             done
           done
-          
-          # Calculate coverage percentage
-          if [ $TOTAL_ANCHORS -gt 0 ]; then
-            COVERAGE_PERCENT=$((REACHABLE_ANCHORS * 100 / TOTAL_ANCHORS))
+
+          if [ "$TOTAL_ANCHORS" -gt 0 ]; then
+            COVERAGE=$(( REACHABLE * 100 / TOTAL_ANCHORS ))
           else
-            COVERAGE_PERCENT=0
+            COVERAGE=0
           fi
-          
-          # Check total size limit
-          TOTAL_SIZE_MB=$((TOTAL_SIZE_KB / 1024))
+
+          TOTAL_MB=$(( TOTAL_SIZE_KB / 1024 ))
           SIZE_EXCEEDED=false
-          if [ $TOTAL_SIZE_KB -gt $MAX_TOTAL_SIZE_KB ]; then
+          if [ "$TOTAL_SIZE_KB" -gt "$MAX_TOTAL_KB" ]; then
             SIZE_EXCEEDED=true
           fi
-          
+
+          echo "" >> /tmp/report.md
+          echo "## Summary" >> /tmp/report.md
+          {
+            echo ""
+            echo "- Total anchors: $TOTAL_ANCHORS"
+            echo "- Reachable: $REACHABLE"
+            echo "- Unreachable: $UNREACHABLE"
+            echo "- Oversized: $OVERSIZED"
+            echo "- Coverage: ${COVERAGE}%"
+            echo "- Aggregate size: ${TOTAL_MB}MB (limit ${MAX_TOTAL_MB}MB)"
+          } >> /tmp/report.md
+
           echo "totalAnchors=$TOTAL_ANCHORS" >> $GITHUB_OUTPUT
-          echo "reachableAnchors=$REACHABLE_ANCHORS" >> $GITHUB_OUTPUT
-          echo "unreachableAnchors=$UNREACHABLE_ANCHORS" >> $GITHUB_OUTPUT
-          echo "oversizedAnchors=$OVERSIZED_ANCHORS" >> $GITHUB_OUTPUT
-          echo "coveragePercent=$COVERAGE_PERCENT" >> $GITHUB_OUTPUT
+          echo "reachable=$REACHABLE" >> $GITHUB_OUTPUT
+          echo "unreachable=$UNREACHABLE" >> $GITHUB_OUTPUT
+          echo "oversized=$OVERSIZED" >> $GITHUB_OUTPUT
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
           echo "totalSizeKB=$TOTAL_SIZE_KB" >> $GITHUB_OUTPUT
-          echo "totalSizeMB=$TOTAL_SIZE_MB" >> $GITHUB_OUTPUT
+          echo "totalSizeMB=$TOTAL_MB" >> $GITHUB_OUTPUT
           echo "sizeExceeded=$SIZE_EXCEEDED" >> $GITHUB_OUTPUT
-          echo "failedAnchors<<EOF" >> $GITHUB_OUTPUT
-          echo -e "$FAILED_ANCHORS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          echo "oversizedFiles<<EOF" >> $GITHUB_OUTPUT
-          echo -e "$OVERSIZED_FILES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-          
-          echo "📊 Anchor Validation Results:"
-          echo "   Total anchors: $TOTAL_ANCHORS"
-          echo "   Reachable: $REACHABLE_ANCHORS"
-          echo "   Unreachable: $UNREACHABLE_ANCHORS"
-          echo "   Oversized: $OVERSIZED_ANCHORS"
-          echo "   Coverage: ${COVERAGE_PERCENT}%"
-          echo "   Total size: ${TOTAL_SIZE_MB}MB (limit: ${MAX_TOTAL_SIZE_MB}MB)"
-          
-      - name: Check coverage threshold
-        run: |
-          COVERAGE=${{ steps.anchor-validation.outputs.coveragePercent }}
-          THRESHOLD=${{ inputs.coverageThreshold }}
-          
-          if [ $COVERAGE -lt $THRESHOLD ]; then
-            echo "❌ Coverage ($COVERAGE%) below threshold ($THRESHOLD%)"
-            exit 1
-          else
-            echo "✅ Coverage ($COVERAGE%) meets threshold ($THRESHOLD%)"
-          fi
-          
-      - name: Create gap alert issue
-        if: steps.anchor-validation.outputs.coveragePercent < inputs.coverageThreshold || steps.anchor-validation.outputs.sizeExceeded == 'true' || steps.anchor-validation.outputs.oversizedAnchors > 0
+          printf "unreachableList<<EOF\n%s\nEOF\n" "$(echo -e "$UNREACHABLE_LIST" | sed '/^$/d')" >> $GITHUB_OUTPUT
+          printf "oversizedList<<EOF\n%s\nEOF\n" "$(echo -e "$OVERSIZED_LIST" | sed '/^$/d')" >> $GITHUB_OUTPUT
+          printf "unsupportedMimeList<<EOF\n%s\nEOF\n" "$(echo -e "$UNSUPPORTED_MIME_LIST" | sed '/^$/d')" >> $GITHUB_OUTPUT
+
+      - name: Upload report artifact
+        if: steps.manifest-validate.outputs.exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: anchor-reachability-report
+          path: /tmp/report.md
+          retention-days: 21
+
+      - name: Create / update coverage gap issue if needed
+        if: |
+          steps.scan.outputs.coverage < env.COVERAGE_THRESHOLD ||
+          steps.scan.outputs.sizeExceeded == 'true' ||
+          steps.scan.outputs.oversized > 0 ||
+          steps.scan.outputs.unreachable > 0
         uses: actions/github-script@v7
         with:
           script: |
-            const coverage = ${{ steps.anchor-validation.outputs.coveragePercent }};
-            const threshold = ${{ inputs.coverageThreshold }};
-            const unreachable = ${{ steps.anchor-validation.outputs.unreachableAnchors }};
-            const oversized = ${{ steps.anchor-validation.outputs.oversizedAnchors }};
-            const totalSizeMB = ${{ steps.anchor-validation.outputs.totalSizeMB }};
-            const sizeExceeded = '${{ steps.anchor-validation.outputs.sizeExceeded }}' === 'true';
-            const failedAnchors = `${{ steps.anchor-validation.outputs.failedAnchors }}`.trim();
-            const oversizedFiles = `${{ steps.anchor-validation.outputs.oversizedFiles }}`.trim();
-            
-            const title = '📊 [Initiative] Context Anchor Coverage and Size Gap Alert';
-            const labels = ['type:initiative', 'priority:medium', 'status:planning'];
-            
-            let issueItems = [];
-            if (coverage < threshold) {
-              issueItems.push(`Coverage below threshold: ${coverage}% < ${threshold}%`);
-            }
-            if (unreachable > 0) {
-              issueItems.push(`${unreachable} unreachable anchors`);
-            }
-            if (oversized > 0) {
-              issueItems.push(`${oversized} anchors exceed size limits`);
-            }
-            if (sizeExceeded) {
-              issueItems.push(`Total cache size (${totalSizeMB}MB) exceeds limit`);
-            }
-            
+            const cov = parseInt("${{ steps.scan.outputs.coverage }}", 10);
+            const thr = parseInt("${{ env.COVERAGE_THRESHOLD }}", 10);
+            const unreachable = parseInt("${{ steps.scan.outputs.unreachable }}", 10);
+            const oversized = parseInt("${{ steps.scan.outputs.oversized }}", 10);
+            const sizeExceeded = "${{ steps.scan.outputs.sizeExceeded }}" === "true";
+            const totalSizeMB = "${{ steps.scan.outputs.totalSizeMB }}";
+            const totalAnchors = "${{ steps.scan.outputs.totalAnchors }}";
+            const reachable = "${{ steps.scan.outputs.reachable }}";
+
+            const factors = [];
+            if (cov < thr) factors.push(`Coverage below threshold (${cov}% < ${thr}%)`);
+            if (unreachable > 0) factors.push(`${unreachable} unreachable anchors`);
+            if (oversized > 0) factors.push(`${oversized} oversized anchors`);
+            if (sizeExceeded) factors.push(`Aggregate size exceeded (${totalSizeMB}MB)`);
+
             const body = `### dream
-            SPECTRA
-            
-            ### archetype
-            Operations
-            
-            ### domain
-            governance
-            
-            ### initiativeTitle
-            contextAnchorCoverageGapResolution
-            
-            ### purpose
-            Address anchor reachability and size compliance gaps in context manifest to ensure reliable content serving and resource constraints.
-            
-            ### scope
-            inScope:
-            - Investigate unreachable anchor paths and refs
-            - Resolve size limit violations for oversized files
-            - Optimise total cache size utilisation
-            - Improve anchor discovery and validation processes
-            
-            outOfScope:
-            - Content modification beyond size optimisation
-            - Changes to size limit policies without framework approval
-            - Addition of non-SPECTRA repositories
-            
-            ### capabilityAreas
-            anchorReachabilityResolution
-            sizeComplianceOptimisation
-            cacheUtilisationManagement
-            validationProcessImprovement
-            
-            ### deliverables
-            - Resolution of all unreachable anchor paths
-            - Size optimisation for oversized files
-            - Updated manifest with verified, compliant anchors
-            - Enhanced validation and monitoring processes
-            
-            ### successIndicators
-            - Coverage ≥ \${threshold}% of expected anchors reachable
-            - Zero files exceeding individual size limits
-            - Total cache size within configured limits
-            - All anchor paths resolve successfully
-            
-            ### constraints
-            - Framework is Law: use only approved SPECTRA contracts
-            - Size limits enforced per manifest configuration
-            - Only SPECTRADataSolutions repositories allowed
-            - British English and camelCase throughout
-            
-            ### dependencies
-            - framework: contracts validation schemas
-            - context: manifest and anchor files requiring fixes
-            - .github: governance workflows and validation
-            
-            ### automationOptions
-            - [ ] generateInitiativeIdAndUuid
-            - [ ] generateProjectsEpicsStories
-            - [ ] generateWorkPackagesAndSprintPlan
-            - [ ] runImpactAnalysis
-            - [ ] runFutureConsequenceSimulation
-            - [ ] computeExecutionReadinessScore
-            - [ ] generateMaturityForecastTimeline
-            
-            ### notes
-            **Gap Analysis Results:**
-            - Total anchors: ${{ steps.anchor-validation.outputs.totalAnchors }}
-            - Reachable: ${{ steps.anchor-validation.outputs.reachableAnchors }}
-            - Unreachable: \${unreachable}
-            - Oversized: \${oversized}
-            - Coverage: \${coverage}% (threshold: \${threshold}%)
-            - Total size: \${totalSizeMB}MB
-            
-            **Issues Found:**
-            \${issueItems.join('\\n')}
-            
-            \${failedAnchors ? \`**Unreachable Anchors:**\\n\${failedAnchors}\` : ''}
-            
-            \${oversizedFiles ? \`**Oversized Files:**\\n\${oversizedFiles}\` : ''}
-            
-            Repository: ${{ inputs.repository }}
-            Manifest: ${{ inputs.manifestPath }}
-            Validation Time: \${new Date().toISOString()}`;
-            
-            await github.rest.issues.create({
-              ...context.repo,
-              title: title,
-              body: body,
-              labels: labels
+SPECTRA
+
+### archetype
+Operations
+
+### domain
+governance
+
+### initiativeTitle
+contextAnchorCoverageGapResolution
+
+### purpose
+Resolve reachability and size compliance gaps for context anchors to restore reliable contextual intelligence services.
+
+### scope
+inScope:
+- Triaging unreachable anchors
+- Correcting or removing stale paths / refs
+- Remediating oversized anchors (refactor, split, compress)
+- Verifying MIME type allowlist compliance
+- Updating manifest for accuracy and least-privilege
+
+outOfScope:
+- Introducing new repositories outside current allowlist
+- Altering global size policy without governance approval
+- Non-compliance workarounds
+
+### capabilityAreas
+anchorReachabilityResolution
+sizeComplianceOptimisation
+cacheUtilisationManagement
+manifestGovernance
+validationProcessImprovement
+
+### deliverables
+- Updated manifest with only valid, reachable anchors
+- Remediation of all oversized entries or approved exceptions
+- Coverage ≥ ${thr}% sustained
+- Documented prevention measures (runbook update)
+
+### successIndicators
+- Coverage restored to ≥ ${thr}%
+- Zero oversized anchors after remediation
+- No unreachable anchors across 3 consecutive daily scans
+- Aggregate size within limit
+
+### constraints
+- Framework is Law (use only approved schemas/contracts)
+- British English & camelCase
+- Immutable refs (pin where production critical)
+- Honour privacy & MIME restrictions
+
+### dependencies
+- contracts: schema validation (.github/contracts)
+- context: manifest & anchor content
+- source repos: referenced paths and commit SHAs
+
+### automationOptions
+- [ ] generateInitiativeIdAndUuid
+- [ ] generateProjectsEpicsStories
+- [ ] runImpactAnalysis
+- [ ] computeExecutionReadinessScore
+
+### currentFindings
+${factors.map(f=>`- ${f}`).join('\n')}
+
+### metrics
+- Total anchors: ${totalAnchors}
+- Reachable: ${reachable}
+- Coverage: ${cov}% (threshold ${thr}%)
+- Unreachable: ${unreachable}
+- Oversized: ${oversized}
+- Total size: ${totalSizeMB}MB
+
+${"${{ steps.scan.outputs.unreachableList }}".trim() ? `**Unreachable:**\n${"${{ steps.scan.outputs.unreachableList }}".trim()}` : ""}
+${"${{ steps.scan.outputs.oversizedList }}".trim() ? `**Oversized:**\n${"${{ steps.scan.outputs.oversizedList }}".trim()}` : ""}
+${"${{ steps.scan.outputs.unsupportedMimeList }}".trim() ? `**Unsupported MIME:**\n${"${{ steps.scan.outputs.unsupportedMimeList }}".trim()}` : ""}
+
+Auto-generated by Anchor Reachability and Size Validator workflow.`
+
+            const title = "📊 [Initiative] Context Anchor Coverage Gap Resolution";
+            // Attempt to find existing open issue to avoid duplicates
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: "type:initiative"
             });
-            
-            console.log(\`✅ Created gap alert issue: \${title}\`);
-            
-      - name: Validation Summary
+            const match = existing.data.find(i => i.title === title);
+            if (match) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: match.number,
+                body: `Automated update:\n\n${body}`
+              });
+              console.log(`🔁 Updated existing initiative issue #${match.number}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ["type:initiative","priority:medium","coverage:gap"]
+              });
+              console.log(`🆕 Created initiative issue #${created.data.number}`);
+            }
+
+      - name: Coverage Gate
+        if: steps.scan.outputs.coverage >= env.COVERAGE_THRESHOLD
         run: |
-          echo "🎯 Anchor Reachability and Size Validation Complete"
-          echo "   Repository: ${{ inputs.repository }}"
-          echo "   Manifest: ${{ inputs.manifestPath }}"
-          echo "   Total Anchors: ${{ steps.anchor-validation.outputs.totalAnchors }}"
-          echo "   Reachable: ${{ steps.anchor-validation.outputs.reachableAnchors }}"
-          echo "   Coverage: ${{ steps.anchor-validation.outputs.coveragePercent }}%"
-          echo "   Total Size: ${{ steps.anchor-validation.outputs.totalSizeMB }}MB"
-          
-          if [ ${{ steps.anchor-validation.outputs.coveragePercent }} -ge ${{ inputs.coverageThreshold }} ] && [ "${{ steps.anchor-validation.outputs.sizeExceeded }}" != "true" ] && [ ${{ steps.anchor-validation.outputs.oversizedAnchors }} -eq 0 ]; then
-            echo "   ✅ All validations passed"
+          echo "✅ Coverage gate passed: ${{ steps.scan.outputs.coverage }}% ≥ ${COVERAGE_THRESHOLD}%"
+
+      - name: Fail if coverage below threshold
+        if: steps.scan.outputs.coverage < env.COVERAGE_THRESHOLD
+        run: |
+          echo "::error title=Coverage Gate Failed::Coverage ${{ steps.scan.outputs.coverage }}% is below threshold ${COVERAGE_THRESHOLD}%"
+          exit 1
+
+      - name: Job Summary
+        if: always()
+        run: |
+          echo "## 📊 Anchor Reachability Summary" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.manifest-validate.outputs.exists }}" != "true" ]; then
+            echo "Manifest not found at ${MANIFEST_PATH}" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          echo "**Coverage Threshold:** ${COVERAGE_THRESHOLD}%" >> $GITHUB_STEP_SUMMARY
+          echo "**Total Anchors:** ${{ steps.scan.outputs.totalAnchors }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Reachable:** ${{ steps.scan.outputs.reachable }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Unreachable:** ${{ steps.scan.outputs.unreachable }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Oversized:** ${{ steps.scan.outputs.oversized }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Coverage:** ${{ steps.scan.outputs.coverage }}%" >> $GITHUB_STEP_SUMMARY
+          echo "**Aggregate Size:** ${{ steps.scan.outputs.totalSizeMB }}MB (limit ${{ steps.limits.outputs.maxTotalMB }}MB)" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.scan.outputs.sizeExceeded }}" = "true" ]; then
+            echo "**Size Status:** ❌ Exceeded" >> $GITHUB_STEP_SUMMARY
           else
-            echo "   📋 Gap alert issue created for resolution"
+            echo "**Size Status:** ✅ Within Limit" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ ${{ steps.scan.outputs.coverage }} -ge ${{ env.COVERAGE_THRESHOLD }} ]; then
+            echo "**Coverage Gate:** ✅ Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Coverage Gate:** ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          if [ ${{ steps.scan.outputs.coverage }} -lt ${{ env.COVERAGE_THRESHOLD }} ] || [ "${{ steps.scan.outputs.sizeExceeded }}" = "true" ] || [ ${{ steps.scan.outputs.oversized }} -gt 0 ] || [ ${{ steps.scan.outputs.unreachable }} -gt 0 ]; then
+            echo "- Review or update context manifest paths/refs" >> $GITHUB_STEP_SUMMARY
+            echo "- Remediate oversized anchors (split or compress)" >> $GITHUB_STEP_SUMMARY
+            echo "- Replace unreachable paths or pin correct SHAs" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- All metrics within policy thresholds" >> $GITHUB_STEP_SUMMARY
           fi

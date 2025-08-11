@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/hierarchyResponse.json", 
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/hierarchyResponse.json",
   "title": "SPECTRA Organisational Hierarchy Response Schema",
   "description": "Schema for responses from spectra.org.hierarchy endpoint with role-aware helpers",
   "type": "object",
@@ -29,7 +29,7 @@
               "domains": {
                 "type": "array",
                 "items": {
-                  "type": "object", 
+                  "type": "object",
                   "properties": {
                     "name": {
                       "type": "string",
@@ -82,6 +82,7 @@
     },
     "roles": {
       "type": "array",
+      "description": "Organisational roles with hierarchy relationships",
       "items": {
         "type": "object",
         "properties": {
@@ -148,8 +149,7 @@
         },
         "required": ["id", "title", "description", "level", "archetypes", "domains"],
         "additionalProperties": false
-      },
-      "description": "Organisational roles with hierarchy relationships"
+      }
     },
     "helpers": {
       "type": "object",
@@ -170,6 +170,7 @@
               "pattern": "^[a-z][a-zA-Z0-9]*$"
             }
           },
+          "additionalProperties": false,
           "description": "Map of role titles to role IDs for lookup"
         },
         "pathTo": {
@@ -184,6 +185,7 @@
               "description": "Path from role to top-level through reporting hierarchy"
             }
           },
+          "additionalProperties": false,
           "description": "Role hierarchy paths for each role ID"
         }
       },
@@ -195,6 +197,7 @@
       "properties": {
         "sourceRef": {
           "type": "string",
+          "pattern": "^[a-f0-9]{40}$",
           "description": "Commit SHA of organisation/hierarchy.yaml source"
         },
         "lastUpdated": {

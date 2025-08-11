@@ -14,7 +14,9 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["SPECTRADataSolutions"]
+        "enum": [
+          "SPECTRADataSolutions"
+        ]
       },
       "minItems": 1,
       "description": "Allowed GitHub organisation owners (SPECTRA only)"
@@ -26,7 +28,9 @@
         "properties": {
           "owner": {
             "type": "string",
-            "enum": ["SPECTRADataSolutions"]
+            "enum": [
+              "SPECTRADataSolutions"
+            ]
           },
           "name": {
             "type": "string",
@@ -54,7 +58,12 @@
             "description": "Whether repository is private (default-deny unless explicitly allowed)"
           }
         },
-        "required": ["owner", "name", "allowedRefs", "allowedPaths"],
+        "required": [
+          "owner",
+          "name",
+          "allowedRefs",
+          "allowedPaths"
+        ],
         "additionalProperties": false
       },
       "minItems": 1,
@@ -175,7 +184,7 @@
   },
   "required": [
     "version",
-    "allowedOwners", 
+    "allowedOwners",
     "allowedRepos",
     "sizeLimits",
     "mimeTypeAllowlist",

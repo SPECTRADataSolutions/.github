@@ -1,12 +1,12 @@
-# SPECTRA MCP Context Server Foundation
+# SPECTRA Context Server Foundation
 
-This documentation outlines the governance foundation for the SPECTRA Model Context Protocol (MCP) server initiative, establishing the contracts, workflows, and compliance mechanisms that enforce "Framework is Law" principles.
+This documentation outlines the governance foundation for the SPECTRA context server initiative, establishing the contracts, workflows, and compliance mechanisms that enforce "Framework is Law" principles.
 
 ## 🏛️ Governance Architecture
 
 ### Contract Schemas
 
-The MCP context server is governed by JSON Schema contracts located in `contracts/context/`:
+The context server is governed by JSON Schema contracts located in `contracts/context/`:
 
 - **`contextManifest.json`** - Declarative manifest schema for repository allowlists, ref pinning, and policies
 - **`anchor.json`** - Schema for anchor responses from `spectra.anchor.get` calls
@@ -21,7 +21,7 @@ Automated workflows ensure continuous compliance:
 - **`validate-context-manifest.yml`** - Validates manifest schema, refs, policies on changes
 - **`pin-refs-and-checksums.yml`** - Nightly ref pinning and drift detection with auto-issue creation
 - **`anchor-reachability-and-size.yml`** - Daily anchor coverage scanning with gap alerting
-- **`mcp-context-governance.yml`** - Weekly governance health assessment and reporting
+- **`context-governance.yml`** - Weekly governance health assessment and reporting
 
 ## 🔒 Security and Privacy
 
@@ -51,7 +51,7 @@ Governance violations automatically create Initiative issues using SPECTRA templ
 
 - **Drift Detection**: `contextDriftDetection` for checksum mismatches
 - **Coverage Gaps**: `anchorCoverageGapRemediation` for reachability issues
-- **Governance Health**: `mcpContextGovernanceHealth` for infrastructure problems
+- **Governance Health**: `contextGovernanceHealth` for infrastructure problems
 
 ## 🎯 Framework Compliance
 
@@ -85,12 +85,12 @@ Governance violations automatically create Initiative issues using SPECTRA templ
 
 ## 🚀 Implementation Notes
 
-This foundation establishes the governance infrastructure for the MCP context server. The actual server implementation would be deployed in the `SPECTRADataSolutions/context` repository, consuming these contracts and adhering to these policies.
+This foundation establishes the governance infrastructure for the context server. The actual server implementation would be deployed in the `SPECTRADataSolutions/context` repository, consuming these contracts and adhering to these policies.
 
 Key implementation repositories:
 - **SPECTRADataSolutions/.github** (this repo) - Governance contracts and workflows
 - **SPECTRADataSolutions/framework** - Additional compliance contracts
 - **SPECTRADataSolutions/organisation** - Hierarchy data source
-- **SPECTRADataSolutions/context** - MCP server implementation
+- **SPECTRADataSolutions/context** - Context server implementation
 
-All components must maintain strict compliance with these governance foundations to ensure the MCP server operates as a reliable, secure, and auditable source of canonical SPECTRA knowledge.
+All components must maintain strict compliance with these governance foundations to ensure the context server operates as a reliable, secure, and auditable source of canonical SPECTRA knowledge.

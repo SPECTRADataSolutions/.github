@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/redactionPolicy.json",
   "title": "SPECTRA Redaction Policy Schema",
-  "description": "Schema for privacy redaction policies in MCP context server",
+  "description": "Schema for privacy redaction policies in context server",
   "type": "object",
   "properties": {
     "version": {

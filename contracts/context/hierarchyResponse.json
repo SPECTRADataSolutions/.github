@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/hierarchyResponse.json",
   "title": "SPECTRA Hierarchy Response Schema",
-  "description": "Schema for organisation hierarchy responses from spectra.org.hierarchy MCP calls",
+  "description": "Schema for organisation hierarchy responses from spectra.org.hierarchy calls",
   "type": "object",
   "properties": {
     "hierarchy": {

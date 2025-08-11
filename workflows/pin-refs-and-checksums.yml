@@ -183,7 +183,7 @@ jobs:
 
             ### purpose
 
-            Address unexpected content drift in MCP context repositories that may indicate security issues, unauthorized changes, or integrity violations.
+            Address unexpected content drift in context repositories that may indicate security issues, unauthorized changes, or integrity violations.
 
             ### scope
 
@@ -231,7 +231,7 @@ jobs:
 
             ### dependencies
 
-            - context: MCP server and manifest configuration
+            - context: Context server and manifest configuration
             - .github: governance workflows and issue templates
             - framework: compliance contracts and policies
 

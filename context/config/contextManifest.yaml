@@ -1,5 +1,5 @@
 # SPECTRA Context Manifest
-# Declarative configuration for MCP server context sources
+# Declarative configuration for context server sources
 # This is a sample/template - actual implementation would be in SPECTRADataSolutions/context repository
 
 version: "1.0"

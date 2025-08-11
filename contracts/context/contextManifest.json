@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/contextManifest.json",
   "title": "SPECTRA Context Manifest Schema",
-  "description": "Declarative manifest for MCP server context configuration with allowlists, ref pinning, and size constraints",
+  "description": "Declarative manifest for context server configuration with allowlists, ref pinning, and size constraints",
   "type": "object",
   "properties": {
     "version": {

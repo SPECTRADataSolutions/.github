@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/searchResult.json",
   "title": "SPECTRA Search Result Schema",
-  "description": "Schema for search responses from spectra.search.find MCP calls",
+  "description": "Schema for search responses from spectra.search.find calls",
   "type": "object",
   "properties": {
     "query": {

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/anchor.json",
   "title": "SPECTRA Anchor Schema",
-  "description": "Schema for anchor responses from spectra.anchor.get MCP calls",
+  "description": "Schema for anchor responses from spectra.anchor.get calls",
   "type": "object",
   "properties": {
     "id": {

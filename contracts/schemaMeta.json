@@ -1,0 +1,18 @@
+{
+  "frameworkCommit": null,
+  "schemaHashes": {
+    "anchor": null,
+    "contextManifest": null,
+    "searchResult": null,
+    "hierarchyResponse": null,
+    "redactionPolicy": null
+  },
+  "upgradeHint": null,
+  "generatedAt": null,
+  "metadata": {
+    "version": "1.0.0",
+    "description": "SPECTRA Context system schema metadata tracking",
+    "lastUpdatedBy": "spectraContextMonolithBootstrap",
+    "delightMode": false
+  }
+}

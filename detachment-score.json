@@ -1,0 +1,14 @@
+{
+  "detachmentScore": 100,
+  "status": "\ud83c\udf1f EXCELLENT - Ready for extraction",
+  "timestamp": "2025-08-11T22:38:47.838246Z",
+  "bonuses": [
+    "Schema metadata tracking exists (+5)",
+    "Independent governance workflows: 2 (+4)",
+    "API endpoints documented: 8 (+5)"
+  ],
+  "deductions": [
+    "Hardcoded .github reference in /home/runner/work/.github/.github/governance/workflows/validate-content.yml: 1 refs"
+  ],
+  "recommendation": "System is ready for extraction. Proceed with migration checklist."
+}

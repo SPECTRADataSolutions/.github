@@ -1,0 +1,195 @@
+name: Schema Drift Detection
+description: "Nightly drift observer that checks for changes in upstream SPECTRA framework schemas and opens/updates a single issue for tracking"
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      forceCheck:
+        description: "Force drift check even if no changes detected"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  FRAMEWORK_REPO: SPECTRADataSolutions/framework
+  DRIFT_ISSUE_LABEL: schema-drift
+  DRIFT_ISSUE_TITLE: "🔄 Schema Drift Detected"
+
+jobs:
+  schema-drift-check:
+    runs-on: ubuntu-latest
+    name: Check Schema Drift
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          path: current-repo
+
+      - name: Checkout framework repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.FRAMEWORK_REPO }}
+          path: framework-repo
+          fetch-depth: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install -g js-yaml
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+
+      - name: Check current schema metadata
+        id: current-meta
+        run: |
+          cd current-repo
+          if [ -f "contracts/schemaMeta.json" ]; then
+            CURRENT_COMMIT=$(jq -r '.frameworkCommit // ""' contracts/schemaMeta.json)
+            echo "currentCommit=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
+            echo "metaExists=true" >> $GITHUB_OUTPUT
+          else
+            echo "currentCommit=" >> $GITHUB_OUTPUT
+            echo "metaExists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get latest framework commit
+        id: framework-meta
+        run: |
+          cd framework-repo
+          LATEST_COMMIT=$(git rev-parse HEAD)
+          echo "latestCommit=$LATEST_COMMIT" >> $GITHUB_OUTPUT
+          
+          # Compute schema hashes
+          SCHEMAS_DIR="contracts/context"
+          if [ -d "$SCHEMAS_DIR" ]; then
+            ANCHOR_HASH=$(sha256sum "$SCHEMAS_DIR/anchor.json" 2>/dev/null | cut -d' ' -f1 || echo "")
+            MANIFEST_HASH=$(sha256sum "$SCHEMAS_DIR/contextManifest.json" 2>/dev/null | cut -d' ' -f1 || echo "")
+            SEARCH_HASH=$(sha256sum "$SCHEMAS_DIR/searchResult.json" 2>/dev/null | cut -d' ' -f1 || echo "")
+            HIERARCHY_HASH=$(sha256sum "$SCHEMAS_DIR/hierarchyResponse.json" 2>/dev/null | cut -d' ' -f1 || echo "")
+            REDACTION_HASH=$(sha256sum "$SCHEMAS_DIR/redactionPolicy.json" 2>/dev/null | cut -d' ' -f1 || echo "")
+          else
+            ANCHOR_HASH=""
+            MANIFEST_HASH=""
+            SEARCH_HASH=""
+            HIERARCHY_HASH=""
+            REDACTION_HASH=""
+          fi
+          
+          echo "anchorHash=$ANCHOR_HASH" >> $GITHUB_OUTPUT
+          echo "manifestHash=$MANIFEST_HASH" >> $GITHUB_OUTPUT
+          echo "searchHash=$SEARCH_HASH" >> $GITHUB_OUTPUT
+          echo "hierarchyHash=$HIERARCHY_HASH" >> $GITHUB_OUTPUT
+          echo "redactionHash=$REDACTION_HASH" >> $GITHUB_OUTPUT
+
+      - name: Determine drift status
+        id: drift-check
+        run: |
+          CURRENT="${{ steps.current-meta.outputs.currentCommit }}"
+          LATEST="${{ steps.framework-meta.outputs.latestCommit }}"
+          FORCE_CHECK="${{ github.event.inputs.forceCheck }}"
+          
+          if [ -z "$CURRENT" ] || [ "$CURRENT" != "$LATEST" ] || [ "$FORCE_CHECK" = "true" ]; then
+            echo "driftDetected=true" >> $GITHUB_OUTPUT
+            echo "📊 Drift detected: Current='$CURRENT', Latest='$LATEST'"
+          else
+            echo "driftDetected=false" >> $GITHUB_OUTPUT
+            echo "✅ No drift detected"
+          fi
+
+      - name: Check for existing drift issue
+        id: existing-issue
+        if: steps.drift-check.outputs.driftDetected == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: process.env.DRIFT_ISSUE_LABEL,
+              state: 'open'
+            });
+            
+            const driftIssue = issues.data.find(issue => 
+              issue.title === process.env.DRIFT_ISSUE_TITLE
+            );
+            
+            if (driftIssue) {
+              core.setOutput('issueNumber', driftIssue.number);
+              core.setOutput('exists', 'true');
+            } else {
+              core.setOutput('exists', 'false');
+            }
+
+      - name: Create or update drift issue
+        if: steps.drift-check.outputs.driftDetected == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const current = '${{ steps.current-meta.outputs.currentCommit }}';
+            const latest = '${{ steps.framework-meta.outputs.latestCommit }}';
+            const timestamp = new Date().toISOString();
+            
+            const body = "## Schema Drift Detected\n\n" +
+              "**Detection Time:** " + timestamp + "\n" +
+              "**Current Framework Commit:** " + (current || 'none') + "\n" +
+              "**Latest Framework Commit:** " + latest + "\n\n" +
+              "### Schema Hashes (Latest Framework)\n" +
+              "- **anchor.json:** ${{ steps.framework-meta.outputs.anchorHash }}\n" +
+              "- **contextManifest.json:** ${{ steps.framework-meta.outputs.manifestHash }}\n" +
+              "- **searchResult.json:** ${{ steps.framework-meta.outputs.searchHash }}\n" +
+              "- **hierarchyResponse.json:** ${{ steps.framework-meta.outputs.hierarchyHash }}\n" +
+              "- **redactionPolicy.json:** ${{ steps.framework-meta.outputs.redactionHash }}\n\n" +
+              "### Recommended Actions\n" +
+              "1. Review changes in framework repository between commits\n" +
+              "2. Update contracts/schemaMeta.json with new framework commit\n" +
+              "3. Validate that local schemas are compatible with framework changes\n" +
+              "4. Run content validation workflows to ensure anchors/manifests still comply\n" +
+              "5. Close this issue once drift is resolved\n\n" +
+              "### Framework as Law\n" +
+              "This drift detection enforces the **Framework as Law** principle - all schema changes must originate from the canonical SPECTRA framework repository.\n\n" +
+              "---\n" +
+              "*This issue is automatically managed by the schema drift detection workflow.*";
+
+            if ('${{ steps.existing-issue.outputs.exists }}' === 'true') {
+              // Update existing issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: ${{ steps.existing-issue.outputs.issueNumber }},
+                body: body
+              });
+              console.log('Updated existing drift issue #${{ steps.existing-issue.outputs.issueNumber }}');
+            } else {
+              // Create new issue
+              const issue = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: process.env.DRIFT_ISSUE_TITLE,
+                body: body,
+                labels: [process.env.DRIFT_ISSUE_LABEL, 'automated']
+              });
+              console.log('Created new drift issue #' + issue.data.number);
+            }
+
+      - name: Summary
+        run: |
+          echo "## 🔄 Schema Drift Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "**Current Framework Commit:** ${{ steps.current-meta.outputs.currentCommit || 'none' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Latest Framework Commit:** ${{ steps.framework-meta.outputs.latestCommit }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Drift Detected:** ${{ steps.drift-check.outputs.driftDetected }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.drift-check.outputs.driftDetected }}" = "true" ]; then
+            echo "**Action Taken:** Issue created/updated with drift details" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Action Taken:** No action required" >> $GITHUB_STEP_SUMMARY
+          fi

@@ -1,0 +1,34 @@
+{
+  "id": "xWingAnchor",
+  "title": "X-wing Starfighter Technical Manual",
+  "description": "Technical documentation for the T-65 X-wing starfighter, including specifications, maintenance protocols, and operational guidelines for Rebel Alliance pilots. This anchor demonstrates the SPECTRA Context system with a playful Star Wars theme, showing how technical knowledge can be structured for AI consumption while maintaining delight and engagement.",
+  "repository": {
+    "owner": "SPECTRADataSolutions",
+    "name": ".github",
+    "ref": "0000000000000000000000000000000000000000",
+    "path": "anchors/examples/xWingTechnicalManual.md"
+  },
+  "content": {
+    "mimeType": "text/markdown",
+    "sizeBytes": 2048,
+    "checksum": "0000000000000000000000000000000000000000000000000000000000000000",
+    "encoding": "utf-8"
+  },
+  "metadata": {
+    "dream": "SPECTRA",
+    "archetype": "Guidance",
+    "domain": "context",
+    "tags": ["starfighter", "technical", "example", "starWars", "delightMode"],
+    "roles": ["pilot", "engineer", "mechanic"]
+  },
+  "cache": {
+    "etag": "example-etag-xwing-starfighter",
+    "lastModified": "2024-01-01T00:00:00.000Z",
+    "ttl": 3600
+  },
+  "privacy": {
+    "redacted": false,
+    "redactionCount": 0,
+    "isPrivateRepo": false
+  }
+}

@@ -1,4 +1,4 @@
-name: Story
+name: "📖 Story"
 description: End-user facing deliverable in one sprint.
 title: "📖 [Story] <shortTitle>"
 labels: ["type:story","status:todo"]

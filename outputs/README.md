@@ -3,7 +3,7 @@
 Each initiative gets its own folder: `outputs/<initiativeId>/`
 
 ## standardFiles
-- `summaryCard.md` — key facts (pillar, domain, capabilityAreas).
+- `summaryCard.md` — key facts (archetype, domain, capabilityAreas).
 - `sprintPlan.md` — starter sprint plan skeleton to refine.
 - `maturityTimeline.md` — milestones and risk spikes (text or image).
 - `impactReport.md` — optional; results from decision simulations.

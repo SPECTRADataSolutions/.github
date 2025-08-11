@@ -35,7 +35,7 @@ jobs:
               return val
           out = {
             "initiativeTitle": grab("initiativeTitle"),
-            "pillar": grab("pillar"),
+            "archetype": grab("archetype"),
             "domain": grab("domain"),
             "capabilityAreas": grab("capabilityAreas", multi=True)
           }
@@ -55,7 +55,7 @@ jobs:
           cat > outputs/${{ steps.ids.outputs.initiativeId }}/summaryCard.md <<EOF
           # summaryCard
           initiativeId: ${{ steps.ids.outputs.initiativeId }}
-          pillar: $(jq -r .pillar parsed.json)
+          archetype: $(jq -r .archetype parsed.json)
           domain: $(jq -r .domain parsed.json)
           capabilityAreas:
           $(jq -r '.capabilityAreas[] | "- " + .' parsed.json)
@@ -75,7 +75,7 @@ jobs:
             const fs = require('fs');
             const data = JSON.parse(fs.readFileSync('parsed.json','utf8'));
             const initiativeId = '${{ steps.ids.outputs.initiativeId }}';
-            const pillar = data.pillar || 'governance';
+            const archetype = data.archetype || 'Guidance';
             const domain = data.domain || 'visionAndStrategyExecution';
 
             for (const cap of (data.capabilityAreas||[])) {
@@ -83,7 +83,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 title: `🗂️ [Epic] ${cap}`,
-                labels: ['type:epic','status:planning', `pillar:${pillar}`, `domain:${domain}`, `parent:${initiativeId}`],
+                labels: ['type:epic','status:planning', `archetype:${archetype}`, `domain:${domain}`, `parent:${initiativeId}`],
                 body: `auto-created from initiative **${initiativeId}**\n\ncapability: \`${cap}\``
               });
             }

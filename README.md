@@ -2,6 +2,14 @@
 
 This repository serves as the **single source of truth** for GitHub configuration across all SPECTRA Data Solutions repositories. It provides standardised templates, workflows, and governance policies that ensure consistency, quality, and compliance with SPECTRA framework standards.
 
+## 🏛️ Organisational Structure
+**Dream:** SPECTRA  
+**Archetype:** Guidance  
+**Domain:** governance  
+**Repository:** .github
+
+This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).
+
 ---
 
 ## 🎯 Purpose & Coverage

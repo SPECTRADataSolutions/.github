@@ -1,0 +1,195 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/orgStructureMetadata.json",
+  "title": "SPECTRA Canonical Organizational Structure Metadata",
+  "description": "Schema defining the 4-level hierarchy: Dream → Archetype → Domain → Repo",
+  "type": "object",
+  "properties": {
+    "dream": {
+      "type": "string",
+      "enum": ["SPECTRA"],
+      "description": "The overarching organizational vision and aspiration"
+    },
+    "archetype": {
+      "type": "string",
+      "enum": [
+        "Guidance",
+        "Innovation", 
+        "Engagement",
+        "Operations",
+        "Protection",
+        "Sustenance",
+        "Growth"
+      ],
+      "description": "High-level categorization of organizational capability"
+    },
+    "domain": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z]*$",
+      "description": "Single-word camelCase domain pertinent to the archetype"
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9._-]+$",
+      "description": "Repository name following GitHub naming conventions"
+    }
+  },
+  "required": ["dream", "archetype", "domain", "repository"],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "archetype": { "const": "Guidance" }
+        }
+      },
+      "then": {
+        "properties": {
+          "domain": {
+            "enum": [
+              "governance",
+              "standards",
+              "documentation",
+              "training",
+              "compliance",
+              "frameworks",
+              "policies"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "archetype": { "const": "Innovation" }
+        }
+      },
+      "then": {
+        "properties": {
+          "domain": {
+            "enum": [
+              "research",
+              "experimentation",
+              "prototyping",
+              "emerging",
+              "futures",
+              "ideation",
+              "discovery"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "archetype": { "const": "Engagement" }
+        }
+      },
+      "then": {
+        "properties": {
+          "domain": {
+            "enum": [
+              "community",
+              "partnerships",
+              "communication",
+              "outreach",
+              "collaboration",
+              "relationships",
+              "networking"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "archetype": { "const": "Operations" }
+        }
+      },
+      "then": {
+        "properties": {
+          "domain": {
+            "enum": [
+              "infrastructure",
+              "deployment",
+              "monitoring",
+              "automation",
+              "maintenance",
+              "support",
+              "tooling"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "archetype": { "const": "Protection" }
+        }
+      },
+      "then": {
+        "properties": {
+          "domain": {
+            "enum": [
+              "security",
+              "privacy",
+              "compliance",
+              "risk",
+              "auditing",
+              "backup",
+              "recovery"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "archetype": { "const": "Sustenance" }
+        }
+      },
+      "then": {
+        "properties": {
+          "domain": {
+            "enum": [
+              "maintenance",
+              "support",
+              "optimization",
+              "performance",
+              "reliability",
+              "scalability",
+              "efficiency"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "archetype": { "const": "Growth" }
+        }
+      },
+      "then": {
+        "properties": {
+          "domain": {
+            "enum": [
+              "expansion",
+              "acquisition",
+              "scaling",
+              "development",
+              "enhancement",
+              "evolution",
+              "advancement"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

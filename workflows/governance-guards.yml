@@ -14,9 +14,10 @@ jobs:
           script: |
             const body = (context.payload.issue.body || '').toLowerCase();
             const required = [
-              'initiativeTitle',
+              'dream',
               'archetype',
               'domain',
+              'initiativeTitle',
               'purpose',
               'scope',
               'capabilityAreas',
@@ -47,3 +48,64 @@ jobs:
               });
               core.setFailed('Title not in camelCase');
             }
+
+      - name: validateOrganizationalStructure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body || '';
+            
+            // Extract organizational metadata
+            const dreamMatch = body.match(/### dream\s*\n\s*([^\n]+)/i);
+            const archetypeMatch = body.match(/### archetype\s*\n\s*([^\n]+)/i);
+            const domainMatch = body.match(/### domain\s*\n\s*([^\n]+)/i);
+            
+            if (!dreamMatch || !archetypeMatch || !domainMatch) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: '❌ Missing organizational structure metadata (dream, archetype, domain)'
+              });
+              core.setFailed('Missing organizational metadata');
+              return;
+            }
+            
+            const dream = dreamMatch[1].trim();
+            const archetype = archetypeMatch[1].trim();
+            const domain = domainMatch[1].trim();
+            
+            // Validate dream
+            if (dream !== 'SPECTRA') {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: `❌ Dream must be 'SPECTRA', got: ${dream}`
+              });
+              core.setFailed('Invalid dream value');
+              return;
+            }
+            
+            // Validate archetype
+            const validArchetypes = ['Guidance', 'Innovation', 'Engagement', 'Operations', 'Protection', 'Sustenance', 'Growth'];
+            if (!validArchetypes.includes(archetype)) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: `❌ Invalid archetype: ${archetype}. Must be one of: ${validArchetypes.join(', ')}`
+              });
+              core.setFailed('Invalid archetype');
+              return;
+            }
+            
+            // Validate domain format (single-word camelCase)
+            if (!/^[a-z][a-zA-Z]*$/.test(domain)) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: `❌ Domain must be single-word camelCase starting with lowercase: ${domain}`
+              });
+              core.setFailed('Invalid domain format');
+              return;
+            }
+            
+            console.log(`✅ Organizational structure validated: ${dream} → ${archetype} → ${domain}`);

@@ -1,4 +1,4 @@
-name: Task
+name: "🔧 Task"
 description: Internal or technical work in one sprint.
 title: "🔧 [Task] <shortTitle>"
 labels: ["type:task","status:todo"]

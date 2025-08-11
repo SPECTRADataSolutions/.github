@@ -62,7 +62,7 @@ jobs:
           echo "manifestPath=$MANIFEST_PATH" >> $GITHUB_OUTPUT
 
           # Determine target repository (for workflow_call / dispatch remote validation)
-            TARGET_REPO="${{ inputs.repository }}"
+          TARGET_REPO="${{ inputs.repository }}"
           if [ -z "$TARGET_REPO" ]; then
             TARGET_REPO="${{ github.event.inputs.repository }}"
           fi

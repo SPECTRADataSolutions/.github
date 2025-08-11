@@ -178,7 +178,14 @@ jobs:
           fi
           
           # Check private repo access policy
-          if grep -q '"defaultDenyPrivateRepos".*true' contracts/context/contextManifest.json; then
+          if grep -q '"logContent".*false' contracts/context/manifest.json; then
+            echo "- ✅ **Content Logging** - Disabled by default for privacy" >> /tmp/governance_report.md
+          else
+            echo "- ⚠️ **Content Logging** - Policy unclear, review needed" >> /tmp/governance_report.md
+          fi
+          
+          # Check private repo access policy
+          if grep -q '"defaultDenyPrivateRepos".*true' contracts/context/manifest.json; then
             echo "- ✅ **Private Repo Access** - Default deny policy enforced" >> /tmp/governance_report.md
           else
             echo "- ⚠️ **Private Repo Access** - Policy unclear, review needed" >> /tmp/governance_report.md

@@ -4,10 +4,10 @@ title: "🔗 [Dependency] <from> → <to>"
 labels: ["type:dependency","status:registered"]
 body:
   - type: dropdown
-    id: pillar
+    id: archetype
     attributes:
-      label: pillar
-      options: [governance, product, engineering, operations, marketing, sales]
+      label: archetype
+      options: [Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth]
     validations: { required: true }
 
   - type: input

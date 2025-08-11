@@ -188,7 +188,24 @@ jobs:
           if grep -q '"defaultDenyPrivateRepos".*true' contracts/context/manifest.json; then
             echo "- ✅ **Private Repo Access** - Default deny policy enforced" >> /tmp/governance_report.md
           else
-            echo "- ⚠️ **Private Repo Access** - Policy unclear, review needed" >> /tmp/governance_report.md
+          # Check private repo access policy in deployed manifest instances
+          manifests_dir="contracts/context/instances"
+          if [ -d "$manifests_dir" ] && ls $manifests_dir/*.json 1> /dev/null 2>&1; then
+            all_deny=true
+            for manifest in $manifests_dir/*.json; do
+              deny=$(jq -r '.defaultDenyPrivateRepos // false' "$manifest")
+              if [[ "$deny" != "true" ]]; then
+                all_deny=false
+                break
+              fi
+            done
+            if [[ "$all_deny" == "true" ]]; then
+              echo "- ✅ **Private Repo Access** - Default deny policy enforced in all deployed manifests" >> /tmp/governance_report.md
+            else
+              echo "- ⚠️ **Private Repo Access** - Not all deployed manifests enforce default deny policy" >> /tmp/governance_report.md
+            fi
+          else
+            echo "- ⚠️ **Private Repo Access** - No deployed manifest instances found to check policy" >> /tmp/governance_report.md
           fi
           
           echo "" >> /tmp/governance_report.md

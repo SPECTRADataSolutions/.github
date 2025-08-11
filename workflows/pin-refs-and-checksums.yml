@@ -1,276 +1,540 @@
-name: pin-refs-and-checksums
+name: Pin Refs and Checksums
+description: "Pins floating refs in context manifest to immutable commit SHAs and validates path content checksums for drift detection"
 
 on:
   schedule:
-    # Run nightly at 2 AM UTC
-    - cron: '0 2 * * *'
+    # Nightly (02:00 UTC)
+    - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
-      force_update:
-        description: 'Force update all refs even if unchanged'
+      manifestPath:
+        description: "Path to contextManifest.yaml"
         required: false
-        default: 'false'
+        default: "context/config/contextManifest.yaml"
+      dryRun:
+        description: "Analyse only (no branch, no PR, no file mutations)"
+        required: false
         type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      manifestPath:
+        description: "Path to contextManifest.yaml"
+        required: false
+        type: string
+        default: "context/config/contextManifest.yaml"
+      repository:
+        description: "Repository (owner/repo) containing the manifest"
+        required: false
+        type: string
+        default: "${{ github.repository }}"
+      dryRun:
+        description: "Analyse only (no branch, no PR, no file mutations)"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+env:
+  # Normalise cross-trigger inputs
+  MANIFEST_PATH: ${{ inputs.manifestPath || github.event.inputs.manifestPath || 'context/config/contextManifest.yaml' }}
+  TARGET_REPO: ${{ inputs.repository || github.repository }}
+  DRY_RUN: ${{ inputs.dryRun || github.event.inputs.dryRun || false }}
+  CHECKSUM_FILE: context/config/checksums.json
+  SCHEMA_PATH: contracts/context/contextManifest.json
+  CHANGE_BRANCH_PREFIX: chore/pin-refs
+  BOT_NAME: SPECTRA Context Bot
+  BOT_EMAIL: context-bot@spectradata.solutions
 
 jobs:
-  pin-refs:
+  pin-refs-and-checksums:
+    name: Pin Refs and Validate Checksums
     runs-on: ubuntu-latest
-    name: pin repository refs and update checksums
-    
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      
+
     steps:
-      - name: checkout repository
+      - name: Derive target repo owner/name
+        id: derive
+        run: |
+          IFS='/' read -r o r <<< "${{ env.TARGET_REPO }}"
+          echo "owner=$o" >> $GITHUB_OUTPUT
+          echo "repo=$r"  >> $GITHUB_OUTPUT
+
+      - name: Checkout target repository
         uses: actions/checkout@v4
         with:
+          repository: ${{ env.TARGET_REPO }}
+          path: target-repo
           token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: setup Node.js
+          fetch-depth: 0
+
+      - name: Checkout contracts (schemas)
+        uses: actions/checkout@v4
+        with:
+          repository: SPECTRADataSolutions/.github
+          path: contracts-repo
+          sparse-checkout: |
+            contracts/context
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Node.js toolchain
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          
-      - name: install dependencies
+          node-version: "20"
+
+      - name: Install utilities
         run: |
-          npm install -g js-yaml
-          npm install -g ajv-cli
-          
-      - name: check for context manifest
-        id: check_manifest
+          npm install -g js-yaml ajv-cli
+          sudo apt-get update -y
+          sudo apt-get install -y jq coreutils curl
+
+      - name: Validate manifest exists
+        id: manifest
+        working-directory: target-repo
         run: |
-          if [[ -f "context/config/contextManifest.yaml" ]]; then
-            echo "manifest_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "manifest_exists=false" >> $GITHUB_OUTPUT
-            echo "⚠️ No context manifest found - skipping ref pinning"
+          if [ ! -f "${{ env.MANIFEST_PATH }}" ]; then
+            echo "::error title=Manifest Missing::No manifest at ${{ env.MANIFEST_PATH }}"
+            echo "exists=false" >> $GITHUB_OUTPUT
+            exit 1
           fi
-          
-      - name: process repository refs
-        if: steps.check_manifest.outputs.manifest_exists == 'true'
-        id: process_refs
+          echo "exists=true" >> $GITHUB_OUTPUT
+
+      - name: Convert and schema-validate manifest
+        if: steps.manifest.outputs.exists == 'true'
+        id: manifest-validate
+        working-directory: target-repo
         run: |
-          # Convert YAML to JSON for processing
-          js-yaml context/config/contextManifest.yaml > /tmp/manifest.json
-          
-          # Track changes
-          changes_made=false
-          drift_detected=false
-          
-          # Process each repository
-          jq -c '.repositories[]' /tmp/manifest.json | while read repo; do
-            owner=$(echo "$repo" | jq -r '.owner')
-            repo_name=$(echo "$repo" | jq -r '.repo')
-            current_ref=$(echo "$repo" | jq -r '.pinnedRef')
-            current_checksum=$(echo "$repo" | jq -r '.checksum // ""')
-            
-            echo "Processing $owner/$repo_name..."
-            
-            # Get latest commit SHA from main branch
-            latest_sha=$(curl -s \
-              -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              "https://api.github.com/repos/$owner/$repo_name/commits/main" | \
-              jq -r '.sha // empty')
-            
-            if [[ -z "$latest_sha" ]]; then
-              echo "❌ Failed to fetch latest SHA for $owner/$repo_name"
-              continue
+          js-yaml "${{ env.MANIFEST_PATH }}" > /tmp/manifest.json
+          if [ ! -f "../contracts-repo/${{ env.SCHEMA_PATH }}" ]; then
+            echo "::warning title=Schema Missing::contracts/context/contextManifest.json not found - skipping structural validation"
+          else
+            ajv validate -s "../contracts-repo/${{ env.SCHEMA_PATH }}" -d /tmp/manifest.json
+          fi
+          # Basic semantic guardrails
+          jq -e '.allowedRepos | length > 0' /tmp/manifest.json >/dev/null || { echo "::error title=Semantic Error::allowedRepos is empty"; exit 1; }
+
+      - name: Analyse refs & compute checksums
+        id: analyse
+        working-directory: target-repo
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+
+          MANIFEST_JSON=/tmp/manifest.json
+          UPDATED_JSON=/tmp/manifest.updated.json
+          cp /tmp/manifest.json "$UPDATED_JSON"
+
+          CHECKSUM_OUTPUT=/tmp/checksums.new.json
+          EXISTING_CHECKSUM_FILE="${{ env.CHECKSUM_FILE }}"
+          TEMP_DIR=$(mktemp -d)
+
+          # Helper: fetch single file raw (returns hex sha256)
+          fetch_and_hash () {
+            local owner="$1" repo="$2" ref="$3" path="$4"
+            # Raw download (fall back to contents API if raw fails)
+            RAW_URL="https://raw.githubusercontent.com/${owner}/${repo}/${ref}/${path}"
+            HTTP_CODE=$(curl -sSL -o "$TEMP_DIR/blob" -w "%{http_code}" "$RAW_URL" || true)
+            if [ "$HTTP_CODE" != "200" ]; then
+              # Try contents API base64
+              CONTENTS=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+                "https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${ref}")
+              if echo "$CONTENTS" | jq -e '.content' >/dev/null 2>&1; then
+                echo "$CONTENTS" | jq -r '.content' | tr -d '\n' | base64 -d > "$TEMP_DIR/blob" 2>/dev/null || true
+              else
+                return 2
+              fi
             fi
-            
-            # Check if ref needs updating
-            if [[ "$current_ref" != "$latest_sha" ]] || [[ "${{ inputs.force_update }}" == "true" ]]; then
-              echo "📌 Updating ref from $current_ref to $latest_sha"
-              
-              # Calculate new checksum for the repository at this ref
-              # This is a simplified approach - in practice you'd checksum specific files
-              new_checksum=$(echo -n "$owner/$repo_name@$latest_sha" | sha256sum | cut -d' ' -f1)
-              
-              # Update the manifest
-              jq --arg owner "$owner" --arg repo "$repo_name" --arg ref "$latest_sha" --arg checksum "$new_checksum" \
-                '(.repositories[] | select(.owner == $owner and .repo == $repo) | .pinnedRef) = $ref |
-                 (.repositories[] | select(.owner == $owner and .repo == $repo) | .checksum) = $checksum' \
-                /tmp/manifest.json > /tmp/manifest_updated.json
-              
-              mv /tmp/manifest_updated.json /tmp/manifest.json
-              changes_made=true
-              
-              # Check for drift if checksum changed unexpectedly
-              if [[ -n "$current_checksum" ]] && [[ "$current_checksum" != "$new_checksum" ]]; then
-                echo "🚨 Drift detected in $owner/$repo_name: $current_checksum -> $new_checksum"
-                drift_detected=true
-                echo "drift_repos=${drift_repos} $owner/$repo_name" >> /tmp/drift_info
+            sha256sum "$TEMP_DIR/blob" | cut -d' ' -f1
+          }
+
+          # Build new checksum structure
+          echo '{"repositories":[]}' > "$CHECKSUM_OUTPUT"
+
+          DRIFT=false
+          REPO_COUNT=$(jq '.allowedRepos | length' "$MANIFEST_JSON")
+          FLOATING_COUNT=0
+          PIN_ACTIONS=""
+          DRIFT_ITEMS=""
+
+          for i in $(seq 0 $((REPO_COUNT-1))); do
+            OWNER=$(jq -r ".allowedRepos[$i].owner" "$MANIFEST_JSON")
+            NAME=$(jq -r ".allowedRepos[$i].name" "$MANIFEST_JSON")
+            REFS=$(jq -r ".allowedRepos[$i].allowedRefs[]" "$MANIFEST_JSON")
+            PATHS=$(jq -r ".allowedRepos[$i].allowedPaths[]" "$MANIFEST_JSON")
+
+            # Existing checksum slice (if file present)
+            EXISTING_REPO_CHECKSUMS=""
+            if [ -f "$EXISTING_CHECKSUM_FILE" ]; then
+              EXISTING_REPO_CHECKSUMS=$(jq -r --arg o "$OWNER" --arg n "$NAME" '.repositories[]? | select(.owner==$o and .name==$n)' "$EXISTING_CHECKSUM_FILE")
+            fi
+
+            NEW_REPO_OBJ=$(mktemp)
+            echo "{\"owner\":\"$OWNER\",\"name\":\"$NAME\",\"refs\":[]}" > "$NEW_REPO_OBJ"
+
+            for REF in $REFS; do
+              ORIGINAL_REF="$REF"
+              PINNED_REF="$REF"
+              # Determine real commit SHA if floating
+              if [[ ! "$REF" =~ ^[a-f0-9]{40}$ ]]; then
+                # treat as branch / tag / floating
+                FLOATING_COUNT=$((FLOATING_COUNT+1))
+                SHA=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+                      "https://api.github.com/repos/${OWNER}/${NAME}/commits/${REF}" | jq -r '.sha // empty')
+                if [ -n "$SHA" ]; then
+                  PINNED_REF="$SHA"
+                  PIN_ACTIONS="${PIN_ACTIONS}\n- ${OWNER}/${NAME}: ${ORIGINAL_REF} → ${PINNED_REF}"
+                  # Update manifest allowedRefs replacing floating token with SHA
+                  # (defer actual write for consolidated final write)
+                  UPDATED_JSON_TMP=$(mktemp)
+                  jq --arg o "$OWNER" --arg n "$NAME" --arg old "$ORIGINAL_REF" --arg new "$PINNED_REF" '
+                    (.allowedRepos[] | select(.owner==$o and .name==$n) | .allowedRefs) =
+                      ((.allowedRepos[] | select(.owner==$o and .name==$n) | .allowedRefs) | map(if .==$old then $new else . end))
+                  ' "$UPDATED_JSON" > "$UPDATED_JSON_TMP"
+                  mv "$UPDATED_JSON_TMP" "$UPDATED_JSON"
+                else
+                  echo "::warning title=Ref Resolution Failed::${OWNER}/${NAME} ${REF} could not be resolved"
+                fi
+              fi
+
+              # Build checksum list for allowed paths under PINNED_REF
+              REF_ENTRY=$(mktemp)
+              echo "{\"ref\":\"$PINNED_REF\",\"paths\":[]}" > "$REF_ENTRY"
+
+              for P in $PATHS; do
+                # Attempt to resolve file (non recursive; if directory skip hashing but note)
+                API_RESP=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+                  "https://api.github.com/repos/${OWNER}/${NAME}/contents/${P}?ref=${PINNED_REF}")
+
+                TYPE=$(echo "$API_RESP" | jq -r '.type // empty')
+                if [ "$TYPE" = "file" ]; then
+                  HASH=$(fetch_and_hash "$OWNER" "$NAME" "$PINNED_REF" "$P" || echo "unreachable")
+                  if [ "$HASH" = "unreachable" ]; then
+                    echo "::warning title=File Unreachable::${OWNER}/${NAME} ${P}@${PINNED_REF}"
+                  else
+                    # Append path checksum
+                    REF_ENTRY_TMP=$(mktemp)
+                    jq --arg path "$P" --arg hash "$HASH" '
+                      .paths += [{"path":$path,"sha256":$hash}]
+                    ' "$REF_ENTRY" > "$REF_ENTRY_TMP"
+                    mv "$REF_ENTRY_TMP" "$REF_ENTRY"
+
+                    # Compare with existing
+                    if [ -n "$EXISTING_REPO_CHECKSUMS" ]; then
+                      PREV_HASH=$(echo "$EXISTING_REPO_CHECKSUMS" | jq -r --arg ref "$PINNED_REF" --arg path "$P" '
+                        .refs[]? | select(.ref==$ref) | .paths[]? | select(.path==$path) | .sha256 // empty
+                      ')
+                      if [ -n "$PREV_HASH" ] && [ "$PREV_HASH" != "null" ] && [ "$PREV_HASH" != "$HASH" ]; then
+                        DRIFT=true
+                        DRIFT_ITEMS="${DRIFT_ITEMS}\n- ${OWNER}/${NAME}:${P}@${PINNED_REF} (${PREV_HASH} → ${HASH})"
+                      fi
+                    fi
+                  fi
+                else
+                  # Directory or unsupported type – record placeholder
+                  REF_ENTRY_TMP=$(mktemp)
+                  jq --arg path "$P" '
+                    .paths += [{"path":$path,"sha256":"DIRECTORY_OR_UNHASHED"}]
+                  ' "$REF_ENTRY" > "$REF_ENTRY_TMP"
+                  mv "$REF_ENTRY_TMP" "$REF_ENTRY"
+                fi
+              done
+
+              # Append ref entry to repository object
+              NEW_REPO_OBJ_TMP=$(mktemp)
+              jq --slurpfile refEntry "$REF_ENTRY" '
+                .refs += $refEntry
+              ' "$NEW_REPO_OBJ" > "$NEW_REPO_OBJ_TMP"
+              mv "$NEW_REPO_OBJ_TMP" "$NEW_REPO_OBJ"
+            done
+
+            # Append repository object to checksum root
+            CHECKSUM_OUTPUT_TMP=$(mktemp)
+            jq --slurpfile repo "$NEW_REPO_OBJ" '
+              .repositories += $repo
+            ' "$CHECKSUM_OUTPUT" > "$CHECKSUM_OUTPUT_TMP"
+            mv "$CHECKSUM_OUTPUT_TMP" "$CHECKSUM_OUTPUT"
+          done
+
+          # Summaries
+          echo "FLOATING_REFS=$FLOATING_COUNT" >> $GITHUB_OUTPUT
+          # Determine if manifest changed
+          if diff -q /tmp/manifest.json "$UPDATED_JSON" >/dev/null 2>&1; then
+            echo "manifestChanged=false" >> $GITHUB_OUTPUT
+          else
+            echo "manifestChanged=true" >> $GITHUB_OUTPUT
+          fi
+
+          # Determine checksum drift
+          if [ -f "$EXISTING_CHECKSUM_FILE" ]; then
+            # Compare ignoring formatting
+            if jq -S . "$EXISTING_CHECKSUM_FILE" > /tmp/old.sorted.json 2>/dev/null && jq -S . "$CHECKSUM_OUTPUT" > /tmp/new.sorted.json; then
+              if ! diff -q /tmp/old.sorted.json /tmp/new.sorted.json >/dev/null 2>&1; then
+                echo "checksumDiff=true" >> $GITHUB_OUTPUT
+              else
+                echo "checksumDiff=false" >> $GITHUB_OUTPUT
               fi
             else
-              echo "✅ $owner/$repo_name is up to date"
+              echo "checksumDiff=true" >> $GITHUB_OUTPUT
             fi
-          done
-          
-          # Convert back to YAML and update the file
-          if [[ "$changes_made" == "true" ]]; then
-            js-yaml /tmp/manifest.json > context/config/contextManifest.yaml
-            echo "changes_made=true" >> $GITHUB_OUTPUT
           else
-            echo "changes_made=false" >> $GITHUB_OUTPUT
+            echo "checksumDiff=true" >> $GITHUB_OUTPUT
           fi
-          
-          if [[ "$drift_detected" == "true" ]]; then
-            echo "drift_detected=true" >> $GITHUB_OUTPUT
+
+          echo "refPinActions<<EOF" >> $GITHUB_OUTPUT
+          echo -e "${PIN_ACTIONS:-None}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "driftItems<<EOF" >> $GITHUB_OUTPUT
+          echo -e "${DRIFT_ITEMS:-None}" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "driftDetected=$DRIFT" >> $GITHUB_OUTPUT
+
+          # Persist prospective updated files (only in workspace; write gating later)
+          if [ "$(cat $GITHUB_OUTPUT | grep manifestChanged | cut -d= -f2)" = "true" ]; then
+            # Convert updated JSON back to YAML
+            js-yaml "$UPDATED_JSON" > /tmp/manifest.updated.yaml
+          fi
+          cp "$CHECKSUM_OUTPUT" /tmp/new.checksums.json
+
+      - name: Create branch & apply changes (if needed and not dryRun)
+        if: >
+          env.DRY_RUN == 'false' &&
+          (steps.analyse.outputs.manifestChanged == 'true' || steps.analyse.outputs.checksumDiff == 'true')
+        id: apply
+        working-directory: target-repo
+        run: |
+          set -e
+          BRANCH="${{ env.CHANGE_BRANCH_PREFIX }}/$(date +%Y-%m-%d)"
+          git config user.name "${{ env.BOT_NAME }}"
+          git config user.email "${{ env.BOT_EMAIL }}"
+          git fetch origin
+
+          if git rev-parse --verify "$BRANCH" >/dev/null 2>&1; then
+            echo "Using existing branch $BRANCH"
+            git checkout "$BRANCH"
           else
-            echo "drift_detected=false" >> $GITHUB_OUTPUT
+            git checkout -b "$BRANCH"
           fi
-          
-      - name: validate updated manifest
-        if: steps.process_refs.outputs.changes_made == 'true'
-        run: |
-          # Validate the updated manifest against the schema
-          js-yaml context/config/contextManifest.yaml > /tmp/manifest_final.json
-          ajv validate \
-            --spec draft7 \
-            --schema contracts/context/contextManifest.json \
-            --data /tmp/manifest_final.json \
-            --verbose
-            
-      - name: commit updated manifest
-        if: steps.process_refs.outputs.changes_made == 'true'
-        run: |
-          git config --global user.name 'SPECTRA Context Bot'
-          git config --global user.email 'context-bot@spectradata.solutions'
-          
-          git add context/config/contextManifest.yaml
-          git commit -m "🔒 Pin repository refs to latest SHAs
 
-          Automated nightly update of pinned refs and checksums:
-          - Updated repository references to latest commit SHAs
-          - Regenerated checksums for drift detection
-          - Validated manifest against SPECTRA contracts
+          if [ "${{ steps.analyse.outputs.manifestChanged }}" = "true" ]; then
+            mv /tmp/manifest.updated.yaml "${{ env.MANIFEST_PATH }}"
+            echo "Updated manifest with pinned refs."
+          fi
 
-          This ensures immutable ref pinning as per Framework is Law."
-          
-          git push
-          
-      - name: create drift alert issue
-        if: steps.process_refs.outputs.drift_detected == 'true'
+          if [ "${{ steps.analyse.outputs.checksumDiff }}" = "true" ]; then
+            mkdir -p "$(dirname "${{ env.CHECKSUM_FILE }}")"
+            jq -S . /tmp/new.checksums.json > "${{ env.CHECKSUM_FILE }}"
+            echo "Updated checksum file."
+          fi
+
+          git add "${{ env.MANIFEST_PATH }}" || true
+          git add "${{ env.CHECKSUM_FILE }}" || true
+
+          if git diff --cached --quiet; then
+            echo "No staged changes to commit."
+            echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          COMMIT_MSG="🔒 Pin refs & update checksums
+
+Pinned floating refs to commit SHAs (immutable provenance) and refreshed path checksums for drift detection.
+
+Governance: Framework is Law – deterministic content integrity."
+          git commit -m "$COMMIT_MSG"
+          git push origin "$BRANCH"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "createdCommit=true" >> $GITHUB_OUTPUT
+
+      - name: Open / update pull request
+        if: >
+          env.DRY_RUN == 'false' &&
+          steps.apply.outputs.createdCommit == 'true'
+        id: pr
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
-            let driftRepos = '';
-            
-            try {
-              driftRepos = fs.readFileSync('/tmp/drift_info', 'utf8').trim();
-            } catch (e) {
-              driftRepos = 'Unknown repositories';
-            }
-            
-            const issueBody = `### dream
+            const branch = "${{ steps.apply.outputs.branch }}";
+            const { repo, owner } = context;
+            const title = "🔒 Pin refs & update context checksums";
+            const body = `### summary
+Pins floating refs to immutable commit SHAs and updates checksum inventory for allowed paths to enable drift detection.
 
-            SPECTRA
+### changes
+- Ref pin actions:
+${{ steps.analyse.outputs.refPinActions }}
+- Drift detections (if any):
+${{ steps.analyse.outputs.driftItems }}
 
-            ### archetype
+### governance
+Framework is Law: ensures deterministic, auditable anchor set.
 
-            Guidance
+### nextSteps
+- Merge after review if checksum drift is expected / authorised
+- Investigate any unexpected drift items`;
 
-            ### domain
-
-            governance
-
-            ### initiativeTitle
-
-            contextDriftDetection
-
-            ### purpose
-
-            Address unexpected content drift in context repositories that may indicate security issues, unauthorized changes, or integrity violations.
-
-            ### scope
-
-            inScope:
-            - Investigate checksum mismatches in: ${driftRepos}
-            - Verify integrity of content at pinned refs
-            - Review recent changes for unauthorized modifications
-            - Update security policies if needed
-            - Document findings and resolution
-
-            outOfScope:
-            - Normal ref updates during scheduled pinning
-            - Expected content changes with proper authorization
-            - Historical drift that has been previously investigated
-
-            ### capabilityAreas
-
-            driftInvestigation
-            integrityVerification
-            securityReview
-            policyUpdate
-
-            ### deliverables
-
-            - Drift investigation report with root cause analysis
-            - Verification of content integrity at affected refs
-            - Security assessment of detected changes
-            - Updated policies or procedures if needed
-            - Documentation of resolution steps
-
-            ### successIndicators
-
-            - All drift instances investigated within 24 hours
-            - Content integrity verified or issues resolved
-            - No security vulnerabilities identified in drift
-            - Policies updated to prevent recurrence
-            - Checksum verification restored to green status
-
-            ### constraints
-
-            - Framework is Law - all changes must comply with SPECTRA standards
-            - No tolerance for unexplained content changes
-            - Must maintain audit trail of all investigations
-            - British English and camelCase in all documentation
-
-            ### dependencies
-
-            - context: Context server and manifest configuration
-            - .github: governance workflows and issue templates
-            - framework: compliance contracts and policies
-
-            ### automationOptions
-
-            - [ ] generateInitiativeIdAndUuid
-            - [ ] generateProjectsEpicsStories
-            - [ ] generateWorkPackagesAndSprintPlan
-            - [ ] runImpactAnalysis
-            - [ ] runFutureConsequenceSimulation
-            - [ ] computeExecutionReadinessScore
-            - [ ] generateMaturityForecastTimeline
-
-            ### notes
-
-            Auto-generated by pin-refs-and-checksums workflow on drift detection. Requires immediate attention for security compliance.`;
-
-            await github.rest.issues.create({
-              ...context.repo,
-              title: '🚨 [Initiative] contextDriftDetection',
-              body: issueBody,
-              labels: ['type:initiative', 'priority:high', 'security:alert']
+            // Check if PR already exists
+            const prs = await github.rest.pulls.list({
+              owner,
+              repo,
+              head: owner + ":" + branch,
+              state: "open"
             });
+            if (prs.data.length > 0) {
+              core.setOutput("pr_url", prs.data[0].html_url);
+              console.log("Reusing existing PR", prs.data[0].html_url);
+            } else {
+              const created = await github.rest.pulls.create({
+                owner,
+                repo,
+                title,
+                body,
+                head: branch,
+                base: "main",
+                maintainer_can_modify: true
+              });
+              core.setOutput("pr_url", created.data.html_url);
+              console.log("Created PR", created.data.html_url);
+            }
 
-      - name: summary report
+      - name: Create / update drift issue (if drift or pinning)
+        if: >
+          steps.analyse.outputs.driftDetected == 'true' ||
+          steps.analyse.outputs.manifestChanged == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const drift = '${{ steps.analyse.outputs.driftDetected }}' === 'true';
+            const manifestChanged = '${{ steps.analyse.outputs.manifestChanged }}' === 'true';
+            const dryRun = '${{ env.DRY_RUN }}' === 'true';
+            const refPinActions = `\n${{ steps.analyse.outputs.refPinActions }}\n`.trim();
+            const driftItems = `\n${{ steps.analyse.outputs.driftItems }}\n`.trim();
+            const { owner, repo } = context;
+
+            const title = drift
+              ? "🚨 [Initiative] Context checksum drift detected"
+              : "📌 [Initiative] Context ref pinning required";
+
+            const factors = [];
+            if (drift && driftItems !== "None") factors.push("Checksum drift present");
+            if (manifestChanged && refPinActions !== "None") factors.push("Floating refs pinned");
+
+            const body = `### dream
+SPECTRA
+
+### archetype
+Operations
+
+### domain
+governance
+
+### initiativeTitle
+${drift ? "contextChecksumDriftInvestigation" : "contextRefPinning"}
+
+### purpose
+${drift
+? "Investigate and resolve unexpected checksum drift across context-managed paths ensuring integrity and provenance."
+: "Replace floating references with immutable commit SHAs to guarantee deterministic context serving and auditability."}
+
+### scope
+inScope:
+- Analyse reported paths for legitimacy
+${drift ? "- Validate content provenance & review change history" : "- Pin floating refs & verify accessibility"}
+- Update manifest and checksum inventory
+- Document remediation & prevention
+
+outOfScope:
+- Non-SPECTRA repositories
+- Altering framework-level size / mime policies
+
+### capabilityAreas
+immutableRefGovernance
+contentIntegrityVerification
+driftDetectionAutomation
+manifestMaintenance
+
+### successIndicators
+- 0 unresolved unexpected drift items
+- 100% production refs pinned (no 'main' / 'HEAD')
+- Deterministic checksum baseline re-established
+- Follow-up scan clean within 24h
+
+### constraints
+- Framework is Law – contracts must validate
+- British English & camelCase
+- Immutable provenance (commit SHAs only)
+
+### findings
+Ref Pin Actions:
+${refPinActions || "None"}
+
+Checksum Drift:
+${driftItems || "None"}
+
+### automationNotes
+Dry run: ${dryRun}
+
+${manifestChanged ? "**Manifest updated or will be updated (if not dry run).**" : ""}
+${drift ? "**Checksum drift detected – requires investigation.**" : ""}
+
+Generated at ${new Date().toISOString()}.`;
+
+            // Idempotent: find existing open issue with same title
+            const existing = await github.rest.issues.listForRepo({
+              owner, repo, state: "open", labels: "type:initiative"
+            });
+            let issue = existing.data.find(i => i.title === title);
+            if (issue) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issue.number,
+                body: "Automated update:\n\n" + body
+              });
+              console.log("Updated existing issue #" + issue.number);
+            } else {
+              issue = (await github.rest.issues.create({
+                owner, repo,
+                title,
+                body,
+                labels: ["type:initiative","priority:medium", drift ? "integrity:drift" : "governance:refpin"]
+              })).data;
+              console.log("Created issue #" + issue.number);
+            }
+
+      - name: Job Summary
         if: always()
         run: |
-          echo "## 📊 Ref Pinning Summary" >> $GITHUB_STEP_SUMMARY
-          
-          if [[ "${{ steps.check_manifest.outputs.manifest_exists }}" == "false" ]]; then
-            echo "⚠️ No context manifest found - workflow skipped" >> $GITHUB_STEP_SUMMARY
-          elif [[ "${{ steps.process_refs.outputs.changes_made }}" == "true" ]]; then
-            echo "✅ Repository refs updated and checksums regenerated" >> $GITHUB_STEP_SUMMARY
-            if [[ "${{ steps.process_refs.outputs.drift_detected }}" == "true" ]]; then
-              echo "🚨 **Drift detected** - security issue created" >> $GITHUB_STEP_SUMMARY
-            fi
-          else
-            echo "✅ All repository refs are up to date" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔒 Pin Refs & Checksum Validation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "**Dry Run:** ${{ env.DRY_RUN }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Manifest Changed:** ${{ steps.analyse.outputs.manifestChanged }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Floating Refs Detected:** ${{ steps.analyse.outputs.FLOATING_REFS }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Checksum Drift Detected:** ${{ steps.analyse.outputs.driftDetected }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Ref Pin Actions:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo -e "${{ steps.analyse.outputs.refPinActions }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "**Drift Items:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo -e "${{ steps.analyse.outputs.driftItems }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.pr.outputs.pr_url }}" != "" ]; then
+            echo "**Pull Request:** ${{ steps.pr.outputs.pr_url }}" >> $GITHUB_STEP_SUMMARY
           fi
-          
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Next run: Tomorrow at 2 AM UTC" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.analyse.outputs.manifestChanged }}" = "true" ] && [ "${{ env.DRY_RUN }}" = "false" ]; then
+            echo "- Review PR and merge if changes are expected." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.analyse.outputs.manifestChanged }}" = "true" ] && [ "${{ env.DRY_RUN }}" = "true" ]; then
+            echo "- Re-run without dryRun to apply ref pin updates." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- No manifest ref changes required." >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ steps.analyse.outputs.driftDetected }}" = "true" ]; then
+            echo "- Investigate checksum drift items (potential integrity concerns)." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- No checksum drift detected; baseline stable." >> $GITHUB_STEP_SUMMARY
+          fi

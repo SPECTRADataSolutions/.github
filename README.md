@@ -39,6 +39,7 @@ Templates and automation apply to:
 | **`PULL_REQUEST_TEMPLATE.md`** | Standardised PR structure and quality checks | Automatic |
 | **`CONTRIBUTING.md`** | Template usage, override policy, SPECTRA standards | Organisation-wide |
 | **`workflows/`** | GitHub Actions for automation and governance | Automatic |
+| **`contracts/`** | JSON schemas for validation and compliance | Reference |
 | **`README.md`** | This governance documentation | Reference |
 
 ### Template Features
@@ -56,6 +57,12 @@ Templates and automation apply to:
 - Testing verification requirements
 - Standards compliance checklist
 - Clear reviewer guidance
+
+**Contract Schemas:**
+- Context system validation schemas (`contracts/context/`)
+- Organisational structure metadata validation
+- JSON Schema-based validation for consistency
+- SPECTRA compliance enforcement
 
 ---
 
@@ -97,6 +104,7 @@ Local template overrides are **strongly discouraged** and must be:
 - **Metadata validation** enforcement
 - **Standards adherence** monitoring
 - **Quality gate** implementation
+- **Context system governance** (manifest validation, ref pinning, anchor reachability)
 
 ### AI-Assisted Development
 This repository enables AI tools to:
@@ -104,6 +112,32 @@ This repository enables AI tools to:
 - Apply consistent naming conventions (camelCase)
 - Follow British English documentation standards
 - Reference appropriate stakeholders and documentation
+
+---
+
+## 📚 Context System Governance
+
+### SPECTRA Context MCP Server Support
+This repository provides governance infrastructure for the **spectraContextMcpServer** initiative, which delivers canonical SPECTRA knowledge through a Model Context Protocol (MCP) server.
+
+**📖 [Complete Context System Governance Documentation](docs/contextSystemGovernance.md)**
+
+### Contract Schemas (`contracts/context/`)
+- **`contextManifest.json`**: Schema for manifest files defining repository allowlists, size limits, and privacy settings
+- **`anchor.json`**: Schema for context anchors with metadata, checksums, and caching information  
+- **`searchResult.json`**: Schema for search responses with filtering, pagination, and performance metrics
+- **`hierarchyResponse.json`**: Schema for organisational hierarchy with role-aware helpers
+
+### Governance Workflows
+- **`validate-context-manifest.yml`**: Validates contextManifest.yaml against schemas and SPECTRA compliance
+- **`pin-refs-and-checksums.yml`**: Nightly automation for ref pinning and drift detection with automatic issue creation
+- **`anchor-reachability-and-size.yml`**: Validates anchor accessibility, size limits, and coverage thresholds
+
+### Framework Enforcement
+- **Immutable refs**: Production manifests must use commit SHAs (no floating HEAD)
+- **SPECTRA-only**: All repositories must be owned by SPECTRADataSolutions
+- **Privacy-first**: Default-deny private repos, no content logging, automatic redaction
+- **Size constraints**: File and cache size limits with validation and alerts
 
 ---
 

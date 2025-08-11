@@ -1,199 +1,313 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/context/searchResult.json",
-  "title": "SPECTRA Search Result Schema",
-  "description": "Schema for search responses from spectra.search.find calls",
+  "title": "SPECTRA Context Search Result Schema",
+  "description": "Schema for search results returned by spectra.search.find endpoint",
   "type": "object",
   "properties": {
     "query": {
-      "type": "string",
-      "description": "Original search query"
-    },
-    "totalResults": {
-      "type": "integer",
-      "minimum": 0,
-      "description": "Total number of matching results"
-    },
-    "results": {
-      "type": "array",
-      "items": {
-        "$ref": "#/definitions/searchResultItem"
-      },
-      "description": "Array of search result items"
-    },
-    "pagination": {
-      "$ref": "#/definitions/pagination",
-      "description": "Pagination information"
-    },
-    "filters": {
-      "$ref": "#/definitions/appliedFilters",
-      "description": "Applied search filters"
-    },
-    "executionTime": {
-      "type": "number",
-      "minimum": 0,
-      "description": "Search execution time in milliseconds"
-    }
-  },
-  "required": ["query", "totalResults", "results"],
-  "additionalProperties": false,
-  "definitions": {
-    "searchResultItem": {
       "type": "object",
+      "description": "Original query specification including text and optional filters/pagination parameters",
       "properties": {
-        "id": {
+        "text": {
           "type": "string",
-          "pattern": "^[a-zA-Z0-9._/-]+$",
-          "description": "Unique identifier for the result"
+          "minLength": 1,
+          "maxLength": 500,
+          "description": "Original search query text"
         },
-        "title": {
-          "type": "string",
-          "description": "Result title or filename"
-        },
-        "snippet": {
-          "type": "string",
-          "description": "Content snippet with search matches highlighted"
-        },
-        "repository": {
-          "$ref": "#/definitions/repositoryRef",
-          "description": "Repository where the result is located"
-        },
-        "path": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9/_.-]+$",
-          "description": "File path within the repository"
-        },
-        "relevanceScore": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1,
-          "description": "Relevance score between 0 and 1"
-        },
-        "lastModified": {
-          "type": "string",
-          "format": "date-time",
-          "description": "ISO 8601 timestamp of last modification"
-        },
-        "metadata": {
-          "$ref": "#/definitions/resultMetadata",
-          "description": "Additional metadata about the result"
-        }
-      },
-      "required": ["id", "title", "repository", "path", "relevanceScore"],
-      "additionalProperties": false
-    },
-    "repositoryRef": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9-]+$",
-          "description": "Repository owner"
-        },
-        "repo": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9._-]+$",
-          "description": "Repository name"
-        },
-        "ref": {
-          "type": "string",
-          "pattern": "^[a-f0-9]{40}$",
-          "description": "Pinned commit SHA"
-        }
-      },
-      "required": ["owner", "repo", "ref"],
-      "additionalProperties": false
-    },
-    "resultMetadata": {
-      "type": "object",
-      "properties": {
-        "mimeType": {
-          "type": "string",
-          "pattern": "^[a-z]+/[a-z0-9.-]+$",
-          "description": "MIME type of the content"
-        },
-        "sizeBytes": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Content size in bytes"
-        },
-        "matchCount": {
-          "type": "integer",
-          "minimum": 0,
-          "description": "Number of search term matches in the content"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]+$"
+        "filters": {
+          "type": "object",
+            "description": "Structured filters applied to the search",
+          "properties": {
+            "dream": {
+              "type": "string",
+              "enum": ["SPECTRA"]
+            },
+            "archetype": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["Guidance", "Innovation", "Engagement", "Operations", "Protection", "Sustenance", "Growth"]
+              },
+              "uniqueItems": true
+            },
+            "domain": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z]*$"
+              },
+              "uniqueItems": true
+            },
+            "tags": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z0-9]*$"
+              },
+              "uniqueItems": true
+            },
+            "roles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "uniqueItems": true
+            },
+            "mimeType": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "text/plain",
+                  "text/markdown",
+                  "application/json",
+                  "application/yaml",
+                  "text/yaml",
+                  "application/xml",
+                  "text/xml"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "minScore": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Optional minimum relevance score threshold"
+            }
           },
-          "description": "Classification tags"
-        }
-      },
-      "additionalProperties": false
-    },
-    "pagination": {
-      "type": "object",
-      "properties": {
-        "page": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Current page number"
+          "additionalProperties": false
         },
-        "pageSize": {
+        "limit": {
           "type": "integer",
           "minimum": 1,
           "maximum": 100,
-          "description": "Number of results per page"
+          "default": 10,
+          "description": "Maximum number of results to return"
         },
-        "totalPages": {
+        "offset": {
           "type": "integer",
-          "minimum": 1,
-          "description": "Total number of pages"
-        },
-        "hasNext": {
-          "type": "boolean",
-          "description": "Whether there are more pages available"
-        },
-        "hasPrevious": {
-          "type": "boolean",
-          "description": "Whether there are previous pages available"
+          "minimum": 0,
+          "default": 0,
+          "description": "Number of results to skip for pagination"
         }
       },
-      "required": ["page", "pageSize", "totalPages", "hasNext", "hasPrevious"],
+      "required": ["text"],
       "additionalProperties": false
     },
-    "appliedFilters": {
+    "results": {
+      "type": "array",
+      "description": "Array of search results ordered by relevance (highest first)",
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "properties": {
+          "anchorId": {
+            "type": "string",
+            "pattern": "^[a-z][a-zA-Z0-9]*$",
+            "description": "Identifier of the anchor (matches anchor.id pattern)"
+          },
+          "title": {
+            "type": "string",
+            "description": "Anchor title for display"
+          },
+            "description": {
+              "type": "string",
+              "description": "Anchor description (may include highlight markup)"
+            },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Relevance score (0–1, higher is more relevant)"
+          },
+          "snippet": {
+            "type": "string",
+            "description": "Representative content excerpt with highlights (if available)"
+          },
+          "highlights": {
+            "type": "array",
+            "description": "List of highlight fragments matched in the search",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "enum": ["title", "description", "content", "tags"]
+                },
+                "snippet": {
+                  "type": "string",
+                  "maxLength": 200,
+                  "description": "Text snippet with highlighting applied"
+                },
+                "startPos": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Start character position in original field (optional)"
+                },
+                "endPos": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "End character position in original field (optional)"
+                }
+              },
+              "required": ["field", "snippet"],
+              "additionalProperties": false
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Semantic classification metadata associated with the anchor",
+            "properties": {
+              "dream": {
+                "type": "string",
+                "enum": ["SPECTRA"]
+              },
+              "archetype": {
+                "type": "string",
+                "enum": ["Guidance", "Innovation", "Engagement", "Operations", "Protection", "Sustenance", "Growth"]
+              },
+              "domain": {
+                "type": "string",
+                "pattern": "^[a-z][a-zA-Z]*$"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-zA-Z0-9]*$"
+                },
+                "uniqueItems": true
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
+              },
+              "mimeType": {
+                "type": "string",
+                "enum": [
+                  "text/plain",
+                  "text/markdown",
+                  "application/json",
+                  "application/yaml",
+                  "text/yaml",
+                  "application/xml",
+                  "text/xml"
+                ]
+              },
+              "sizeBytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "matchCount": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Number of matched terms/fragments contributing to score"
+              }
+            },
+            "required": ["dream", "archetype", "domain"],
+            "additionalProperties": false
+          },
+          "repository": {
+            "type": "object",
+            "description": "Repository contextual location of the anchor",
+            "properties": {
+              "owner": {
+                "type": "string",
+                "enum": ["SPECTRADataSolutions"]
+              },
+              "name": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9._-]+$"
+              },
+              "path": {
+                "type": "string",
+                "description": "File path within the repository"
+              },
+              "ref": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{40}$",
+                "description": "Commit SHA (immutable reference) if pinned"
+              }
+            },
+            "required": ["owner", "name", "path"],
+            "additionalProperties": false
+          },
+          "privacy": {
+            "type": "object",
+            "description": "Privacy/redaction indicators for the result content",
+            "properties": {
+              "redacted": {
+                "type": "boolean",
+                "default": false
+              },
+              "redactionCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "isPrivateRepo": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["anchorId", "title", "description", "score", "metadata", "repository"],
+        "additionalProperties": false
+      }
+    },
+    "pagination": {
       "type": "object",
+      "description": "Pagination state for the current result window",
       "properties": {
-        "owner": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9-]+$",
-          "description": "Filter by repository owner"
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of matching results across all pages"
         },
-        "repo": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9._-]+$",
-          "description": "Filter by repository name"
-        },
-        "path": {
-          "type": "string",
-          "pattern": "^[a-zA-Z0-9/_.-]+$",
-          "description": "Filter by path pattern"
-        },
-        "mimeType": {
-          "type": "string",
-          "pattern": "^[a-z]+/[a-z0-9.-]+$",
-          "description": "Filter by MIME type"
-        },
-        "maxSizeKB": {
+        "limit": {
           "type": "integer",
           "minimum": 1,
-          "description": "Maximum file size filter in KB"
+          "maximum": 100
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hasMore": {
+          "type": "boolean",
+          "description": "True if additional results exist beyond current window"
+        }
+      },
+      "required": ["total", "limit", "offset", "hasMore"],
+      "additionalProperties": false
+    },
+    "performance": {
+      "type": "object",
+      "description": "Execution and index performance metadata",
+      "properties": {
+        "queryTimeMs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "End-to-end query execution time in milliseconds"
+        },
+        "cacheHit": {
+          "type": "boolean",
+          "description": "Indicates if results were served from cache"
+        },
+        "indexedCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of anchors currently in the search index"
         }
       },
       "additionalProperties": false
     }
-  }
+  },
+  "required": ["query", "results", "pagination"],
+  "additionalProperties": false
 }

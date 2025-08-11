@@ -4,9 +4,9 @@ title: "🚀 [Initiative] <shortTitle>"
 labels: ["type:initiative","status:planning"]
 body:
   - type: dropdown
-    id: pillar
+    id: archetype
     attributes:
-      label: pillar
+      label: archetype
       options: [governance, product, engineering, operations, marketing, sales]
     validations: { required: true }
 

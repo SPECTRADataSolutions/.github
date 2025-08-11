@@ -6,6 +6,7 @@ on:
 
 jobs:
   validate:
+    if: contains(github.event.issue.labels.*.name, 'type:initiative') # only for initiatives
     runs-on: ubuntu-latest
     steps:
       - name: enforceMinimumFields
@@ -15,7 +16,7 @@ jobs:
             const body = (context.payload.issue.body || '').toLowerCase();
             const required = [
               'initiativeTitle',
-              'pillar',
+              'archetype',
               'domain',
               'purpose',
               'scope',

@@ -1,8 +1,16 @@
 name: "⚖️ Decision"
-description: Record and approve a decision with its context, rationale, consequences, and follow-up actions.
+description: Record and approve a decision with its context, rationale, consequences, follow-up actions, and Spectrafy governance metadata.
 title: "⚖️ [Decision] <shortTitle>"
 labels: ["type:decision","status:review"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Purpose
+        Use this form to propose an engineering / organisational decision. When status becomes 'approved', create the file:
+        `decisions/decision-<decisionDate>-<keywords>.md` in the appropriate repository (typically doctrine) using this content plus a `## Spectrafy` section comprised of the six lines below.
+        Provide precise (non-generic) statements. Avoid placeholders like TBD.
+
   - type: dropdown
     id: archetype
     attributes:
@@ -17,32 +25,48 @@ body:
       placeholder: "platformEngineering"
     validations: { required: true }
 
+  - type: input
+    id: decisionDate
+    attributes:
+      label: decisionDate (UTC)
+      description: YYYYMMDD (used in the filename)
+      placeholder: 20250812
+    validations: { required: true }
+
+  - type: input
+    id: keywords
+    attributes:
+      label: keywords (lowerCamelCase)
+      description: 3–5 concise words forming filename suffix, no spaces.
+      placeholder: adoptVectorLoad
+    validations: { required: true }
+
   - type: textarea
     id: summary
     attributes:
       label: summary
-      description: what is being decided and why now?
+      description: What is being decided and why now?
     validations: { required: true }
 
   - type: textarea
     id: rationale
     attributes:
       label: rationale
-      description: why we are making this decision
+      description: Why we are making this decision (context, driving forces, constraints).
     validations: { required: true }
 
   - type: textarea
     id: consequences
     attributes:
       label: consequences
-      description: near-term and long-term outcomes if approved
+      description: Near-term and long-term outcomes if approved (include risks & mitigations).
     validations: { required: true }
 
   - type: textarea
     id: actions
     attributes:
       label: actions
-      description: follow-up steps (one per line)
+      description: Follow-up steps (one per line)
 
   - type: checkboxes
     id: automationOptions
@@ -53,9 +77,86 @@ body:
         - label: createTasksForActions
         - label: runFutureConsequenceSimulation
 
+  - type: markdown
+    attributes:
+      value: |
+        ### Spectrafy Metadata
+        These six required fields become exact lines under the `## Spectrafy` section in the Markdown decision file.
+        Guidance:
+        - impactSurface: Enumerate systems / teams / data domains; be explicit.
+        - longevity: Concrete horizon (e.g. "~18 months" or event boundary) not "long term".
+        - automationLeverage: What manual effort is removed / enabled (quantify hours or frequency).
+        - clarity: Cognitive load impact; simplifications and any new abstractions.
+        - reversibility: High / Medium / Low – include rollback cost & steps.
+        - ownership: Accountable team / role (never an individual person).
+
+  - type: textarea
+    id: impactSurface
+    attributes:
+      label: impactSurface
+      description: Systems / teams / data domains affected if this proves incorrect.
+      placeholder: Affects ingestion pipelines A & B, analytics model Orion, and Team Falcon workflows.
+    validations: { required: true }
+
+  - type: textarea
+    id: longevity
+    attributes:
+      label: longevity
+      description: Expected active life or condition that ends validity.
+      placeholder: Expected ~18 months until unified schema rollout completes.
+    validations: { required: true }
+
+  - type: textarea
+    id: automationLeverage
+    attributes:
+      label: automationLeverage
+      description: Automation enabled / manual effort removed. Quantify where possible.
+      placeholder: Replaces weekly manual reconciliation (~2 engineer hours) with scheduled diff job.
+    validations: { required: true }
+
+  - type: textarea
+    id: clarity
+    attributes:
+      label: clarity
+      description: Cognitive load impact, simplifications, new complexity introduced.
+      placeholder: Unifies three ingestion patterns into one documented abstraction; adds one config layer.
+    validations: { required: true }
+
+  - type: textarea
+    id: reversibility
+    attributes:
+      label: reversibility
+      description: High / Medium / Low – include rollback cost & main steps.
+      placeholder: Medium – disable two feature flags and run 4-hour data backfill.
+    validations: { required: true }
+
+  - type: textarea
+    id: ownership
+    attributes:
+      label: ownership
+      description: Accountable team / role (not an individual).
+      placeholder: Data Platform Team
+    validations: { required: true }
+
+  - type: textarea
+    id: references
+    attributes:
+      label: references
+      description: Related issues, PRs, diagrams (one per line).
+      placeholder: "#123\nArchitecture: link"
+
   - type: dropdown
     id: status
     attributes:
       label: status
       options: [proposed, approved, rejected]
     validations: { required: true }
+
+  - type: markdown
+    attributes:
+      value: |
+        ### Next Steps
+        1. When status moves to 'approved', create the file `decisions/decision-<decisionDate>-<keywords>.md`.
+        2. Include mandatory sections (context, decision, consequences, references) plus:
+           ## Spectrafy\n           - impactSurface: ...\n           - longevity: ...\n           - automationLeverage: ...\n           - clarity: ...\n           - reversibility: ...\n           - ownership: ...
+        3. Run the Spectrafy validator script (if available) locally; open or update the PR for automated checks.

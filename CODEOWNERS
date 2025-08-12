@@ -1,0 +1,23 @@
+# SPECTRA Context System Code Ownership
+
+# Global ownership for all context-related files
+/anchors/ @SPECTRADataSolutions/context-maintainers
+/manifests/ @SPECTRADataSolutions/context-maintainers
+/governance/ @SPECTRADataSolutions/context-maintainers
+
+# Server runtime requires stricter review (future extraction readiness)
+/server/ @SPECTRADataSolutions/runtime-reviewers @SPECTRADataSolutions/architecture-reviewers
+
+# Contracts and schemas require architecture review (Framework as Law)
+/contracts/schemaMeta.json @SPECTRADataSolutions/architecture-reviewers
+/contracts/context/ @SPECTRADataSolutions/architecture-reviewers
+
+# Split trigger and extraction documentation
+/docs/splitTriggers.md @SPECTRADataSolutions/architecture-reviewers @SPECTRADataSolutions/engineering-leadership
+/docs/extractionChecklist.md @SPECTRADataSolutions/architecture-reviewers @SPECTRADataSolutions/engineering-leadership
+
+# Scripts for detachment scoring and automation
+/scripts/ @SPECTRADataSolutions/context-maintainers @SPECTRADataSolutions/automation-reviewers
+
+# Context-specific workflows in governance
+/governance/workflows/ @SPECTRADataSolutions/context-maintainers @SPECTRADataSolutions/devops-reviewers

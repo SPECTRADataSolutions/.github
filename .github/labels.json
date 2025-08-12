@@ -27,5 +27,12 @@
   { "name": "status:review", "color": "fbca04", "description": "awaiting review" },
   { "name": "status:done", "color": "0e8a16", "description": "complete" },
   { "name": "status:private", "color": "000000", "description": "restricted visibility" },
-  { "name": "severity:high", "color": "b60205", "description": "high severity" }
+  { "name": "severity:high", "color": "b60205", "description": "high severity" },
+  { "name": "steward:guidance", "color": "5319e7", "description": "canonical steward: guidance archetype" },
+  { "name": "steward:innovation", "color": "5319e7", "description": "canonical steward: innovation archetype" },
+  { "name": "steward:engagement", "color": "5319e7", "description": "canonical steward: engagement archetype" },
+  { "name": "steward:operations", "color": "5319e7", "description": "canonical steward: operations archetype" },
+  { "name": "steward:sustenance", "color": "5319e7", "description": "canonical steward: sustenance archetype" },
+  { "name": "steward:protection", "color": "5319e7", "description": "canonical steward: protection archetype" },
+  { "name": "steward:growth", "color": "5319e7", "description": "canonical steward: growth archetype" }
 ]

@@ -20,6 +20,19 @@ High-level capability categorisations that represent fundamental organisational 
 - **Sustenance** - Maintenance, support, optimisation, performance, reliability
 - **Growth** - Expansion, acquisition, scaling, development, enhancement, evolution
 
+#### Executive Identification
+Executives are identified by canonical archetype names only. **C*O acronyms are legacy aliases and must not be used operationally.**
+
+**Legacy Aliases (NOT for operational use):**
+- CFO → use **Guidance** (canonical)
+- CTO → use **Innovation** (canonical)
+- CMO → use **Engagement** (canonical)
+- COO → use **Operations** (canonical)
+- CSO → use **Protection** (canonical)
+- CDO → use **Sustenance** (canonical)
+- CEO → use **Growth** (canonical)
+- CIO, CKO, CAO, COS → use appropriate canonical archetype
+
 ### Level 3: Domain
 Single-word camelCase domains that are pertinent to their parent archetype:
 

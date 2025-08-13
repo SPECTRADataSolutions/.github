@@ -155,13 +155,6 @@ body:
         prefer: ["spectra/ui","spectra/utils","ms-fabric"]
         avoid: ["customAuth","one-off visuals"]
 
-  - type: dropdown
-    id: buildVsBuyBias
-    attributes:
-      label: buildVsBuyBias
-      options: [reuse, buy, build]
-      description: Default stance for this initiative
-
   - type: textarea
     id: securityPosture
     attributes:
@@ -170,49 +163,6 @@ body:
         dataClass: confidential
         auth: EntraID
         secrets: KeyVault refs only
-
-  - type: textarea
-    id: compliance
-    attributes:
-      label: compliance
-      placeholder: |
-        - gdpr: required
-        - retention: 365d
-        - iso27001: controls A.12,A.14
-
-  - type: dropdown
-    id: accessibility
-    attributes:
-      label: accessibility
-      options: ["WCAG 2.2 A","WCAG 2.2 AA","WCAG 2.2 AAA"]
-      default: 1
-
-  - type: textarea
-    id: performanceSLOs
-    attributes:
-      label: performanceSLOs
-      placeholder: |
-        p95Latency<=200ms
-        dashboardLoad<=3s
-        monthlyCloudCost<=£X
-
-  - type: textarea
-    id: observability
-    attributes:
-      label: observability
-      placeholder: |
-        metrics: required
-        traces: required
-        logs: structured+PII-safe
-
-  - type: textarea
-    id: aiUsagePolicy
-    attributes:
-      label: aiUsagePolicy
-      placeholder: |
-        allowed: planning, scaffolding, tests
-        disallowed: secrets, prod data
-        modelTier: GPT-5-pro or better
 
   - type: textarea
     id: humanInTheLoop
@@ -233,14 +183,6 @@ body:
         criticalPaths: listed
 
   - type: textarea
-    id: i18n
-    attributes:
-      label: i18n
-      value: |
-        locales: ["en-GB"]
-        formats: UK
-
-  - type: textarea
     id: rolloutPlan
     attributes:
       label: rolloutPlan
@@ -248,24 +190,6 @@ body:
         featureFlags: required
         canary: 5%→25%→100%
         rollback: one-click
-
-  - type: textarea
-    id: sustainability
-    attributes:
-      label: sustainability
-      placeholder: |
-        carbonBudget: low
-        hardwarePref: efficient/GPU-pool
-
-  - type: textarea
-    id: definitionOfDone
-    attributes:
-      label: definitionOfDone
-      placeholder: |
-        - docs updated
-        - tests passing & coverage met
-        - dashboards wired
-        - runbook + on-call note
 
   - type: textarea
     id: lessonsFromPastInitiatives

@@ -4,7 +4,7 @@ title: "🚀 [Initiative] <shortTitle>"
 type: "initiative"
 assignees: ["github-copilot"]
 projects: ["SPECTRA"]
-labels: []  # Reserved only for truly orthogonal tags not captured elsewhere
+labels: []
 
 body:
   - type: markdown
@@ -13,17 +13,10 @@ body:
         ## SPECTRA Standards
         - British English spelling
         - SPECTRA in ALL CAPS
+        - Repo names: camelCase, singular nouns
         - camelCase only for Fabric pipelines, repo names, and code
         - No secrets in code
-
-  - type: dropdown
-    id: dream
-    attributes:
-      label: dream
-      description: Organisational vision and aspiration
-      options: [SPECTRA]
-      default: 0
-    validations: { required: true }
+        **Dream:** SPECTRA
 
   - type: dropdown
     id: archetype
@@ -31,15 +24,17 @@ body:
       label: archetype
       description: High-level capability categorisation (Dream → Archetype → Domain → Repo)
       options: [Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth]
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: input
     id: domain
     attributes:
       label: domain
-      description: Single-word camelCase domain pertinent to archetype
-      placeholder: "webPlatform"
-    validations: { required: true }
+      description: Single-token camelCase (singular concept) pertinent to archetype
+      placeholder: "governance"
+    validations:
+      required: true
 
   - type: input
     id: initiativeTitle
@@ -47,14 +42,16 @@ body:
       label: initiativeTitle
       description: Short, clear name
       placeholder: "spectraWebsiteV1"
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: textarea
     id: purpose
     attributes:
       label: purpose
       description: One sentence explaining why this initiative exists and the outcome it aims to achieve
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: textarea
     id: scope
@@ -64,7 +61,8 @@ body:
       placeholder: |
         inScope: ...
         outOfScope: ...
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: textarea
     id: capabilityAreas
@@ -75,7 +73,8 @@ body:
         immersiveVisionDefinition
         dynamicStructureGeneration
         interactiveEditing
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: textarea
     id: deliverables
@@ -86,7 +85,8 @@ body:
         - vrOnboardingFlow
         - liveRoadmap
         - deltaMemoryStore
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: textarea
     id: successIndicators
@@ -97,7 +97,8 @@ body:
         - blueprintCreatedIn<=30min
         - instantVisualUpdates
         - zeroManualBacklogEdits
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: textarea
     id: constraints
@@ -107,10 +108,11 @@ body:
       placeholder: |
         - fabricFirst
         - BritishEnglishSpelling
-        - SPECTRA in all caps
+        - SPECTRA in ALL CAPS
         - camelCase only in Fabric pipelines, repo names, and code
         - noSecretsInCode
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: textarea
     id: dependencies
@@ -130,7 +132,8 @@ body:
         - Data-Driven Development – metrics & usage-driven work
         - Feature-Driven Development (FDD) – incremental feature delivery
         - Hybrid/Other – specify in notes
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: textarea
     id: nonNegotiables
@@ -138,10 +141,11 @@ body:
       label: nonNegotiables
       placeholder: |
         - BritishEnglishSpelling
-        - SPECTRA in all caps
+        - SPECTRA in ALL CAPS
         - camelCase only for Fabric pipelines, repo names, and code
         - noSecretsInCode
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: textarea
     id: reusePriority
@@ -261,7 +265,7 @@ body:
         - docs updated
         - tests passing & coverage met
         - dashboards wired
-        - runbook + oncall note
+        - runbook + on-call note
 
   - type: textarea
     id: lessonsFromPastInitiatives

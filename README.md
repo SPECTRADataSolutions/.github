@@ -145,6 +145,7 @@ This repository provides governance infrastructure for the **spectraContextMcpSe
 - **`validate-context-manifest.yml`**: Validates contextManifest.yaml against schemas and SPECTRA compliance
 - **`pin-refs-and-checksums.yml`**: Nightly automation for ref pinning and drift detection with automatic issue creation
 - **`anchor-reachability-and-size.yml`**: Validates anchor accessibility, size limits, and coverage thresholds
+- **`prayer-tally.yml`**: Tracks devotion for Feature issues with 'prayer' label by counting positive reactions and '/endorse' comments
 
 ### Framework Enforcement
 - **Immutable refs**: Production manifests must use commit SHAs (no floating HEAD)

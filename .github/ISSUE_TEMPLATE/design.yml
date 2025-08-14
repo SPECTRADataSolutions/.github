@@ -4,9 +4,9 @@ title: "🎨 [Design] <shortTitle>"
 labels: ["type:design","status:review"]
 body:
   - type: dropdown
-    id: archetype
+    id: pillar
     attributes:
-      label: archetype
+      label: pillar
       options: [Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth]
     validations: { required: true }
 

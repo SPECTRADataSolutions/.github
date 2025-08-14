@@ -19,10 +19,10 @@ body:
         **Dream:** SPECTRA
 
   - type: dropdown
-    id: archetype
+    id: pillar
     attributes:
-      label: archetype
-      description: High-level capability categorisation (Dream → Archetype → Domain → Repo)
+      label: pillar
+      description: High-level capability categorisation (Dream → Pillar → Domain → Repo)
       options: [Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth]
     validations:
       required: true

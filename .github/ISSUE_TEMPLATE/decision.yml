@@ -12,9 +12,9 @@ body:
         Provide precise (non-generic) statements. Avoid placeholders like TBD.
 
   - type: dropdown
-    id: archetype
+    id: pillar
     attributes:
-      label: archetype
+      label: pillar
       options: [Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth]
     validations: { required: true }
 

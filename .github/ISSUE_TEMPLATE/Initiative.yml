@@ -31,7 +31,7 @@ body:
     id: domain
     attributes:
       label: domain
-      description: Single-token camelCase (singular concept) pertinent to archetype
+      description: Single-token camelCase (singular concept) pertinent to pillar
       placeholder: "governance"
     validations:
       required: true

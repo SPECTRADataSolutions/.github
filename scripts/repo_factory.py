@@ -159,7 +159,8 @@ class RepositoryFactory:
             
             # Wait briefly for repository to be fully created
             import time
-            time.sleep(2)
+            # Wait for repository to be fully created using polling
+            self._wait_for_repo_ready(org, repo_name)
             
             # Seed with canonical labels
             self._seed_canonical_labels(org, repo_name, warnings)

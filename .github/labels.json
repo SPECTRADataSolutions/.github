@@ -21,6 +21,7 @@
   { "name": "type:migration", "color": "e6e6fa", "description": "planned migration" },
   { "name": "type:procedure", "color": "cfcfcf", "description": "repeatable operational process" },
   { "name": "type:incident", "color": "ffe599", "description": "record of specific event" },
+  { "name": "type:pipeline", "color": "8a2be2", "description": "multi-stage SPECTRA pipeline planning" },
   { "name": "status:planning", "color": "c2e0c6", "description": "planning stage" },
   { "name": "status:todo", "color": "fef2c0", "description": "ready to start" },
   { "name": "status:doing", "color": "f9d0c4", "description": "in progress" },

@@ -99,7 +99,7 @@ jobs:
             }
             
             // Validate pillar
-            const validPillars = ['Guidance', 'Innovation', 'Engagement', 'Operations', 'Protection', 'Sustenance', 'Growth'];
+            const validPillars = ['Protection', 'Sustenance', 'Innovation', 'Operations', 'Engagement', 'Growth', 'Guidance'];
             if (!validPillars.includes(pillar)) {
               await github.rest.issues.createComment({
                 ...context.repo,

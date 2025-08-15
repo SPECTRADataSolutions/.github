@@ -4,12 +4,8 @@ description: "Validates repository metadata against SPECTRA canonical organizati
 on:
   workflow_call:
     inputs:
-      dream:
-        description: "Organizational dream/vision"
-        required: true
-        type: string
-      archetype:
-        description: "High-level capability archetype"
+      pillar:
+        description: "High-level capability pillar"
         required: true
         type: string
       domain:
@@ -59,8 +55,7 @@ jobs:
         run: |
           cat > metadata.json << EOF
           {
-            "dream": "${{ inputs.dream }}",
-            "archetype": "${{ inputs.archetype }}",
+            "pillar": "${{ inputs.pillar }}",
             "domain": "${{ inputs.domain }}",
             "repository": "${{ steps.repo-name.outputs.repository }}"
           }
@@ -77,26 +72,19 @@ jobs:
             
       - name: Validate naming conventions
         run: |
-          DREAM="${{ inputs.dream }}"
-          ARCHETYPE="${{ inputs.archetype }}"
+          PILLAR="${{ inputs.pillar }}"
           DOMAIN="${{ inputs.domain }}"
           REPO="${{ steps.repo-name.outputs.repository }}"
           
           echo "Validating naming conventions..."
           
-          # Check dream is SPECTRA
-          if [ "$DREAM" != "SPECTRA" ]; then
-            echo "❌ Dream must be 'SPECTRA', got: $DREAM"
-            exit 1
-          fi
-          
-          # Check archetype is in allowed list
-          case $ARCHETYPE in
+          # Check pillar is in allowed list
+          case $PILLAR in
             "Guidance"|"Innovation"|"Engagement"|"Operations"|"Protection"|"Sustenance"|"Growth")
-              echo "✅ Valid archetype: $ARCHETYPE"
+              echo "✅ Valid pillar: $PILLAR"
               ;;
             *)
-              echo "❌ Invalid archetype: $ARCHETYPE"
+              echo "❌ Invalid pillar: $PILLAR"
               echo "   Must be one of: Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth"
               exit 1
               ;;
@@ -119,8 +107,7 @@ jobs:
       - name: Validation Summary
         run: |
           echo "🎯 Organizational Structure Validation Complete"
-          echo "   Dream: ${{ inputs.dream }}"
-          echo "   Archetype: ${{ inputs.archetype }}"
+          echo "   Pillar: ${{ inputs.pillar }}"
           echo "   Domain: ${{ inputs.domain }}"
           echo "   Repository: ${{ steps.repo-name.outputs.repository }}"
           echo "   ✅ All validations passed"

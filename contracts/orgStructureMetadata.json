@@ -2,15 +2,10 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/orgStructureMetadata.json",
   "title": "SPECTRA Canonical Organizational Structure Metadata",
-  "description": "Schema defining the 4-level hierarchy: Dream → Archetype → Domain → Repo",
+  "description": "Schema defining the hierarchy: Pillar → Domain → Repository",
   "type": "object",
   "properties": {
-    "dream": {
-      "type": "string",
-      "enum": ["SPECTRA"],
-      "description": "The overarching organizational vision and aspiration"
-    },
-    "archetype": {
+    "pillar": {
       "type": "string",
       "enum": [
         "Guidance",
@@ -26,7 +21,7 @@
     "domain": {
       "type": "string",
       "pattern": "^[a-z][a-zA-Z]*$",
-      "description": "Single-word camelCase domain pertinent to the archetype"
+      "description": "Single-word camelCase domain pertinent to the pillar"
     },
     "repository": {
       "type": "string",
@@ -34,13 +29,13 @@
       "description": "Repository name following GitHub naming conventions"
     }
   },
-  "required": ["dream", "archetype", "domain", "repository"],
+  "required": ["pillar", "domain", "repository"],
   "additionalProperties": false,
   "allOf": [
     {
       "if": {
         "properties": {
-          "archetype": { "const": "Guidance" }
+          "pillar": { "const": "Guidance" }
         }
       },
       "then": {
@@ -48,12 +43,9 @@
           "domain": {
             "enum": [
               "governance",
-              "standards",
-              "documentation",
-              "training",
-              "compliance",
-              "frameworks",
-              "policies"
+              "standard",
+              "structure",
+              "intelligence"
             ]
           }
         }
@@ -62,7 +54,7 @@
     {
       "if": {
         "properties": {
-          "archetype": { "const": "Innovation" }
+          "pillar": { "const": "Innovation" }
         }
       },
       "then": {
@@ -70,12 +62,9 @@
           "domain": {
             "enum": [
               "research",
-              "experimentation",
-              "prototyping",
-              "emerging",
-              "futures",
-              "ideation",
-              "discovery"
+              "design",
+              "architecture",
+              "engineering"
             ]
           }
         }
@@ -84,20 +73,19 @@
     {
       "if": {
         "properties": {
-          "archetype": { "const": "Engagement" }
+          "pillar": { "const": "Engagement" }
         }
       },
       "then": {
         "properties": {
           "domain": {
             "enum": [
-              "community",
-              "partnerships",
-              "communication",
-              "outreach",
-              "collaboration",
-              "relationships",
-              "networking"
+              "brand",
+              "marketing",
+              "messaging",
+              "media",
+              "network",
+              "developer"
             ]
           }
         }
@@ -106,20 +94,17 @@
     {
       "if": {
         "properties": {
-          "archetype": { "const": "Operations" }
+          "pillar": { "const": "Operations" }
         }
       },
       "then": {
         "properties": {
           "domain": {
             "enum": [
-              "infrastructure",
-              "deployment",
-              "monitoring",
-              "automation",
-              "maintenance",
-              "support",
-              "tooling"
+              "coordination",
+              "schedule",
+              "response",
+              "delivery"
             ]
           }
         }
@@ -128,7 +113,7 @@
     {
       "if": {
         "properties": {
-          "archetype": { "const": "Protection" }
+          "pillar": { "const": "Protection" }
         }
       },
       "then": {
@@ -136,12 +121,11 @@
           "domain": {
             "enum": [
               "security",
-              "privacy",
               "compliance",
               "risk",
-              "auditing",
-              "backup",
-              "recovery"
+              "safety",
+              "ethic",
+              "privacy"
             ]
           }
         }
@@ -150,20 +134,19 @@
     {
       "if": {
         "properties": {
-          "archetype": { "const": "Sustenance" }
+          "pillar": { "const": "Sustenance" }
         }
       },
       "then": {
         "properties": {
           "domain": {
             "enum": [
-              "maintenance",
-              "support",
-              "optimization",
-              "performance",
+              "infrastructure",
+              "platform",
+              "pipeline",
               "reliability",
-              "scalability",
-              "efficiency"
+              "support",
+              "maintenance"
             ]
           }
         }
@@ -172,20 +155,18 @@
     {
       "if": {
         "properties": {
-          "archetype": { "const": "Growth" }
+          "pillar": { "const": "Growth" }
         }
       },
       "then": {
         "properties": {
           "domain": {
             "enum": [
-              "expansion",
+              "finance",
+              "collaboration",
               "acquisition",
-              "scaling",
-              "development",
-              "enhancement",
-              "evolution",
-              "advancement"
+              "insight",
+              "revenue"
             ]
           }
         }

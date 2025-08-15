@@ -4,7 +4,7 @@ The repoFactory workflow allows stewards to create a new repository by commentin
 
 How to use
 - In a valid Initiative issue, add a comment:
-  - `/create-repo repoName=governancePolicy domain=governance archetype=Guidance visibility=private`
+  - `/create-repo repoName=governancePolicy domain=governance pillar=Guidance visibility=private`
   - Optional: `templateRepo=SPECTRADataSolutions/blueprint`
 
 What it does

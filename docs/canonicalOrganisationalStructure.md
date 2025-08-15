@@ -2,26 +2,27 @@
 
 ## Overview
 
-This document defines SPECTRA's authoritative 4-level hierarchical organisational structure: **Dream → Archetype → Domain → Repository**. This canonical structure ensures consistent classification, governance, and automated enforcement across all repositories.
+This document defines SPECTRA's authoritative organisational structure based on **Pillars → Domains → Repositories**. This canonical structure ensures consistent classification, governance, and automated enforcement across all repositories.
 
 ## 📋 Hierarchy Definition
 
-### Level 1: Dream
-**SPECTRA** - The overarching organisational vision and aspiration that drives all activities.
-
-### Level 2: Archetype
-High-level capability categorisations that represent fundamental organisational functions:
+### Pillars
+High-level capability categorisations that represent fundamental organisational functions, designed around human brain activity patterns:
 
 - **Guidance** - Standards, policies, documentation, training, compliance, frameworks
-- **Innovation** - Research, experimentation, prototyping, emerging technologies, futures
+- **Innovation** - Research, experimentation, prototyping, emerging technologies, futures  
 - **Engagement** - Community, partnerships, communication, outreach, collaboration
 - **Operations** - Infrastructure, deployment, monitoring, automation, maintenance
-- **Protection** - Security, privacy, compliance, risk management, auditing, recovery
 - **Sustenance** - Maintenance, support, optimisation, performance, reliability
+- **Protection** - Security, privacy, compliance, risk management, auditing, recovery
 - **Growth** - Expansion, acquisition, scaling, development, enhancement, evolution
 
+#### CEO Experience Pillar Ordering
+For the CEO experience interface, pillars are arranged in a semi-circle layout based on human brain activity patterns:
+**Protection, Sustenance, Innovation, Operations, Engagement, Growth, Guidance**
+
 #### Executive Identification
-Executives are identified by canonical archetype names only. **C*O acronyms are legacy aliases and must not be used operationally.**
+Executives are identified by canonical pillar names only. **C*O acronyms are legacy aliases and must not be used operationally.**
 
 **Legacy Aliases (NOT for operational use):**
 - CFO → use **Guidance** (canonical)
@@ -31,33 +32,33 @@ Executives are identified by canonical archetype names only. **C*O acronyms are 
 - CSO → use **Protection** (canonical)
 - CDO → use **Sustenance** (canonical)
 - CEO → use **Growth** (canonical)
-- CIO, CKO, CAO, COS → use appropriate canonical archetype
+- CIO, CKO, CAO, COS → use appropriate canonical pillar
 
-### Level 3: Domain
-Single-word camelCase domains that are pertinent to their parent archetype:
+### Domains
+Single-word camelCase domains that are pertinent to their parent pillar:
 
 #### Guidance Domains
-- `governance`, `standards`, `documentation`, `training`, `compliance`, `frameworks`, `policies`
+- `governance`, `standard`, `structure`, `intelligence`
 
 #### Innovation Domains  
-- `research`, `experimentation`, `prototyping`, `emerging`, `futures`, `ideation`, `discovery`
+- `research`, `design`, `architecture`, `engineering`
 
 #### Engagement Domains
-- `community`, `partnerships`, `communication`, `outreach`, `collaboration`, `relationships`, `networking`
+- `brand`, `marketing`, `messaging`, `media`, `network`, `developer`
 
 #### Operations Domains
-- `infrastructure`, `deployment`, `monitoring`, `automation`, `maintenance`, `support`, `tooling`
-
-#### Protection Domains
-- `security`, `privacy`, `compliance`, `risk`, `auditing`, `backup`, `recovery`
+- `coordination`, `schedule`, `response`, `delivery`
 
 #### Sustenance Domains
-- `maintenance`, `support`, `optimization`, `performance`, `reliability`, `scalability`, `efficiency`
+- `infrastructure`, `platform`, `pipeline`, `reliability`, `support`, `maintenance`
+
+#### Protection Domains
+- `security`, `compliance`, `risk`, `safety`, `ethic`, `privacy`
 
 #### Growth Domains
-- `expansion`, `acquisition`, `scaling`, `development`, `enhancement`, `evolution`, `advancement`
+- `finance`, `collaboration`, `acquisition`, `insight`, `revenue`
 
-### Level 4: Repository
+### Repositories
 Individual GitHub repositories following standard naming conventions.
 
 ## 🔧 Implementation Requirements
@@ -67,8 +68,7 @@ Every repository must declare its organisational position in machine-readable fo
 
 ```yaml
 # .spectra/metadata.yml
-dream: SPECTRA
-archetype: Guidance
+pillar: Guidance
 domain: governance
 repository: .github
 ```
@@ -78,8 +78,7 @@ Every repository README must include the organisational hierarchy:
 
 ```markdown
 ## 🏛️ Organisational Structure
-**Dream:** SPECTRA  
-**Archetype:** Guidance  
+**Pillar:** Guidance  
 **Domain:** governance  
 **Repository:** .github
 ```
@@ -100,16 +99,15 @@ jobs:
   validate:
     uses: SPECTRADataSolutions/.github/.github/workflows/org-structure-validator.yml@main
     with:
-      dream: SPECTRA
-      archetype: Guidance
+      pillar: Guidance
       domain: governance
 ```
 
 ### CI Enforcement Rules
 - **Schema Validation**: All metadata must conform to `contracts/orgStructureMetadata.json`
 - **Naming Conventions**: Domains must be single-word camelCase
-- **Pertinence Check**: Domains must be valid for their archetype
-- **Completeness**: All four levels must be declared
+- **Pertinence Check**: Domains must be valid for their pillar
+- **Completeness**: All levels must be declared
 
 ## 📚 Governance Rules
 
@@ -120,22 +118,22 @@ jobs:
 - **canonicalSetsChangeByGovernanceOnly**: Archetype and domain enumerations require governance approval
 
 ### Change Management
-1. **Archetype Changes**: Require leadership approval and organisation-wide impact assessment
-2. **Domain Changes**: Must demonstrate pertinence to archetype and avoid naming conflicts
+1. **Pillar Changes**: Require leadership approval and organisation-wide impact assessment
+2. **Domain Changes**: Must demonstrate pertinence to pillar and avoid naming conflicts
 3. **Repository Migration**: Follow structured playbooks and validation checklists
 
 ## 🎯 Success Indicators
 
-- ✅ 100% repositories declare dream/archetype/domain in machine-readable metadata and README
+- ✅ 100% repositories declare pillar/domain in machine-readable metadata and README
 - ✅ 0 non-pertinent domain assignments post-migration (CI + spot checks)
-- ✅ CI blocks merge on invalid archetype/domain/single-word rule violations
+- ✅ CI blocks merge on invalid pillar/domain/single-word rule violations
 - ✅ Quarterly stewardship review cadence established
 
 ## 🛠️ Migration Guide
 
 ### For Existing Repositories
 1. **Assess Current State**: Identify existing metadata patterns
-2. **Classify Repository**: Determine appropriate archetype and domain
+2. **Classify Repository**: Determine appropriate pillar and domain
 3. **Add Metadata**: Create `.spectra/metadata.yml` with organisational structure
 4. **Update README**: Add organisational structure section
 5. **Configure CI**: Integrate org-structure-validator workflow
@@ -144,8 +142,7 @@ jobs:
 ### Repository Metadata Pattern
 ```yaml
 # .spectra/metadata.yml
-dream: SPECTRA
-archetype: [Guidance|Innovation|Engagement|Operations|Protection|Sustenance|Growth]
+pillar: [Guidance|Innovation|Engagement|Operations|Protection|Sustenance|Growth]
 domain: [pertinent single-word camelCase domain]
 repository: [repository-name]
 ```
@@ -153,8 +150,7 @@ repository: [repository-name]
 ### README Snippet Template
 ```markdown
 ## 🏛️ Organisational Structure
-**Dream:** SPECTRA  
-**Archetype:** [Your Archetype]  
+**Pillar:** [Your Pillar]  
 **Domain:** [yourDomain]  
 **Repository:** [repository-name]
 

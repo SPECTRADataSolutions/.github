@@ -23,7 +23,7 @@ Defines the structure for context anchors served by the MCP server:
 - **Identity**: Unique camelCase identifier and human-readable title
 - **Repository metadata**: Owner, name, immutable ref, and file path
 - **Content information**: MIME type, size, SHA-256 checksum for drift detection
-- **SPECTRA metadata**: Dream/archetype/domain classification, searchable tags, applicable roles
+- **SPECTRA metadata**: Pillar/domain classification, searchable tags, applicable roles
 - **Cache headers**: ETag, last modified timestamp, TTL
 - **Privacy tracking**: Redaction status and metrics (no content logging)
 
@@ -31,12 +31,12 @@ Defines the structure for context anchors served by the MCP server:
 Defines responses from the `spectra.search.find` endpoint:
 - **Query structure**: Text search with metadata filters and pagination
 - **Result format**: Ranked results with relevance scores and highlighted snippets
-- **Metadata filtering**: By dream/archetype/domain, tags, roles, MIME types
+- **Metadata filtering**: By pillar/domain, tags, roles, MIME types
 - **Performance metrics**: Query time, cache hit rates, index size
 
 ### Hierarchy Response Schema (`contracts/context/hierarchyResponse.json`)
 Defines responses from the `spectra.org.hierarchy` endpoint:
-- **Organisational structure**: Dream → Archetype → Domain → Repository hierarchy
+- **Organisational structure**: Pillar → Domain → Repository hierarchy
 - **Role definitions**: Hierarchical roles with responsibilities and permissions
 - **Helper functions**: Role lookup utilities (`roles.list`, `roles.findByTitle`, `roles.pathTo`)
 - **Source metadata**: Commit SHA, checksum, and version of `organisation/hierarchy.yaml`
@@ -168,7 +168,7 @@ When governance violations are detected, workflows automatically create Initiati
 - **Content**: Unreachable anchors, oversized files, coverage metrics
 
 All issues include:
-- Complete SPECTRA organisational metadata (dream/archetype/domain)
+- Complete SPECTRA organisational metadata (pillar/domain)
 - Capability areas mapped to epic requirements
 - Success indicators and constraints
 - Dependencies and automation options

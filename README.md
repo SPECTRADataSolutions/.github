@@ -16,8 +16,7 @@ This repository serves as the **single source of truth** for GitHub configuratio
 > 🎯 **Context Bootstrap Status:** Implementation in progress - scaffolding complete, runtime pending
 
 ## 🏛️ Organisational Structure
-**Dream:** SPECTRA  
-**Archetype:** Guidance  
+**Pillar:** Guidance  
 **Domain:** governance  
 **Repository:** .github
 

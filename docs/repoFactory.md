@@ -1,22 +1,28 @@
-# repoFactory — Automated Repository Creation
+# 📦 Repo Factory (Pillar → Domain → Capability → Service)
 
-The repoFactory workflow allows stewards to create a new repository by commenting on an Initiative issue.
+Purpose
+Create pillar/domain/capability service repositories on-demand with compliant navigation headers, labels, topics, guard workflow, and intent manifest.
 
-How to use
-- In a valid Initiative issue, add a comment:
-  - `/create-repo repoName=governancePolicy domain=governance archetype=Guidance visibility=private`
-  - Optional: `templateRepo=SPECTRADataSolutions/blueprint`
+Usage
+- Preferred: comment on an issue in this repo:
+```
+/repo create security --pillar Protection --domain platformSecurity --capability threatDetection --type governance --visibility private --desc "Security governance and reusable checks"
+```
+- Or run the repoFactory workflow manually from the Actions tab with the same inputs.
 
 What it does
-- Validates name (single-token camelCase) and that the repo does not already exist
-- Creates the repository under the organisation with main as default
-- Seeds standard labels from .github/labels.json
-- Seeds README.md and .gitignore when not templated
-- Replies on the Initiative with the new repository URL
+- Creates/updates a repository in SPECTRADataSolutions
+- Seeds README with nav header (Dream, Pillar, Domain, Capability, Service)
+- Adds .gitignore and repoStructureGuard apply workflow
+- Seeds labels from .github/.github/labels.json
+- Sets topics: spectra, framework, pillar-*, domain-*, capability-*
+- Adds meta/intent.yml with P→D→C→S values
+- Best-effort main branch protection (1 review)
 
-Required secret
-- ORG_ADMIN_TOKEN at the organisation level (scopes: repo, admin:org)
+Requirements
+- Org secret ORG_ADMIN_TOKEN (scopes: repo, admin:org)
+- This repo must contain the reusable repo-structure-guard workflow and standard YAML
 
 Notes
-- British English and SPECTRA in ALL CAPS throughout documentation
-- This implements knowledge item #23
+- Idempotent: re-running updates files/labels safely
+- Set repoType per repository to enable type-specific checks

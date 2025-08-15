@@ -12,6 +12,10 @@ on:
         description: "Single-word camelCase domain"
         required: true
         type: string
+      capabilities:
+        description: "Single-word camelCase capabilities"
+        required: true
+        type: string
       repository:
         description: "Repository name"
         required: false
@@ -57,6 +61,7 @@ jobs:
           {
             "pillar": "${{ inputs.pillar }}",
             "domain": "${{ inputs.domain }}",
+            "capabilities": "${{ inputs.capabilities }}",
             "repository": "${{ steps.repo-name.outputs.repository }}"
           }
           EOF
@@ -74,6 +79,7 @@ jobs:
         run: |
           PILLAR="${{ inputs.pillar }}"
           DOMAIN="${{ inputs.domain }}"
+          CAPABILITIES="${{ inputs.capabilities }}"
           REPO="${{ steps.repo-name.outputs.repository }}"
           
           echo "Validating naming conventions..."
@@ -96,6 +102,12 @@ jobs:
             exit 1
           fi
           
+          # Check capabilities is single word and camelCase
+          if [[ ! $CAPABILITIES =~ ^[a-z][a-zA-Z]*$ ]]; then
+            echo "❌ Capabilities must be single-word camelCase (starting with lowercase): $CAPABILITIES"
+            exit 1
+          fi
+          
           # Check repository follows GitHub conventions
           if [[ ! $REPO =~ ^[a-zA-Z0-9._-]+$ ]]; then
             echo "❌ Repository name contains invalid characters: $REPO"
@@ -109,5 +121,6 @@ jobs:
           echo "🎯 Organizational Structure Validation Complete"
           echo "   Pillar: ${{ inputs.pillar }}"
           echo "   Domain: ${{ inputs.domain }}"
+          echo "   Capabilities: ${{ inputs.capabilities }}"
           echo "   Repository: ${{ steps.repo-name.outputs.repository }}"
           echo "   ✅ All validations passed"

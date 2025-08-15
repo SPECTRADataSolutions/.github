@@ -6,7 +6,7 @@ This document summarises the implementation of SPECTRA's canonical organisationa
 
 ### 1. Schema & Contracts
 - **`contracts/orgStructureMetadata.json`** - JSON Schema defining the pillar-domain hierarchy with validation
-- Enforces Pillar → Domain → Repository structure
+- Enforces Pillar → Domain → Capabilities → Repository structure
 - Validates domain naming conventions (single-word camelCase)
 - Ensures domain pertinence to pillar through conditional validation
 

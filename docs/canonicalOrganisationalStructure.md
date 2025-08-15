@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document defines SPECTRA's authoritative organisational structure based on **Pillars → Domains → Repositories**. This canonical structure ensures consistent classification, governance, and automated enforcement across all repositories.
+This document defines SPECTRA's authoritative organisational structure based on **Pillars → Domains → Capabilities → Repositories**. This canonical structure ensures consistent classification, governance, and automated enforcement across all repositories.
 
 ## 📋 Hierarchy Definition
 
@@ -58,6 +58,9 @@ Single-word camelCase domains that are pertinent to their parent pillar:
 #### Growth Domains
 - `finance`, `collaboration`, `acquisition`, `insight`, `revenue`
 
+### Capabilities
+Single-word camelCase capabilities that represent specific functional areas within each domain.
+
 ### Repositories
 Individual GitHub repositories following standard naming conventions.
 
@@ -70,6 +73,7 @@ Every repository must declare its organisational position in machine-readable fo
 # .spectra/metadata.yml
 pillar: Guidance
 domain: governance
+capabilities: framework
 repository: .github
 ```
 
@@ -80,6 +84,7 @@ Every repository README must include the organisational hierarchy:
 ## 🏛️ Organisational Structure
 **Pillar:** Guidance  
 **Domain:** governance  
+**Capabilities:** framework  
 **Repository:** .github
 ```
 
@@ -101,6 +106,7 @@ jobs:
     with:
       pillar: Guidance
       domain: governance
+      capabilities: framework
 ```
 
 ### CI Enforcement Rules
@@ -144,6 +150,7 @@ jobs:
 # .spectra/metadata.yml
 pillar: [Guidance|Innovation|Engagement|Operations|Protection|Sustenance|Growth]
 domain: [pertinent single-word camelCase domain]
+capabilities: [single-word camelCase capabilities]
 repository: [repository-name]
 ```
 
@@ -152,6 +159,7 @@ repository: [repository-name]
 ## 🏛️ Organisational Structure
 **Pillar:** [Your Pillar]  
 **Domain:** [yourDomain]  
+**Capabilities:** [yourCapabilities]  
 **Repository:** [repository-name]
 
 This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/docs/canonicalOrganisationalStructure.md).

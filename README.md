@@ -18,6 +18,7 @@ This repository serves as the **single source of truth** for GitHub configuratio
 ## 🏛️ Organisational Structure
 **Pillar:** Guidance  
 **Domain:** governance  
+**Capabilities:** framework  
 **Repository:** .github
 
 This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).

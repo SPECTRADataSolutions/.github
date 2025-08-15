@@ -1,6 +1,6 @@
 {
-  "dream": "Spectraverse",
-  "archetype": "Guidance",
-  "domain": "organisationStructure",
+  "pillar": "Guidance",
+  "domain": "structure",
+  "capabilities": "organisation",
   "repository": "SPECTRADataSolutions/exampleRepo"
 }

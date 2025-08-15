@@ -6,10 +6,11 @@ Copy this template to `.spectra/metadata.yml` in your repository root.
 # .spectra/metadata.yml
 # SPECTRA Canonical Organisational Structure Metadata
 # This file defines the repository's position in the hierarchy:
-# Pillar → Domain → Repository
+# Pillar → Domain → Capabilities → Repository
 
 pillar: [CHOOSE_ONE: Guidance|Innovation|Engagement|Operations|Protection|Sustenance|Growth]
 domain: [SINGLE_WORD_CAMELCASE_DOMAIN]
+capabilities: [SINGLE_WORD_CAMELCASE_CAPABILITIES]
 repository: [REPOSITORY_NAME]
 
 # Pillar-Domain Mapping Reference:
@@ -31,6 +32,7 @@ Add this section to your repository's README.md:
 ## 🏛️ Organisational Structure
 **Pillar:** [Your Pillar]  
 **Domain:** [yourDomain]  
+**Capabilities:** [yourCapabilities]  
 **Repository:** [repository-name]
 
 This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).
@@ -60,6 +62,7 @@ jobs:
     with:
       pillar: [YOUR_PILLAR]
       domain: [yourDomain]
+      capabilities: [yourCapabilities]
       repository: ${{ github.event.repository.name }}
 ```
 
@@ -71,6 +74,7 @@ For a repository in the Guidance pillar with governance domain:
 # .spectra/metadata.yml
 pillar: Guidance
 domain: governance
+capabilities: framework
 repository: .github
 ```
 
@@ -78,6 +82,7 @@ repository: .github
 ## 🏛️ Organisational Structure
 **Pillar:** Guidance  
 **Domain:** governance  
+**Capabilities:** framework  
 **Repository:** .github
 
 This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).

@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/orgStructureMetadata.json",
   "title": "SPECTRA Canonical Organizational Structure Metadata",
-  "description": "Schema defining the hierarchy: Pillar → Domain → Repository",
+  "description": "Schema defining the hierarchy: Pillar → Domain → Capabilities → Repository",
   "type": "object",
   "properties": {
     "pillar": {
@@ -23,13 +23,18 @@
       "pattern": "^[a-z][a-zA-Z]*$",
       "description": "Single-word camelCase domain pertinent to the pillar"
     },
+    "capabilities": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z]*$",
+      "description": "Single-word camelCase capabilities within the domain"
+    },
     "repository": {
       "type": "string",
       "pattern": "^[a-zA-Z0-9._-]+$",
       "description": "Repository name following GitHub naming conventions"
     }
   },
-  "required": ["pillar", "domain", "repository"],
+  "required": ["pillar", "domain", "capabilities", "repository"],
   "additionalProperties": false,
   "allOf": [
     {

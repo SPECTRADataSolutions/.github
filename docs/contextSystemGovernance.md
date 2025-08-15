@@ -36,7 +36,7 @@ Defines responses from the `spectra.search.find` endpoint:
 
 ### Hierarchy Response Schema (`contracts/context/hierarchyResponse.json`)
 Defines responses from the `spectra.org.hierarchy` endpoint:
-- **Organisational structure**: Pillar → Domain → Repository hierarchy
+- **Organisational structure**: Pillar → Domain → Capabilities → Repository hierarchy
 - **Role definitions**: Hierarchical roles with responsibilities and permissions
 - **Helper functions**: Role lookup utilities (`roles.list`, `roles.findByTitle`, `roles.pathTo`)
 - **Source metadata**: Commit SHA, checksum, and version of `organisation/hierarchy.yaml`

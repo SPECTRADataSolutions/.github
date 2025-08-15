@@ -65,7 +65,8 @@ jobs:
 
       - name: createRepo
         uses: actions/github-script@v7
-        env: { ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }} }
+        env:
+          ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         with:
           github-token: ${{ env.ORG_ADMIN_TOKEN }}
           script: |
@@ -89,7 +90,8 @@ jobs:
 
       - name: seedLabels
         uses: actions/github-script@v7
-        env: { ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }} }
+        env:
+          ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         with:
           github-token: ${{ env.ORG_ADMIN_TOKEN }}
           script: |
@@ -103,7 +105,8 @@ jobs:
 
       - name: writeFiles
         uses: actions/github-script@v7
-        env: { ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }} }
+        env:
+          ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         with:
           github-token: ${{ env.ORG_ADMIN_TOKEN }}
           script: |
@@ -115,70 +118,58 @@ jobs:
             const repoType=core.getInput('repoType').trim();
             const description=core.getInput('description').trim();
 
-            const readme = `
-# ${repo}
-
-<!-- NAV_START -->
-**Dream**: SPECTRA  
-**Pillar**: ${pillar}  
-**Domain**: ${domain}  
-**Capability**: ${capability}  
-**Service**: ${owner}/${repo}
-<!-- NAV_END -->
-
-> ${description}
-
-## Purpose
-This service delivers the ${capability} capability within the ${domain} domain of the ${pillar} pillar.
-
-## Structure
-- docs/
-- scripts/
-- .github/workflows/
-- tests/
-- meta/
-${repoType === 'engineering' ? '- stages/\n- utils/\n- principles/\n- conventions/\n- Tables/' : ''}
-${repoType === 'governance' ? '- roles/\n- contracts/\n- specs/\n- tools/' : ''}
-${repoType === 'operations' ? '- templates/\n- scripts/\n- docs/' : ''}
-${repoType === 'applications' ? '- src/\n- components/\n- pages/ or app/\n- styles/' : ''}
-${repoType === 'content' ? '- knowledge/\n- journal/\n- discussions/\n- templates/' : ''}
-
-## Governance
-All rules derive from the SPECTRA Framework. Enforced by org guard workflows.
-`;
-            const gitignore = `
-# SPECTRA standard ignores
-*.pyc
-__pycache__/
-.ipynb_checkpoints/
-.env
-.DS_Store
-*.log
-*.sqlite
-node_modules/
-dist/
-build/
-`;
-            const guard = `
-name: repoStructureGuard
-on:
-  pull_request:
-  push:
-    branches: [ main, master, develop ]
-jobs:
-  validate:
-    uses: SPECTRADataSolutions/.github/.github/workflows/repo-structure-guard.yml@main
-    with:
-      repoType: ${repoType}
-`;
-            const intent = `dream: SPECTRA
-pillar: ${pillar}
-domain: ${domain}
-capability: ${capability}
-service: ${repo}
-repoType: ${repoType}
-visibility: ${core.getInput('visibility').trim().toLowerCase()}
-`;
+            const readme = '# ' + repo + '\n\n' +
+              '<!-- NAV_START -->\n' +
+              '**Dream**: SPECTRA\n' +
+              '**Pillar**: ' + pillar + '\n' +
+              '**Domain**: ' + domain + '\n' +
+              '**Capability**: ' + capability + '\n' +
+              '**Service**: ' + owner + '/' + repo + '\n' +
+              '<!-- NAV_END -->\n\n' +
+              '> ' + description + '\n\n' +
+              '## Purpose\n' +
+              'This service delivers the ' + capability + ' capability within the ' + domain + ' domain of the ' + pillar + ' pillar.\n\n' +
+              '## Structure\n' +
+              '- docs/\n' +
+              '- scripts/\n' +
+              '- .github/workflows/\n' +
+              '- tests/\n' +
+              '- meta/\n' +
+              (repoType === 'engineering' ? '- stages/\n- utils/\n- principles/\n- conventions/\n- Tables/\n' : '') +
+              (repoType === 'governance' ? '- roles/\n- contracts/\n- specs/\n- tools/\n' : '') +
+              (repoType === 'operations' ? '- templates/\n- scripts/\n- docs/\n' : '') +
+              (repoType === 'applications' ? '- src/\n- components/\n- pages/ or app/\n- styles/\n' : '') +
+              (repoType === 'content' ? '- knowledge/\n- journal/\n- discussions/\n- templates/\n' : '') +
+              '\n## Governance\n' +
+              'All rules derive from the SPECTRA Framework. Enforced by org guard workflows.\n';
+            const gitignore = '# SPECTRA standard ignores\n' +
+              '*.pyc\n' +
+              '__pycache__/\n' +
+              '.ipynb_checkpoints/\n' +
+              '.env\n' +
+              '.DS_Store\n' +
+              '*.log\n' +
+              '*.sqlite\n' +
+              'node_modules/\n' +
+              'dist/\n' +
+              'build/\n';
+            const guard = 'name: repoStructureGuard\n' +
+              'on:\n' +
+              '  pull_request:\n' +
+              '  push:\n' +
+              '    branches: [ main, master, develop ]\n' +
+              'jobs:\n' +
+              '  validate:\n' +
+              '    uses: SPECTRADataSolutions/.github/.github/workflows/repo-structure-guard.yml@main\n' +
+              '    with:\n' +
+              '      repoType: ' + repoType + '\n';
+            const intent = 'dream: SPECTRA\n' +
+              'pillar: ' + pillar + '\n' +
+              'domain: ' + domain + '\n' +
+              'capability: ' + capability + '\n' +
+              'service: ' + repo + '\n' +
+              'repoType: ' + repoType + '\n' +
+              'visibility: ' + core.getInput('visibility').trim().toLowerCase() + '\n';
 
             async function put(path, content, message){
               const b64 = Buffer.from(content.trimStart(),'utf8').toString('base64');
@@ -191,7 +182,8 @@ visibility: ${core.getInput('visibility').trim().toLowerCase()}
 
       - name: protectMain
         uses: actions/github-script@v7
-        env: { ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }} }
+        env:
+          ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         with:
           github-token: ${{ env.ORG_ADMIN_TOKEN }}
           script: |
@@ -209,19 +201,20 @@ visibility: ${core.getInput('visibility').trim().toLowerCase()}
 
       - name: topics
         uses: actions/github-script@v7
-        env: { ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }} }
+        env:
+          ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         with:
           github-token: ${{ env.ORG_ADMIN_TOKEN }}
           script: |
             const owner='${{ steps.validate.outputs.owner }}';
             const repo=core.getInput('repoName').trim();
-            const pillar=core.getInput('pillar').trim().toLowerCase();
+            const pillar=core.getInput('pillar').trim();
             const domain=core.getInput('domain').trim();
             const capability=core.getInput('capability').trim();
             await github.rest.repos.replaceAllTopics({
               owner, repo,
-              names: ['spectra','framework',`pillar-${pillar}`,`domain-${domain}`,`capability-${capability}`]
+              names: ['spectra','framework','pillar-' + pillar.toLowerCase(),'domain-' + domain,'capability-' + capability]
             });
 
       - name: output
-        run: echo "✅ Created or updated: ${{ steps.createRepo.outputs.repoUrl }}"
+        run: echo "✅ Created or updated:" "${{ steps.createRepo.outputs.repoUrl }}"

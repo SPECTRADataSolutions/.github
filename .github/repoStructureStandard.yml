@@ -1,0 +1,77 @@
+name: spectraRepoStandard
+version: 1.1.0
+branding:
+  enforceSpectraAllCaps: true
+languageRules:
+  britishEnglish: true
+naming:
+  fileCase: camelCase
+  folderCase: camelCase
+readme:
+  navBlocks:
+    - start: "<!-- NAV_START -->"
+      end: "<!-- NAV_END -->"
+  requiredFields:
+    - dream
+    - pillarOrArchetype
+    - domain
+    - capability
+    - service
+  dreamValue: "SPECTRA"
+requiredRootFiles:
+  - README.md
+  - .gitignore
+gitignoreEssentials:
+  - "__pycache__"
+  - ".ipynb_checkpoints"
+  - "*.pyc"
+  - ".env"
+baselineFolders:
+  - docs
+  - scripts
+  - tests
+  - meta
+  - ".github/workflows"
+repositoryTypes:
+  engineering:
+    requiredFolders: [stages, utils, principles, conventions, Tables]
+  operations:
+    requiredFolders: [templates, scripts, docs]
+  applications:
+    requiredFoldersAnyOf:
+      - [src, components, pages]
+      - [src, components, app]
+    alsoRequire: [styles]
+  governance:
+    requiredFolders: [roles, contracts, specs, tools]
+  content:
+    requiredFoldersAnyOf:
+      - [knowledge]
+      - [journal]
+      - [discussions]
+    alsoRequire: [templates, docs]
+compatibility:
+  synonyms:
+    pillarOrArchetype: [pillar, archetype]
+  domainFormat:
+    regex: "^[a-z][a-zA-Z0-9]*$"
+  capabilityFormat:
+    regex: "^[a-z][a-zA-Z0-9]*$"
+  serviceFormats:
+    - "^[a-z][a-zA-Z0-9]*$"                    # serviceName
+    - "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"      # owner/repo
+enforcement:
+  checks:
+    - readmeNav
+    - requiredRoot
+    - gitignoreEssentials
+    - baselineFolders
+    - typeFolders
+    - britishEnglish
+failOn:
+  - readmeNav
+  - requiredRoot
+  - typeFolders
+notes:
+  - "Nav header must start the README."
+  - "Service accepts serviceName or owner/repo."

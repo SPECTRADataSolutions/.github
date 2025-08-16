@@ -1,0 +1,104 @@
+name: prayerTally
+
+on:
+  issues:
+    types: [opened, edited, labeled, unlabeled]
+  issue_comment:
+    types: [created, edited, deleted]
+
+permissions:
+  issues: write
+  contents: read
+  pull-requests: read
+
+jobs:
+  tally:
+    runs-on: ubuntu-latest
+    steps:
+      - name: computeTally
+        uses: actions/github-script@v7
+        env:
+          THRESHOLD: ${{ vars.PRAYER_THRESHOLD || 20 }}
+        with:
+          script: |
+            let issue = context.payload.issue;
+            
+            // Handle issue_comment events by fetching the issue
+            if (!issue && context.payload.comment?.issue_url) {
+              try {
+                const response = await github.request(context.payload.comment.issue_url);
+                issue = response.data;
+              } catch (error) {
+                core.error(`Failed to fetch issue: ${error.message}`);
+                return;
+              }
+            }
+            
+            if (!issue) {
+              core.info('No issue found in payload');
+              return;
+            }
+
+            const title = issue.title || '';
+            const labels = (issue.labels || []).map(l => typeof l === 'string' ? l : l.name);
+            const isFeature = title.startsWith('🌟 [Feature]') || labels.includes('type:feature');
+            const hasPrayer = labels.includes('prayer');
+            if (!isFeature || !hasPrayer) {
+              core.info('Not a Feature with prayer label — skipping');
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = issue.number;
+
+            try {
+              // Reactions (👍, 🎉, ❤️, 🚀)
+              let page = 1; let per_page = 100; let reactions = [];
+              while (true) {
+                const res = await github.request('GET /repos/{owner}/{repo}/issues/{issue_number}/reactions', {
+                  owner, repo, issue_number, per_page, page,
+                  headers: { 'X-GitHub-Api-Version': '2022-11-28', 'Accept': 'application/vnd.github+json' }
+                });
+                reactions = reactions.concat(res.data);
+                if (res.data.length < per_page) break;
+                page += 1;
+              }
+              const pos = new Set(['+1','hooray','heart','rocket']);
+              const reactionScore = reactions.filter(r => pos.has(r.content)).length;
+
+              // Comments with '/endorse'
+              let comments = [];
+              page = 1;
+              while (true) {
+                const res = await github.request('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', { owner, repo, issue_number, per_page, page });
+                comments = comments.concat(res.data);
+                if (res.data.length < per_page) break;
+                page += 1;
+              }
+              const endorsementWeight = 3;
+              const endorseCount = comments.filter(c => /(^|\s)\/endorse(\s|$)/i.test(c.body || '')).length;
+              const tally = reactionScore + (endorsementWeight * endorseCount);
+
+              const threshold = parseInt(process.env.THRESHOLD || '20', 10);
+              const statusLine = tally >= threshold ? `✅ Threshold reached (>= ${threshold}). Consider promoting to roadmap.` : `Progress: ${tally}/${threshold}`;
+
+              // Upsert a single bot comment containing a marker
+              const marker = '<!-- devotion-tally -->';
+              const existing = comments.find(c => c.user?.type === 'Bot' && (c.body || '').includes(marker));
+              const body = `${marker}\nDevotion tally: **${tally}** (reactions: ${reactionScore}, endorsements: ${endorseCount} ×3)\n${statusLine}`;
+
+              if (existing) {
+                await github.request('PATCH /repos/{owner}/{repo}/issues/comments/{comment_id}', {
+                  owner, repo, comment_id: existing.id, body
+                });
+                core.info(`Updated devotion tally comment: ${tally}`);
+              } else {
+                await github.rest.issues.createComment({ owner, repo, issue_number, body });
+                core.info(`Created devotion tally comment: ${tally}`);
+              }
+              
+            } catch (error) {
+              core.error(`Error processing devotion tally: ${error.message}`);
+              throw error;
+            }

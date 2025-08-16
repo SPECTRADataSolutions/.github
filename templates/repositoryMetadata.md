@@ -5,23 +5,23 @@ Copy this template to `.spectra/metadata.yml` in your repository root.
 ```yaml
 # .spectra/metadata.yml
 # SPECTRA Canonical Organisational Structure Metadata
-# This file defines the repository's position in the 4-level hierarchy:
-# Dream → Archetype → Domain → Repository
+# This file defines the repository's position in the hierarchy:
+# Pillar → Domain → Capabilities → Repository
 
-dream: SPECTRA
-archetype: [CHOOSE_ONE: Guidance|Innovation|Engagement|Operations|Protection|Sustenance|Growth]
+pillar: [CHOOSE_ONE: Guidance|Innovation|Engagement|Operations|Protection|Sustenance|Growth]
 domain: [SINGLE_WORD_CAMELCASE_DOMAIN]
+capabilities: [SINGLE_WORD_CAMELCASE_CAPABILITIES]
 repository: [REPOSITORY_NAME]
 
-# Archetype-Domain Mapping Reference:
+# Pillar-Domain Mapping Reference:
 # 
-# Guidance: governance, standards, documentation, training, compliance, frameworks, policies
-# Innovation: research, experimentation, prototyping, emerging, futures, ideation, discovery
-# Engagement: community, partnerships, communication, outreach, collaboration, relationships, networking
-# Operations: infrastructure, deployment, monitoring, automation, maintenance, support, tooling
-# Protection: security, privacy, compliance, risk, auditing, backup, recovery
-# Sustenance: maintenance, support, optimization, performance, reliability, scalability, efficiency
-# Growth: expansion, acquisition, scaling, development, enhancement, evolution, advancement
+# Guidance: governance, standard, structure, intelligence
+# Innovation: research, design, architecture, engineering
+# Engagement: brand, marketing, messaging, media, network, developer
+# Operations: coordination, schedule, response, delivery
+# Protection: security, compliance, risk, safety, ethic, privacy
+# Sustenance: infrastructure, platform, pipeline, reliability, support, maintenance
+# Growth: finance, collaboration, acquisition, insight, revenue
 ```
 
 ## README Section Template
@@ -30,9 +30,9 @@ Add this section to your repository's README.md:
 
 ```markdown
 ## 🏛️ Organisational Structure
-**Dream:** SPECTRA  
-**Archetype:** [Your Archetype]  
+**Pillar:** [Your Pillar]  
 **Domain:** [yourDomain]  
+**Capabilities:** [yourCapabilities]  
 **Repository:** [repository-name]
 
 This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).
@@ -60,29 +60,29 @@ jobs:
     name: Validate Organisational Metadata
     uses: SPECTRADataSolutions/.github/.github/workflows/org-structure-validator.yml@main
     with:
-      dream: SPECTRA
-      archetype: [YOUR_ARCHETYPE]
+      pillar: [YOUR_PILLAR]
       domain: [yourDomain]
+      capabilities: [yourCapabilities]
       repository: ${{ github.event.repository.name }}
 ```
 
 ## Example Implementation
 
-For a repository in the Guidance archetype with governance domain:
+For a repository in the Guidance pillar with governance domain:
 
 ```yaml
 # .spectra/metadata.yml
-dream: SPECTRA
-archetype: Guidance
+pillar: Guidance
 domain: governance
+capabilities: framework
 repository: .github
 ```
 
 ```markdown
 ## 🏛️ Organisational Structure
-**Dream:** SPECTRA  
-**Archetype:** Guidance  
+**Pillar:** Guidance  
 **Domain:** governance  
+**Capabilities:** framework  
 **Repository:** .github
 
 This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).

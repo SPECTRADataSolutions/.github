@@ -8,12 +8,7 @@
     "hierarchy": {
       "type": "object",
       "properties": {
-        "dream": {
-          "type": "string",
-          "enum": ["SPECTRA"],
-          "description": "Top level organisational vision"
-        },
-        "archetypes": {
+        "pillars": {
           "type": "array",
           "items": {
             "type": "object",
@@ -24,7 +19,7 @@
               },
               "description": {
                 "type": "string",
-                "description": "Description of the archetype's purpose"
+                "description": "Description of the pillar's purpose"
               },
               "domains": {
                 "type": "array",
@@ -74,10 +69,10 @@
             "required": ["name", "description", "domains"],
             "additionalProperties": false
           },
-          "description": "Hierarchical structure of archetypes and domains"
+          "description": "Hierarchical structure of pillars and domains"
         }
       },
-      "required": ["dream", "archetypes"],
+      "required": ["pillars"],
       "additionalProperties": false
     },
     "roles": {
@@ -105,14 +100,14 @@
             "enum": ["strategic", "tactical", "operational"],
             "description": "Organisational level of the role"
           },
-          "archetypes": {
+          "pillars": {
             "type": "array",
             "items": {
               "type": "string",
               "enum": ["Guidance", "Innovation", "Engagement", "Operations", "Protection", "Sustenance", "Growth"]
             },
             "uniqueItems": true,
-            "description": "Archetypes this role operates within"
+            "description": "Pillars this role operates within"
           },
           "domains": {
             "type": "array",
@@ -147,7 +142,7 @@
             "description": "Role ID this role reports to"
           }
         },
-        "required": ["id", "title", "description", "level", "archetypes", "domains"],
+        "required": ["id", "title", "description", "level", "pillars", "domains"],
         "additionalProperties": false
       }
     },

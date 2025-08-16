@@ -26,13 +26,13 @@ GET /health
 ### List Anchors
 ```
 GET /anchors
-GET /anchors?tags=starfighter,technical&archetype=Guidance
+GET /anchors?tags=starfighter,technical&pillar=Guidance
 ```
 **Purpose:** Retrieve all available anchors with optional filtering  
 **Query Parameters:**
 - `tags` - Comma-separated list of tags to filter by
-- `archetype` - Filter by SPECTRA archetype (Guidance, Innovation, etc.)
-- `domain` - Filter by domain within archetype
+- `pillar` - Filter by SPECTRA pillar (Guidance, Innovation, etc.)
+- `domain` - Filter by domain within pillar
 - `limit` - Maximum number of results (default: 50)
 - `offset` - Pagination offset
 
@@ -57,7 +57,7 @@ POST /search
 **Query Parameters (GET):**
 - `query` - Search terms
 - `limit` - Maximum results
-- `archetype` - Filter by archetype
+- `pillar` - Filter by pillar
 - `tags` - Filter by tags
 
 **POST Body:**
@@ -65,7 +65,7 @@ POST /search
 {
   "query": "X-wing fighter",
   "filters": {
-    "archetype": ["Guidance"],
+    "pillar": ["Guidance"],
     "tags": ["starfighter", "technical"],
     "domain": "context"
   },

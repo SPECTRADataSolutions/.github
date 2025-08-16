@@ -4,9 +4,9 @@ title: "🐛 [Bug] <shortTitle>"
 labels: ["type:bug","status:triage"]
 body:
   - type: dropdown
-    id: archetype
+    id: pillar
     attributes:
-      label: archetype
+      label: pillar
       options: [Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth]
     validations: { required: true }
 

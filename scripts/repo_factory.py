@@ -310,7 +310,7 @@ Please follow SPECTRA contribution guidelines and organizational standards.
             if response.status_code not in [200, 201]:
                 warnings.append("⚠️ Failed to add/update README.md")
             else:
-                print("✅ Added/updated baseline README")
+                logging.info("✅ Added/updated baseline README")
                 
         except Exception as e:
             warnings.append(f"⚠️ Failed to add baseline README: {str(e)}")

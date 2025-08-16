@@ -67,19 +67,19 @@ body:
     id: sourcePlan
     attributes:
       label: sourcePlan
-      description: Discovery-only; authentication approach, entity catalogue, schema docs (no extraction here)
+      description: "Discovery-only; authentication approach, entity catalogue, schema docs (no extraction here)"
 
   - type: textarea
     id: parametersPlan
     attributes:
       label: parametersPlan
-      description: Parameter catalogue (names only), endpoints/scopes, seeds/toggles, globals().get(...) read pattern
+      description: "Parameter catalogue (names only), endpoints/scopes, seeds/toggles, globals().get(...) read pattern; no live values"
 
   - type: textarea
     id: extractPlan
     attributes:
       label: extractPlan
-      description: Raw loads, partitioning, audit logs, incremental boundary; no transforms in Extract
+      description: "Raw loads, partitioning, audit logs, incremental boundary; no transforms in Extract"
 
   - type: textarea
     id: cleanPlan
@@ -132,7 +132,7 @@ body:
     id: dependencies
     attributes:
       label: dependencies
-      description: Related repos/systems/work items
+      description: Related repos/systems/work items (epics, stories)
 
   - type: checkboxes
     id: automationOptions

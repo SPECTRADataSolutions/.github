@@ -60,7 +60,7 @@ The X-wing features a dedicated **astromech droid socket** providing:
 This document demonstrates how technical documentation can be structured as SPECTRA Context anchors:
 
 - **Comprehensive but concise:** Essential information without overwhelming detail
-- **Structured metadata:** Dream/Archetype/Domain classification for discoverability  
+- **Structured metadata:** Pillar/Domain classification for discoverability  
 - **Agent-friendly format:** Clear sections and consistent formatting for AI consumption
 - **Delight factor:** Using beloved Star Wars content to make technical concepts engaging
 

@@ -126,14 +126,13 @@ jobs:
           
           # Check SPECTRA organisational metadata
           if [[ -f ".spectra/metadata.yml" ]]; then
-            dream=$(grep "^dream:" .spectra/metadata.yml | cut -d' ' -f2)
-            archetype=$(grep "^archetype:" .spectra/metadata.yml | cut -d' ' -f2)
+            pillar=$(grep "^pillar:" .spectra/metadata.yml | cut -d' ' -f2)
             domain=$(grep "^domain:" .spectra/metadata.yml | cut -d' ' -f2)
             
-            if [[ "$dream" == "SPECTRA" ]] && [[ "$archetype" == "Guidance" ]] && [[ "$domain" == "governance" ]]; then
-              echo "- ✅ **SPECTRA Metadata** - Compliant (SPECTRA → Guidance → governance)" >> /tmp/governance_report.md
+            if [[ "$pillar" == "Guidance" ]] && [[ "$domain" == "governance" ]]; then
+              echo "- ✅ **SPECTRA Metadata** - Compliant (Guidance → governance)" >> /tmp/governance_report.md
             else
-              echo "- ❌ **SPECTRA Metadata** - Non-compliant ($dream → $archetype → $domain)" >> /tmp/governance_report.md
+              echo "- ❌ **SPECTRA Metadata** - Non-compliant ($pillar → $domain)" >> /tmp/governance_report.md
             fi
           else
             echo "- ❌ **SPECTRA Metadata** - Missing .spectra/metadata.yml" >> /tmp/governance_report.md
@@ -240,11 +239,7 @@ jobs:
             const fs = require('fs');
             const report = fs.readFileSync('/tmp/governance_report.md', 'utf8');
             
-            const issueBody = `### dream
-
-            SPECTRA
-
-            ### archetype
+            const issueBody = `### pillar
 
             Guidance
 

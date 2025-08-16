@@ -1,9 +1,9 @@
 # .spectra/metadata.yml
 # SPECTRA Canonical Organisational Structure Metadata
-# This file defines the repository's position in the 4-level hierarchy:
-# Dream → Archetype → Domain → Repository
+# This file defines the repository's position in the hierarchy:
+# Pillar → Domain → Capabilities → Repository
 
-dream: SPECTRA
-archetype: Guidance
+pillar: Guidance
 domain: governance
+capabilities: framework
 repository: .github

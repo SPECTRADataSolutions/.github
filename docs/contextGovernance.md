@@ -57,8 +57,7 @@ Governance violations automatically create Initiative issues using SPECTRA templ
 
 ### SPECTRA Organisational Structure
 
-- **Dream**: SPECTRA
-- **Archetype**: Guidance  
+- **Pillar**: Guidance  
 - **Domain**: governance
 - **Repository**: .github
 

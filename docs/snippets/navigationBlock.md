@@ -7,7 +7,7 @@ This reusable navigation block can be copied and pasted into any repository READ
 Copy the content below between the `<!-- NAVIGATION_START -->` and `<!-- NAVIGATION_END -->` markers into your README.md file, then replace the placeholders:
 
 - `{owner}/{repo}` - Replace with your GitHub owner/repository name
-- `{ArchetypeName}` - Replace with your canonical archetype (Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth)  
+- `{PillarName}` - Replace with your canonical pillar (Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth)  
 - `{domainName}` - Replace with your domain name in camelCase
 
 ## Navigation Block Template
@@ -15,8 +15,7 @@ Copy the content below between the `<!-- NAVIGATION_START -->` and `<!-- NAVIGAT
 ```markdown
 <!-- NAVIGATION_START -->
 ## 🏛️ Organisational Structure
-**Dream:** SPECTRA  
-**Archetype:** {ArchetypeName}  
+**Pillar:** {PillarName}  
 **Domain:** {domainName}  
 **Repository:** {owner}/{repo}
 
@@ -32,11 +31,10 @@ This repository is part of SPECTRA's canonical organisational structure. For gov
 
 ## Alternative Format
 
-For repositories that prefer the three-line format, use:
+For repositories that prefer the two-line format, use:
 
 ```markdown
-**Dream:** SPECTRA  
-**Archetype:** {ArchetypeName}  
+**Pillar:** {PillarName}  
 **Domain:** {domainName}
 ```
 
@@ -44,6 +42,6 @@ For repositories that prefer the three-line format, use:
 
 Every repository must include either:
 1. The full navigation block with `<!-- NAVIGATION_START -->` and `<!-- NAVIGATION_END -->` markers, OR
-2. The three required lines: "Dream:", "Archetype:", "Domain:"
+2. The two required lines: "Pillar:", "Domain:"
 
 Repositories missing these requirements will fail CI validation.

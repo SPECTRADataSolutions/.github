@@ -15,9 +15,8 @@
     "encoding": "utf-8"
   },
   "metadata": {
-    "dream": "SPECTRA",
-    "archetype": "Guidance",
-    "domain": "context",
+    "pillar": "Guidance",
+    "domain": "structure",
     "tags": ["starfighter", "technical", "example", "starWars", "delightMode"],
     "roles": ["pilot", "engineer", "mechanic"]
   },

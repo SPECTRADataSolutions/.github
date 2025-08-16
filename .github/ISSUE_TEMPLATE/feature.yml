@@ -7,7 +7,7 @@ body:
     id: pillar
     attributes:
       label: pillar
-      options: [Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth]
+      options: [Protection, Sustenance, Innovation, Operations, Engagement, Growth, Guidance]
     validations: { required: true }
 
   - type: input

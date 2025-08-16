@@ -244,7 +244,7 @@ class RepositoryFactory:
             if response.status_code not in [200, 201]:
                 warnings.append("⚠️ Failed to add organizational metadata")
             else:
-                print("✅ Added organizational metadata")
+                logging.info("✅ Added organizational metadata")
                 
         except Exception as e:
             warnings.append(f"⚠️ Failed to add organizational metadata: {str(e)}")

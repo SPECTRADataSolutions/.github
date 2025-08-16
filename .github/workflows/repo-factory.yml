@@ -32,26 +32,32 @@ jobs:
               const [k,...rest] = a.split('=');
               if (k && rest.length) kv[k] = rest.join('=');
             }
-            // Defaults
+            // Support desc alias for description
+            const description = kv.description || kv.desc || `SPECTRA capability repository for ${kv.domain || 'unspecified'} domain.`;
+            const visibility = (kv.visibility || 'private').toLowerCase();
+            const allowedVis = new Set(['private','public','internal']);
+            if (!allowedVis.has(visibility)) {
+              core.setFailed(`Invalid visibility: ${visibility}. Use public, private, or internal.`);
+            }
             const out = {
               repoName: kv.repoName || '',
-              visibility: (kv.visibility || 'private').toLowerCase(), // private|public|internal
-              description: kv.description || `SPECTRA capability repository for ${kv.domain || 'unspecified'} domain.`,
+              visibility,
+              description,
               domain: kv.domain || '',
-              archetype: kv.archetype || '',
-              templateRepo: kv.templateRepo || '' // optional, e.g. SPECTRADataSolutions/blueprint
+              pillar: kv.pillar || '',
+              capability: kv.capability || '',
+              repoType: kv.repoType || '',
+              templateRepo: kv.templateRepo || ''
             };
-            if (!out.repoName) {
-              core.setFailed("Missing required param: repoName");
-            }
-            if (!/^[a-z][a-zA-Z0-9]*$/.test(out.repoName)) {
-              core.setFailed("repoName must be single-token camelCase starting with lowercase");
-            }
+            if (!out.repoName) core.setFailed('Missing required param: repoName');
+            if (!/^[a-z][a-zA-Z0-9]*$/.test(out.repoName)) core.setFailed('repoName must be single-token camelCase starting with lowercase');
             core.setOutput('repoName', out.repoName);
             core.setOutput('visibility', out.visibility);
             core.setOutput('description', out.description);
             core.setOutput('domain', out.domain);
-            core.setOutput('archetype', out.archetype);
+            core.setOutput('pillar', out.pillar);
+            core.setOutput('capability', out.capability);
+            core.setOutput('repoType', out.repoType);
             core.setOutput('templateRepo', out.templateRepo);
 
       - name: Create repository
@@ -61,41 +67,45 @@ jobs:
           GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         with:
           script: |
-            const owner = context.repo.owner; // org name
-            const name = core.getInput('repoName', {required:true});
-            const visibility = core.getInput('visibility');
-            const description = core.getInput('description');
-            const templateRepo = core.getInput('templateRepo');
-            const [tplOwner, tplName] = templateRepo.includes('/') ? templateRepo.split('/') : [null,null];
+            const owner = context.repo.owner; // organisation name
+            const name = '${{ steps.parse.outputs.repoName }}';
+            const visibility = '${{ steps.parse.outputs.visibility }}'; // public|private|internal
+            const description = '${{ steps.parse.outputs.description }}';
+            const templateRepo = '${{ steps.parse.outputs.templateRepo }}';
+            const [tplOwner, tplName] = templateRepo && templateRepo.includes('/') ? templateRepo.split('/') : [null,null];
 
-            // Check not exists
+            // Ensure repository does not already exist
             try {
-              await github.request('GET /repos/{owner}/{repo}', { owner, repo: name, headers: { authorization: `token ${process.env.GH_TOKEN}` }});
+              await github.request('GET /repos/{owner}/{repo}', {
+                owner, repo: name,
+                headers: { authorization: `token ${process.env.GH_TOKEN}` }
+              });
               core.setFailed(`Repository ${owner}/${name} already exists`);
-            } catch(e) {
+              return;
+            } catch (e) {
               if (e.status !== 404) throw e;
             }
 
             let created;
             if (tplOwner && tplName) {
-              // Generate from template (template repo must be marked as a template)
+              // Generate from template (endpoint supports 'private' boolean, not 'visibility')
               created = await github.request('POST /repos/{template_owner}/{template_repo}/generate', {
                 template_owner: tplOwner,
                 template_repo: tplName,
                 owner,
                 name,
-                private: visibility !== 'public',
+                private: visibility !== 'public', // 'internal' will be created as private (API limitation)
                 include_all_branches: false,
                 description,
                 headers: { authorization: `token ${process.env.GH_TOKEN}` }
               });
             } else {
-              // Blank
+              // Create blank repository with visibility
               created = await github.request('POST /orgs/{org}/repos', {
                 org: owner,
                 name,
                 description,
-                private: visibility !== 'public',
+                visibility, // supports public|private|internal
                 has_issues: true,
                 has_projects: false,
                 has_wiki: false,
@@ -105,20 +115,16 @@ jobs:
             }
 
             const repoHtml = created.data.html_url;
-            const repoApi = created.data.url;
 
-            // Ensure default branch 'main'
+            // Best-effort: enforce default branch 'main'
             try {
               await github.request('PATCH /repos/{owner}/{repo}', {
                 owner, repo: name, default_branch: 'main',
                 headers: { authorization: `token ${process.env.GH_TOKEN}` }
               });
-            } catch(e) {
-              // ignore if org default is already 'main'
-            }
+            } catch(e) { /* no-op if already main or policy-managed */ }
 
             core.setOutput('repoHtml', repoHtml);
-            core.setOutput('repoApi', repoApi);
 
       - name: Seed labels from organisation canonical set
         uses: actions/github-script@v7
@@ -127,7 +133,7 @@ jobs:
         with:
           script: |
             const owner = context.repo.owner;
-            const newRepo = core.getInput('repoName', {required:true});
+            const newRepo = '${{ steps.parse.outputs.repoName }}';
             // Load canonical labels.json from org .github repo
             const labelsContent = await github.request('GET /repos/{owner}/{repo}/contents/{path}', {
               owner, repo: '.github', path: '.github/labels.json',
@@ -162,35 +168,32 @@ jobs:
         with:
           script: |
             const owner = context.repo.owner;
-            const repo = core.getInput('repoName', {required:true});
-            const description = core.getInput('description');
+            const repo = '${{ steps.parse.outputs.repoName }}';
             const readme = `# ${repo}
 
-            > SPECTRA capability repository — governed by the SPECTRA Framework.
+> SPECTRA capability repository — governed by the SPECTRA Framework.
 
-            ## Purpose
-            Describe the capability this planet/repo owns.
+## Purpose
+Describe the capability this planet/repo owns.
 
-            ## Structure
-            - source → extract → clean → transform → refine → analyse
+## Structure
+- source → extract → clean → transform → refine → analyse
 
-            ## Framework
-            All standards, naming, and workflows are defined in the SPECTRA Framework. Do not define local standards.
+## Framework
+All standards, naming, and workflows are defined in the SPECTRA Framework. Do not define local standards.
 
-            ## Getting Started
-            - Read the Framework
-            - Use organisation templates and workflows
-            `;
-
+## Getting Started
+- Read the Framework
+- Use organisation templates and workflows
+`;
             const gitignore = `# Standard
-            *.pyc
-            __pycache__/
-            .ipynb_checkpoints/
-            .env
-            .DS_Store
-            *.log
-            `;
-
+*.pyc
+__pycache__/
+.ipynb_checkpoints/
+.env
+.DS_Store
+*.log
+`;
             const b64 = (s)=> Buffer.from(s,'utf8').toString('base64');
             await github.request('PUT /repos/{owner}/{repo}/contents/{path}', {
               owner, repo, path: 'README.md', message: 'chore: seed README', content: b64(readme),

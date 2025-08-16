@@ -14,7 +14,6 @@ jobs:
           script: |
             const body = (context.payload.issue.body || '').toLowerCase();
             const required = [
-              'dream',
               'pillar', // preferred
               'domain',
               'initiativeTitle',
@@ -25,7 +24,6 @@ jobs:
               'successIndicators'
             ];
             // For compatibility, accept either pillar or archetype
-            const body = (context.payload.issue.body || '').toLowerCase();
             const hasPillar = body.includes('pillar');
             const hasArchetype = body.includes('archetype');
             const missing = required.filter(k => {
@@ -65,7 +63,6 @@ jobs:
             const body = context.payload.issue.body || '';
             
             // Extract organizational metadata
-            const dreamMatch = body.match(/### dream\s*\n\s*([^\n]+)/i);
             const pillarMatch = body.match(/### pillar\s*\n\s*([^\n]+)/i);
             const archetypeMatch = body.match(/### archetype\s*\n\s*([^\n]+)/i);
             const domainMatch = body.match(/### domain\s*\n\s*([^\n]+)/i);
@@ -73,30 +70,18 @@ jobs:
             // Use pillar if present, otherwise fall back to archetype for compatibility
             const pillarValue = pillarMatch ? pillarMatch[1].trim() : (archetypeMatch ? archetypeMatch[1].trim() : null);
             
-            if (!dreamMatch || !pillarValue || !domainMatch) {
+            if (!pillarValue || !domainMatch) {
               await github.rest.issues.createComment({
                 ...context.repo,
                 issue_number: context.issue.number,
-                body: '❌ Missing organisational structure metadata (dream, pillar/archetype, domain)'
+                body: '❌ Missing organisational structure metadata (pillar, domain)'
               });
               core.setFailed('Missing organisational metadata');
               return;
             }
             
-            const dream = dreamMatch[1].trim();
             const pillar = pillarValue;
             const domain = domainMatch[1].trim();
-            
-            // Validate dream
-            if (dream !== 'SPECTRA') {
-              await github.rest.issues.createComment({
-                ...context.repo,
-                issue_number: context.issue.number,
-                body: `❌ Dream must be 'SPECTRA', got: ${dream}`
-              });
-              core.setFailed('Invalid dream value');
-              return;
-            }
             
             // Validate pillar
             const validPillars = ['Guidance', 'Innovation', 'Engagement', 'Operations', 'Protection', 'Sustenance', 'Growth'];
@@ -121,7 +106,7 @@ jobs:
               return;
             }
             
-            console.log(`✅ Organisational structure validated: ${dream} → ${pillar} → ${domain}`);
+            console.log(`✅ Organisational structure validated: ${pillar} → ${domain}`);
 
       - name: validateMcpContextCompliance
         if: contains(github.event.issue.body, 'contextManifest') || contains(github.event.issue.body, 'context') || contains(github.event.issue.body, 'anchor')

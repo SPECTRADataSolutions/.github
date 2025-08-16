@@ -21,6 +21,7 @@
   { "name": "type:migration", "color": "e6e6fa", "description": "planned migration" },
   { "name": "type:procedure", "color": "cfcfcf", "description": "repeatable operational process" },
   { "name": "type:incident", "color": "ffe599", "description": "record of specific event" },
+  { "name": "type:pipeline", "color": "8a2be2", "description": "pipeline work item" },
   { "name": "status:planning", "color": "c2e0c6", "description": "planning stage" },
   { "name": "status:todo", "color": "fef2c0", "description": "ready to start" },
   { "name": "status:doing", "color": "f9d0c4", "description": "in progress" },
@@ -34,5 +35,8 @@
   { "name": "steward:operations", "color": "5319e7", "description": "canonical steward: operations archetype" },
   { "name": "steward:sustenance", "color": "5319e7", "description": "canonical steward: sustenance archetype" },
   { "name": "steward:protection", "color": "5319e7", "description": "canonical steward: protection archetype" },
-  { "name": "steward:growth", "color": "5319e7", "description": "canonical steward: growth archetype" }
+  { "name": "steward:growth", "color": "5319e7", "description": "canonical steward: growth archetype" },
+  { "name": "prayer", "color": "9932cc", "description": "community feature prayer - tracks devotion tally" },
+  { "name": "council-endorsed", "color": "ff6347", "description": "endorsed by council - adds devotion tally boost" },
+  { "name": "roadmap-candidate", "color": "32cd32", "description": "ready for roadmap promotion - high devotion tally" }
 ]

@@ -1,0 +1,134 @@
+name: repository-factory
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  repository-projects: write
+  administration: write
+
+jobs:
+  process-repo-factory-command:
+    # Only trigger on initiative issues with /create-repo commands
+    if: |
+      contains(github.event.issue.labels.*.name, 'type:initiative') &&
+      contains(github.event.comment.body, '/create-repo')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+        
+      - name: setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+          
+      - name: install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+          
+      - name: validate comment author
+        id: validate-author
+        run: |
+          # Only allow organization members to create repositories
+          echo "Checking if user ${{ github.event.comment.user.login }} is authorized..."
+          
+          # Check if commenter is a member of SPECTRADataSolutions
+          response=$(curl -s -w "%{http_code}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/orgs/SPECTRADataSolutions/members/${{ github.event.comment.user.login }}")
+          
+          http_code="${response: -3}"
+          
+          if [ "$http_code" = "204" ]; then
+            echo "✅ User is an organization member"
+            echo "authorized=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ User is not an organization member or membership is private"
+            echo "authorized=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: process repository factory command
+        if: steps.validate-author.outputs.authorized == 'true'
+        run: |
+          echo "🏭 Processing repository factory command..."
+          
+          python scripts/repo_factory.py \
+            "${{ github.event.comment.body }}" \
+            "${{ github.repository_owner }}" \
+            "${{ github.event.repository.name }}" \
+            "${{ github.event.issue.number }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: unauthorized user response
+        if: steps.validate-author.outputs.authorized == 'false'
+        run: |
+          echo "🚫 Posting unauthorized user response..."
+          
+          python - <<'EOF'
+          import os
+          import requests
+          import json
+          from datetime import datetime, timezone
+          
+          # Post unauthorized response
+          comment_body = """## 🏭 Repository Factory - Unauthorized
+          
+          ❌ **Access Denied**
+          
+          Repository creation is restricted to SPECTRADataSolutions organization members only.
+          
+          If you believe this is an error, please contact a SPECTRA steward.
+          
+          *Generated on """ + datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC') + "*"
+          
+          headers = {
+              "Accept": "application/vnd.github.v3+json",
+              "Authorization": f"token {os.environ['GITHUB_TOKEN']}",
+              "Content-Type": "application/json"
+          }
+          
+          url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/issues/{os.environ['ISSUE_NUMBER']}/comments"
+          payload = {"body": comment_body}
+          
+          try:
+              response = requests.post(url, headers=headers, json=payload)
+              response.raise_for_status()
+              print("✅ Posted unauthorized user response")
+          except Exception as e:
+              print(f"❌ Failed to post response: {e}")
+          EOF
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          
+      - name: create workflow summary
+        if: always()
+        run: |
+          echo "## 🏭 Repository Factory Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Issue:** #${{ github.event.issue.number }} - ${{ github.event.issue.title }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commenter:** @${{ github.event.comment.user.login }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Authorized:** ${{ steps.validate-author.outputs.authorized }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.validate-author.outputs.authorized }}" = "true" ]; then
+            echo "✅ **Action:** Repository factory command processed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Action:** Access denied - user not authorized" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Command detected in comment:**" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ github.event.comment.body }}" | grep -E '/create-repo.*' || echo "No command detected" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

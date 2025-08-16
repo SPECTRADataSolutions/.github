@@ -56,9 +56,8 @@ cp ../.github/docs/contextSystemGovernance.md ./docs/
 cat > README.md << 'EOF'
 # SPECTRA Context System
 
-**Dream:** SPECTRA  
-**Archetype:** Guidance  
-**Domain:** context
+**Pillar:** Guidance  
+**Domain:** structure
 
 This repository contains the SPECTRA Context system, providing anchors, manifests, and runtime services for organisational knowledge management.
 

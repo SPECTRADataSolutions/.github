@@ -1,0 +1,144 @@
+name: "🧬 Pipeline"
+description: Plan and govern a multi-stage SPECTRA pipeline (Source → Parameters → Extract → Clean → Transform → Refine → Analyse).
+title: "🧬 [Pipeline] <shortTitle>"
+labels: ["type:pipeline","status:planning"]
+body:
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      description: High-level capability categorisation (Dream → Pillar → Domain → Repo)
+      options: [Protection, Sustenance, Innovation, Operations, Engagement, Growth, Guidance]
+    validations:
+      required: true
+
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      description: Single-token camelCase (singular concept) pertinent to pillar
+      placeholder: "dataPlatform"
+    validations:
+      required: true
+
+  - type: input
+    id: pipelineName
+    attributes:
+      label: pipelineName
+      description: Lower camelCase short name
+      placeholder: "dxcFabricPipeline"
+    validations:
+      required: true
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: goal
+      description: One or two sentences describing the pipeline's purpose and outcome
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: scope
+      description: Define inScope and outOfScope
+      placeholder: |
+        inScope: ...
+        outOfScope: ...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: stages
+    attributes:
+      label: stages
+      description: Tick all stages that apply to this pipeline
+      options:
+        - label: Source
+        - label: Parameters
+        - label: Extract
+        - label: Clean
+        - label: Transform
+        - label: Refine
+        - label: Analyse
+
+  - type: textarea
+    id: sourcePlan
+    attributes:
+      label: sourcePlan
+      description: Discovery-only; authentication approach, entity catalogue, schema docs (no extraction here)
+
+  - type: textarea
+    id: parametersPlan
+    attributes:
+      label: parametersPlan
+      description: Parameter catalogue (names only), endpoints/scopes, seeds/toggles, globals().get(...) read pattern
+
+  - type: textarea
+    id: extractPlan
+    attributes:
+      label: extractPlan
+      description: Raw loads, partitioning, audit logs, incremental boundary; no transforms in Extract
+
+  - type: textarea
+    id: cleanPlan
+    attributes:
+      label: cleanPlan
+      description: Type enforcement, renames to camelCase, dedupe/null filtering, artefact removal
+
+  - type: textarea
+    id: transformPlan
+    attributes:
+      label: transformPlan
+      description: Derived fields, joins, flattening, enum standardisation; persist to transform
+
+  - type: textarea
+    id: refinePlan
+    attributes:
+      label: refinePlan
+      description: Facts/dimensions/bridges, surrogate/natural keys, snapshotting/time patterns, referential checks
+    validations:
+      required: true
+
+  - type: textarea
+    id: refineConventions
+    attributes:
+      label: refineConventions
+      description: Refine-stage conventions to apply or update (naming, allowed operations, outputs, contracts)
+    validations:
+      required: true
+
+  - type: textarea
+    id: analysePlan
+    attributes:
+      label: analysePlan
+      description: SMT measures, calculation groups, tooltips/formatting, dataset publishing
+
+  - type: textarea
+    id: acceptanceCriteria
+    attributes:
+      label: acceptanceCriteria
+      description: Testable outcomes (one per line)
+      placeholder: |
+        - stageBoundariesRespected
+        - logsWiredForEachStage
+        - contractsDocumentedAndLinked
+        - refineModelConformsToStandards
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: dependencies
+      description: Related repos/systems/work items
+
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: generateStoriesAndTasks
+        - label: runImpactAnalysis
+        - label: computeExecutionReadinessScore

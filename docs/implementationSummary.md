@@ -5,10 +5,10 @@ This document summarises the implementation of SPECTRA's canonical organisationa
 ## ✅ Delivered Components
 
 ### 1. Schema & Contracts
-- **`contracts/orgStructureMetadata.json`** - JSON Schema defining the 4-level hierarchy with archetype-domain validation
-- Enforces Dream (SPECTRA) → Archetype → Domain → Repository structure
+- **`contracts/orgStructureMetadata.json`** - JSON Schema defining the pillar-domain hierarchy with validation
+- Enforces Pillar → Domain → Capabilities → Repository structure
 - Validates domain naming conventions (single-word camelCase)
-- Ensures domain pertinence to archetype through conditional validation
+- Ensures domain pertinence to pillar through conditional validation
 
 ### 2. Automation & Workflows
 - **`workflows/org-structure-validator.yml`** - Reusable validation workflow
@@ -16,7 +16,7 @@ This document summarises the implementation of SPECTRA's canonical organisationa
 - **`.github/workflows/org-structure-validation.yml`** - Example implementation for this repository
 
 ### 3. Templates & Forms
-- **Enhanced `.github/ISSUE_TEMPLATE/Initiative.yml`** - Added dream field and improved archetype/domain capture
+- **Enhanced `.github/ISSUE_TEMPLATE/Initiative.yml`** - Added pillar field and improved pillar/domain capture
 - **`templates/repositoryMetadata.md`** - Template for repository metadata implementation
 - **`templates/migrationChecklist.md`** - Comprehensive migration guide and checklist
 
@@ -26,27 +26,26 @@ This document summarises the implementation of SPECTRA's canonical organisationa
 
 ### 5. Repository Implementation
 - **`.spectra/metadata.yml`** - Metadata file for this repository demonstrating the structure
-- Repository correctly classified as SPECTRA → Guidance → governance → .github
+- Repository correctly classified as Guidance → governance → .github
 
 ## 🎯 Key Features Implemented
 
 ### Hierarchical Structure
 ```
-SPECTRA (Dream)
-├── Guidance (governance, standards, documentation, training, compliance, frameworks, policies)
-├── Innovation (research, experimentation, prototyping, emerging, futures, ideation, discovery)
-├── Engagement (community, partnerships, communication, outreach, collaboration, relationships, networking)
-├── Operations (infrastructure, deployment, monitoring, automation, maintenance, support, tooling)
-├── Protection (security, privacy, compliance, risk, auditing, backup, recovery)
-├── Sustenance (maintenance, support, optimization, performance, reliability, scalability, efficiency)
-└── Growth (expansion, acquisition, scaling, development, enhancement, evolution, advancement)
+SPECTRA Pillars
+├── Guidance (governance, standard, structure, intelligence)
+├── Innovation (research, design, architecture, engineering)
+├── Engagement (brand, marketing, messaging, media, network, developer)
+├── Operations (coordination, schedule, response, delivery)
+├── Protection (security, compliance, risk, safety, ethic, privacy)
+├── Sustenance (infrastructure, platform, pipeline, reliability, support, maintenance)
+└── Growth (finance, collaboration, acquisition, insight, revenue)
 ```
 
 ### Validation Rules
-- ✅ Dream must be "SPECTRA"
-- ✅ Archetype must be one of 7 defined values
+- ✅ Pillar must be one of 7 defined values
 - ✅ Domain must be single-word camelCase
-- ✅ Domain must be pertinent to selected archetype
+- ✅ Domain must be pertinent to selected pillar
 - ✅ Repository name must follow GitHub conventions
 
 ### Automation Features
@@ -59,10 +58,9 @@ SPECTRA (Dream)
 
 ### Schema Validation Tests
 - ✅ Valid metadata passes validation
-- ✅ Invalid dream values rejected
-- ✅ Invalid archetype values rejected
+- ✅ Invalid pillar values rejected
 - ✅ Invalid domain formats rejected
-- ✅ Non-pertinent domain-archetype combinations rejected
+- ✅ Non-pertinent domain-pillar combinations rejected
 
 ### Integration Tests
 - ✅ Reusable workflow accepts correct parameters
@@ -76,7 +74,7 @@ SPECTRA (Dream)
 - ✅ **frameworkIsLaw**: No local variations permitted
 - ✅ **britishEnglish**: All documentation uses British spelling
 - ✅ **camelCase**: Consistent naming conventions
-- ✅ **canonicalSetsChangeByGovernanceOnly**: Schema controls archetype/domain changes
+- ✅ **canonicalSetsChangeByGovernanceOnly**: Schema controls pillar/domain changes
 
 ### Success Indicators Achieved
 - ✅ Machine-readable metadata schema created
@@ -100,7 +98,7 @@ SPECTRA (Dream)
 5. Configure CI validation
 
 ### For Issue Creation
-- Use enhanced Initiative template with dream/archetype/domain fields
+- Use enhanced Initiative template with pillar/domain fields
 - Governance guards automatically validate organisational metadata
 - CI blocks submissions with invalid classifications
 
@@ -115,14 +113,14 @@ SPECTRA (Dream)
 ### Future Capabilities
 - Automated organisational reporting
 - Repository dependency mapping by domain
-- Governance delegation by archetype
+- Governance delegation by pillar
 - Metrics collection by organisational structure
 
 ## 🛠️ Maintenance & Evolution
 
 ### Schema Updates
-- Archetype additions require governance approval
-- Domain additions must demonstrate archetype pertinence
+- Pillar additions require governance approval
+- Domain additions must demonstrate pillar pertinence
 - Changes propagate automatically through reusable workflow
 
 ### Documentation Maintenance

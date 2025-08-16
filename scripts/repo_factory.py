@@ -337,7 +337,7 @@ Please follow SPECTRA contribution guidelines and organizational standards.
 
 **Repository Details:**
 - **URL:** {repo_url}
-- **Visibility:** {'Private' if 'private' in repo_url else 'Public'}
+- **Visibility:** {format_visibility(visibility)}
 - **Default Branch:** main
 - **Canonical Labels:** Seeded from .github/labels.json
 - **Organizational Metadata:** Added to .spectra/metadata.yml

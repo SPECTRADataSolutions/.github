@@ -16,9 +16,9 @@ This repository serves as the **single source of truth** for GitHub configuratio
 > 🎯 **Context Bootstrap Status:** Implementation in progress - scaffolding complete, runtime pending
 
 ## 🏛️ Organisational Structure
-**Dream:** SPECTRA  
-**Archetype:** Guidance  
+**Pillar:** Guidance  
 **Domain:** governance  
+**Capabilities:** framework  
 **Repository:** .github
 
 This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).

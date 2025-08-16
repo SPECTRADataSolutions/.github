@@ -1,213 +1,274 @@
 name: repoFactory
-
 on:
-  issue_comment:
-    types: [created]
-
-permissions:
-  issues: write
-  contents: read
+  workflow_dispatch:
+    inputs:
+      repoName:
+        description: "service (camelCase) — will become repository name"
+        required: true
+        type: string
+      pillar:
+        description: "Guidance|Innovation|Engagement|Operations|Protection|Sustenance|Growth"
+        required: true
+        type: string
+      domain:
+        description: "single-token camelCase (e.g. platformSecurity)"
+        required: true
+        type: string
+      capability:
+        description: "single-token camelCase (e.g. threatDetection)"
+        required: true
+        type: string
+      repoType:
+        description: "engineering|operations|applications|governance|content"
+        required: true
+        type: string
+      visibility:
+        description: "public or private"
+        required: true
+        type: string
+        default: "private"
+      description:
+        description: "Short description of purpose and scope"
+        required: true
+        type: string
+      homepage:
+        description: "Optional homepage URL"
+        required: false
+        type: string
 
 jobs:
-  provision:
-    if: startsWith(github.event.comment.body, '/create-repo')
+  create:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Validate org admin token present
-        run: |
-          if [ -z "${{ secrets.ORG_ADMIN_TOKEN }}" ]; then
-            echo "❌ ORG_ADMIN_TOKEN is not configured in org or repo secrets"; exit 1;
-          fi
-
-      - name: Parse command
-        id: parse
+      - name: validate
         uses: actions/github-script@v7
         with:
           script: |
-            const raw = context.payload.comment.body.trim();
-            // Expected: /create-repo key=value key=value ...
-            const args = raw.replace('/create-repo','').trim().split(/\s+/).filter(Boolean);
-            const kv = {};
-            for (const a of args) {
-              const [k,...rest] = a.split('=');
-              if (k && rest.length) kv[k] = rest.join('=');
-            }
-            // Defaults
-            const out = {
-              repoName: kv.repoName || '',
-              visibility: (kv.visibility || 'private').toLowerCase(), // private|public|internal
-              description: kv.description || `SPECTRA capability repository for ${kv.domain || 'unspecified'} domain.`,
-              domain: kv.domain || '',
-              archetype: kv.archetype || '',
-              templateRepo: kv.templateRepo || '' // optional, e.g. SPECTRADataSolutions/blueprint
-            };
-            if (!out.repoName) {
-              core.setFailed("Missing required param: repoName");
-            }
-            if (!/^[a-z][a-zA-Z0-9]*$/.test(out.repoName)) {
-              core.setFailed("repoName must be single-token camelCase starting with lowercase");
-            }
-            core.setOutput('repoName', out.repoName);
-            core.setOutput('visibility', out.visibility);
-            core.setOutput('description', out.description);
-            core.setOutput('domain', out.domain);
-            core.setOutput('archetype', out.archetype);
-            core.setOutput('templateRepo', out.templateRepo);
+            const camel = /^[a-z][a-zA-Z0-9]*$/;
+            const pillars = ['Guidance','Innovation','Engagement','Operations','Protection','Sustenance','Growth'];
+            const types = ['engineering','operations','applications','governance','content'];
 
-      - name: Create repository
-        id: create
+            const repoName = core.getInput('repoName').trim();
+            const pillar = core.getInput('pillar').trim();
+            const domain = core.getInput('domain').trim();
+            const capability = core.getInput('capability').trim();
+            const repoType = core.getInput('repoType').trim();
+            const visibility = core.getInput('visibility').trim().toLowerCase();
+
+            if (!camel.test(repoName)) core.setFailed(`repoName must be camelCase: ${repoName}`);
+            if (!camel.test(domain)) core.setFailed(`domain must be camelCase: ${domain}`);
+            if (!camel.test(capability)) core.setFailed(`capability must be camelCase: ${capability}`);
+            if (!pillars.includes(pillar)) core.setFailed(`pillar invalid: ${pillar}`);
+            if (!types.includes(repoType)) core.setFailed(`repoType invalid: ${repoType}`);
+            if (!['public','private'].includes(visibility)) core.setFailed(`visibility invalid: ${visibility}`);
+
+            core.setOutput('owner', context.repo.owner);
+
+      - name: createRepo
+        id: createRepo
         uses: actions/github-script@v7
         env:
-          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
+          ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         with:
+          github-token: ${{ env.ORG_ADMIN_TOKEN }}
           script: |
-            const owner = context.repo.owner; // org name
-            const name = core.getInput('repoName', {required:true});
-            const visibility = core.getInput('visibility');
-            const description = core.getInput('description');
-            const templateRepo = core.getInput('templateRepo');
-            const [tplOwner, tplName] = templateRepo.includes('/') ? templateRepo.split('/') : [null,null];
+            const owner = '${{ steps.validate.outputs.owner }}';
+            const name = core.getInput('repoName').trim();
+            const description = core.getInput('description').trim();
+            const homepage = (core.getInput('homepage') || '').trim() || undefined;
+            const isPrivate = core.getInput('visibility').trim().toLowerCase() !== 'public';
 
-            // Check not exists
             try {
-              await github.request('GET /repos/{owner}/{repo}', { owner, repo: name, headers: { authorization: `token ${process.env.GH_TOKEN}` }});
-              core.setFailed(`Repository ${owner}/${name} already exists`);
-            } catch(e) {
+              // Idempotent: if exists, reuse
+              await github.rest.repos.get({ owner, repo: name });
+              core.notice(`Repository already exists: ${owner}/${name}`);
+              core.setOutput('repoUrl', `https://github.com/${owner}/${name}`);
+            } catch (e) {
               if (e.status !== 404) throw e;
-            }
 
-            let created;
-            if (tplOwner && tplName) {
-              // Generate from template (template repo must be marked as a template)
-              created = await github.request('POST /repos/{template_owner}/{template_repo}/generate', {
-                template_owner: tplOwner,
-                template_repo: tplName,
-                owner,
-                name,
-                private: visibility !== 'public',
-                include_all_branches: false,
-                description,
-                headers: { authorization: `token ${process.env.GH_TOKEN}` }
-              });
-            } else {
-              // Blank
-              created = await github.request('POST /orgs/{org}/repos', {
+              const created = await github.rest.repos.createInOrg({
                 org: owner,
                 name,
                 description,
-                private: visibility !== 'public',
-                has_issues: true,
-                has_projects: false,
-                has_wiki: false,
+                homepage,
+                private: isPrivate,
                 auto_init: true,
-                headers: { authorization: `token ${process.env.GH_TOKEN}` }
+                has_issues: true,
+                has_projects: true,
+                has_wiki: false
               });
+
+              // Best-effort: set default branch to main
+              try {
+                await github.rest.repos.update({
+                  owner,
+                  repo: name,
+                  default_branch: 'main'
+                });
+              } catch (err) {
+                core.warning(`Default branch not changed to 'main': ${err.message}`);
+              }
+
+              core.setOutput('repoUrl', created.data.html_url);
             }
 
-            const repoHtml = created.data.html_url;
-            const repoApi = created.data.url;
-
-            // Ensure default branch 'main'
-            try {
-              await github.request('PATCH /repos/{owner}/{repo}', {
-                owner, repo: name, default_branch: 'main',
-                headers: { authorization: `token ${process.env.GH_TOKEN}` }
-              });
-            } catch(e) {
-              // ignore if org default is already 'main'
-            }
-
-            core.setOutput('repoHtml', repoHtml);
-            core.setOutput('repoApi', repoApi);
-
-      - name: Seed labels from organisation canonical set
+      - name: seedLabels
         uses: actions/github-script@v7
         env:
-          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
+          ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         with:
+          github-token: ${{ env.ORG_ADMIN_TOKEN }}
           script: |
-            const owner = context.repo.owner;
-            const newRepo = core.getInput('repoName', {required:true});
+            const owner='${{ steps.validate.outputs.owner }}';
+            const repo=core.getInput('repoName').trim();
+
             // Load canonical labels.json from org .github repo
-            const labelsContent = await github.request('GET /repos/{owner}/{repo}/contents/{path}', {
-              owner, repo: '.github', path: '.github/labels.json',
-              headers: { authorization: `token ${process.env.GH_TOKEN}` }
+            const res = await github.rest.repos.getContent({
+              owner,
+              repo: '.github',
+              path: '.github/labels.json'
             });
-            const buf = Buffer.from(labelsContent.data.content, labelsContent.data.encoding);
-            const labels = JSON.parse(buf.toString('utf8'));
+
+            const labels = JSON.parse(Buffer.from(res.data.content,'base64').toString('utf8'));
 
             for (const l of labels) {
               try {
-                await github.request('POST /repos/{owner}/{repo}/labels', {
-                  owner, repo: newRepo, name: l.name, color: l.color, description: l.description,
-                  headers: { authorization: `token ${process.env.GH_TOKEN}` }
-                });
-              } catch (e) {
-                if (e.status === 422) {
-                  await github.request('PATCH /repos/{owner}/{repo}/labels/{name}', {
-                    owner, repo: newRepo, name: l.name, new_name: l.name, color: l.color, description: l.description,
-                    headers: { authorization: `token ${process.env.GH_TOKEN}` }
-                  });
+                await github.rest.issues.createLabel({ owner, repo, name: l.name, color: l.color, description: l.description });
+              } catch(e) {
+                if(e.status===422){
+                  await github.rest.issues.updateLabel({ owner, repo, name: l.name, color: l.color, description: l.description });
                 } else {
                   throw e;
                 }
               }
             }
 
-      - name: Add baseline README and .gitignore (if not templated)
-        if: steps.parse.outputs.templateRepo == ''
+      - name: writeFiles
         uses: actions/github-script@v7
         env:
-          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
+          ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         with:
+          github-token: ${{ env.ORG_ADMIN_TOKEN }}
           script: |
-            const owner = context.repo.owner;
-            const repo = core.getInput('repoName', {required:true});
-            const description = core.getInput('description');
-            const readme = `# ${repo}
+            const owner='${{ steps.validate.outputs.owner }}';
+            const repo=core.getInput('repoName').trim();
+            const pillar=core.getInput('pillar').trim();
+            const domain=core.getInput('domain').trim();
+            const capability=core.getInput('capability').trim();
+            const repoType=core.getInput('repoType').trim();
+            const description=core.getInput('description').trim();
+            const visibility=core.getInput('visibility').trim().toLowerCase();
 
-            > SPECTRA capability repository — governed by the SPECTRA Framework.
+            const readme =
+`# ${repo}
 
-            ## Purpose
-            Describe the capability this planet/repo owns.
+<!-- NAV_START -->
+**Dream**: SPECTRA  
+**Pillar**: ${pillar}  
+**Domain**: ${domain}  
+**Capability**: ${capability}  
+**Service**: ${owner}/${repo}
+<!-- NAV_END -->
 
-            ## Structure
-            - source → extract → clean → transform → refine → analyse
+> ${description}
 
-            ## Framework
-            All standards, naming, and workflows are defined in the SPECTRA Framework. Do not define local standards.
+## Purpose
+This service delivers the ${capability} capability within the ${domain} domain of the ${pillar} pillar.
 
-            ## Getting Started
-            - Read the Framework
-            - Use organisation templates and workflows
-            `;
+## Structure
+- source → extract → clean → transform → refine → analyse
 
-            const gitignore = `# Standard
-            *.pyc
-            __pycache__/
-            .ipynb_checkpoints/
-            .env
-            .DS_Store
-            *.log
-            `;
+## Governance
+All rules derive from the SPECTRA Framework and are enforced by organisation guard workflows.
+`;
 
-            const b64 = (s)=> Buffer.from(s,'utf8').toString('base64');
-            await github.request('PUT /repos/{owner}/{repo}/contents/{path}', {
-              owner, repo, path: 'README.md', message: 'chore: seed README', content: b64(readme),
-              headers: { authorization: `token ${process.env.GH_TOKEN}` }
-            });
-            await github.request('PUT /repos/{owner}/{repo}/contents/{path}', {
-              owner, repo, path: '.gitignore', message: 'chore: seed .gitignore', content: b64(gitignore),
-              headers: { authorization: `token ${process.env.GH_TOKEN}` }
-            });
+            const gitignore =
+`# SPECTRA standard ignores
+*.pyc
+__pycache__/
+.ipynb_checkpoints/
+.env
+.DS_Store
+*.log
+*.sqlite
+node_modules/
+dist/
+build/
+`;
 
-      - name: Comment back with result
+            const guard =
+`name: repoStructureGuard
+on:
+  pull_request:
+  push:
+    branches: [ main, master, develop ]
+jobs:
+  validate:
+    uses: SPECTRADataSolutions/.github/.github/workflows/repo-structure-guard.yml@main
+    with:
+      repoType: ${repoType}
+`;
+
+            const intent =
+`dream: SPECTRA
+pillar: ${pillar}
+domain: ${domain}
+capability: ${capability}
+service: ${repo}
+repoType: ${repoType}
+visibility: ${visibility}
+`;
+
+            async function put(path, content, message){
+              const b64 = Buffer.from(content,'utf8').toString('base64');
+              await github.rest.repos.createOrUpdateFileContents({ owner, repo, path, message, content: b64 });
+            }
+
+            await put('README.md', readme, 'chore: seed README with Pillar→Domain→Capability→Service nav');
+            await put('.gitignore', gitignore, 'chore: add standard .gitignore');
+            await put('.github/workflows/repoStructureGuard.yml', guard, 'ci: enable repoStructureGuard');
+            await put('meta/intent.yml', intent, 'chore: add repo intent manifest');
+
+      - name: protectMain
         uses: actions/github-script@v7
+        env:
+          ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
         with:
+          github-token: ${{ env.ORG_ADMIN_TOKEN }}
           script: |
-            const repoUrl = '${{ steps.create.outputs.repoHtml }}';
-            await github.rest.issues.createComment({
-              ...context.repo,
-              issue_number: context.payload.issue.number,
-              body: `✅ Repository created: ${repoUrl}`
+            const owner='${{ steps.validate.outputs.owner }}';
+            const repo=core.getInput('repoName').trim();
+            try {
+              await github.rest.repos.updateBranchProtection({
+                owner, repo, branch: 'main',
+                required_status_checks: null,
+                enforce_admins: true,
+                required_pull_request_reviews: { required_approving_review_count: 1 },
+                restrictions: null
+              });
+            } catch (e) {
+              core.warning(`Branch protection not applied: ${e.message}`);
+            }
+
+      - name: topics
+        uses: actions/github-script@v7
+        env:
+          ORG_ADMIN_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
+        with:
+          github-token: ${{ env.ORG_ADMIN_TOKEN }}
+          script: |
+            const owner='${{ steps.validate.outputs.owner }}';
+            const repo=core.getInput('repoName').trim();
+            const pillar=core.getInput('pillar').trim().toLowerCase();
+            const domain=core.getInput('domain').trim().toLowerCase();
+            const capability=core.getInput('capability').trim().toLowerCase();
+
+            await github.rest.repos.replaceAllTopics({
+              owner, repo,
+              names: ['spectra','framework',`pillar-${pillar}`,`domain-${domain}`,`capability-${capability}`]
             });
+
+      - name: output
+        run: echo "✅ Created or updated: ${{ steps.createRepo.outputs.repoUrl }}"

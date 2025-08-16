@@ -209,7 +209,7 @@ class RepositoryFactory:
                 if response.status_code not in [200, 201]:
                     warnings.append(f"⚠️ Failed to create label '{label['name']}'")
             
-            print(f"✅ Seeded {len(canonical_labels)} canonical labels")
+            warnings.append(f"✅ Seeded {len(canonical_labels)} canonical labels")
             
         except Exception as e:
             warnings.append(f"⚠️ Failed to seed canonical labels: {str(e)}")

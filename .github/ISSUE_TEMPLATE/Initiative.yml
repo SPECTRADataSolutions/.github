@@ -4,7 +4,7 @@ title: "🚀 [Initiative] <shortTitle>"
 # Note: 'type' is not a standard Issue Forms key; GitHub ignores unknown keys.
 type: "initiative"
 assignees: ["copilot"]
-projects: ["SPECTRA"]
+projects: ["SPECTRADataSolutions/1"]
 labels: ["type:initiative","status:planning"]
 
 body:

@@ -1,17 +1,21 @@
-# ⚙️ SPECTRA Governance
+# 🌌 SPECTRA Org Templates & Workflows
 
-## 🏷️ repoMetadata
-- **pillar:** doctrine 🧭
-- **domain:** governance ⚖️
+This repository contains **organisation-wide defaults** for  
+issue templates, pull request templates, contribution guidance, and workflows.  
 
-## 🛡️ purpose
-This repository defines SPECTRA‑wide standards and templates for GitHub. It ensures every repo uses consistent issues, pull requests and automated policies.
+These files apply automatically across all SPECTRA repositories.  
+
+## ⚖️ governance source of truth
+Authoritative **policies, processes, and compliance rules** live in  
+[SPECTRA Governance](https://github.com/SPECTRADataSolutions/governance).  
+This repo only hosts the templates and automation that reference those policies.  
 
 ## 📂 contents
-- **`.github/ISSUE_TEMPLATE/`** – YAML forms for standardised issues.
-- **`PULL_REQUEST_TEMPLATE.md`** – Default pull‑request structure and quality checklist.
-- **`CONTRIBUTING.md`** – Contribution guidelines and naming conventions.
-- **`.github/workflows/`** – Lightweight governance workflows for template validation and quality gates.
+- `.github/ISSUE_TEMPLATE/` — shared issue templates  
+- `PULL_REQUEST_TEMPLATE.md` — standard PR checklist  
+- `CONTRIBUTING.md` — short guide with links to Governance policies  
+- `.github/workflows/` — reusable CI/CD workflows  
 
-## 🚦 overridePolicy
-Local overrides are strongly discouraged and must be documented, approved and temporary. Only domain‑specific metadata or temporary workarounds are permitted.
+## 🔗 references
+- Pillar: [Doctrine](https://github.com/SPECTRADataSolutions/doctrine)  
+- Domain: Governance → [governance](https://github.com/SPECTRADataSolutions/governance)

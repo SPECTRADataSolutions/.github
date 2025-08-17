@@ -42,4 +42,4 @@ and every domain has focused capabilities and services.
 
 ### ✨ Our Vision
 To create the most **automated, AI-aligned data framework** in the world.  
-Not just pipelines — but a *Spectrafied way of working*.  
+Not just pipelines — but a *SPECTRAfied way of working*.  

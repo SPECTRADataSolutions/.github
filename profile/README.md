@@ -1,21 +1,45 @@
-# 🌌 SPECTRA Org Templates & Workflows
+# 🌌 SPECTRA Data Solutions
 
-This repository contains **organisation-wide defaults** for  
-issue templates, pull request templates, contribution guidance, and workflows.  
+**AI-driven data engineering, orchestration, and automation in Microsoft Fabric.**
 
-These files apply automatically across all SPECTRA repositories.  
+We are building the most structured, automated, and future-proof framework for data and AI.  
+Every part of SPECTRA — from governance to community — is codified, automated, and aligned.  
 
-## ⚖️ governance source of truth
-Authoritative **policies, processes, and compliance rules** live in  
-[SPECTRA Governance](https://github.com/SPECTRADataSolutions/governance).  
-This repo only hosts the templates and automation that reference those policies.  
+---
 
-## 📂 contents
-- `.github/ISSUE_TEMPLATE/` — shared issue templates  
-- `PULL_REQUEST_TEMPLATE.md` — standard PR checklist  
-- `CONTRIBUTING.md` — short guide with links to Governance policies  
-- `.github/workflows/` — reusable CI/CD workflows  
+## 🏛️ The Four Pillars of SPECTRA
+Our organisation is built on four orthogonal pillars. Each pillar has four domains,  
+and every domain has focused capabilities and services.
 
-## 🔗 references
-- Pillar: [Doctrine](https://github.com/SPECTRADataSolutions/doctrine)  
-- Domain: Governance → [governance](https://github.com/SPECTRADataSolutions/governance)
+- 🧭 [Doctrine](https://github.com/SPECTRADataSolutions/doctrine)  
+  *Rules, intelligence, standards, and structure that define how SPECTRA operates.*  
+
+- 🗣️ [Relations](https://github.com/SPECTRADataSolutions/relations)  
+  *Branding, community, messaging, and marketing — how SPECTRA connects with people.*  
+
+- 🔄 [Transformation](https://github.com/SPECTRADataSolutions/transformation)  
+  *Architecture, research, design, and engineering that turn ideas into systems.*  
+
+- ⚙️ [Operations](https://github.com/SPECTRADataSolutions/operations)  
+  *Environment, Jira, automation, and delivery that keep everything running.*  
+
+---
+
+## 🚀 Why SPECTRA?
+- **Fabric-first** — built natively for Microsoft Fabric, Power BI, and Power Query.  
+- **AI-ready** — every repo is structured for Copilot, agents, and automation.  
+- **Orthogonal design** — four pillars, four domains each, no overlap.  
+- **Spectrafied workflows** — every process is automated, logged, and reusable.  
+
+---
+
+## 🔗 Quick links
+- 🌐 Website: [spectradatasolutions.com](https://www.spectradatasolutions.com)  
+- 📘 Pillar Index: Doctrine · Relations · Transformation · Operations  
+- 💬 Community: [Community domain](https://github.com/SPECTRADataSolutions/community)  
+
+---
+
+### ✨ Our Vision
+To create the most **automated, AI-aligned data framework** in the world.  
+Not just pipelines — but a *Spectrafied way of working*.  

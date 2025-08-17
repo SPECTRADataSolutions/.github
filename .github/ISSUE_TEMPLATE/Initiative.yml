@@ -1,7 +1,7 @@
 name: "🚀 Initiative"
 description: Strategic or operational work starting point. Auto-generates projects, epics, stories, tasks, work packages, and sprint plans.
 title: "🚀 [Initiative] <shortTitle>"
-# Note: 'type' is not a standard Issue Forms key; it will be ignored by GitHub but is harmless as metadata.
+# Note: 'type' is not a standard Issue Forms key; GitHub ignores unknown keys.
 type: "initiative"
 assignees: ["copilot"]
 projects: ["SPECTRA"]
@@ -53,6 +53,8 @@ body:
     id: initiativeTitle
     attributes:
       label: initiativeTitle
+      description: Short, clear name
+      placeholder: "spectraWebsiteV1"
     validations:
       required: true
 
@@ -191,41 +193,41 @@ body:
   - type: textarea
     id: summary
     attributes:
-      label: [LEGACY] summary
+      label: "[LEGACY] summary"
       description: Old field; copy into 'purpose' and/or 'initiativeTitle' as appropriate.
 
   - type: textarea
     id: rationale
     attributes:
-      label: [LEGACY] rationale
+      label: "[LEGACY] rationale"
       description: Old field; fold into 'purpose' and 'constraints' as appropriate.
 
   - type: textarea
     id: successCriteria
     attributes:
-      label: [LEGACY] successCriteria
+      label: "[LEGACY] successCriteria"
       description: Old field; copy into 'successIndicators'.
 
   - type: textarea
     id: keyMilestones
     attributes:
-      label: [LEGACY] keyMilestones
+      label: "[LEGACY] keyMilestones"
       description: Old field; map into 'deliverables' and 'rolloutPlan'.
 
   - type: textarea
     id: stakeholders
     attributes:
-      label: [LEGACY] stakeholders
+      label: "[LEGACY] stakeholders"
       description: Old field; include in 'humanInTheLoop' and project docs.
 
   - type: textarea
     id: risksMitigations
     attributes:
-      label: [LEGACY] risksMitigations
+      label: "[LEGACY] risksMitigations"
       description: Old field; move into 'constraints' and 'testStrategy' (risk handling).
 
   - type: textarea
     id: references
     attributes:
-      label: [LEGACY] references
+      label: "[LEGACY] references"
       description: Old field; link under 'postmortem' or repo docs as needed.

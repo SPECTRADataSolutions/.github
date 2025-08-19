@@ -1,0 +1,168 @@
+name: repoStructureGuard
+on:
+  workflow_call:
+    inputs:
+      standardUrl:
+        description: "URL to canonical repoStructureStandard.yml"
+        type: string
+        required: false
+        default: "https://raw.githubusercontent.com/SPECTRADataSolutions/.github/main/.github/repoStructureStandard.yml"
+      repoType:
+        description: "engineering|operations|applications|governance|content"
+        type: string
+        required: false
+
+jobs:
+  validateStructure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkoutRepository
+        uses: actions/checkout@v4
+
+      - name: setupPython
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: installDependencies
+        run: pip install pyyaml
+
+      - name: fetchStandardConfig
+        run: |
+          if [ -f ".github/repoStructureStandard.yml" ]; then
+            cp .github/repoStructureStandard.yml standard.yml
+            echo "Using local standard"
+          else
+            curl -fsSL "${{ inputs.standardUrl }}" -o standard.yml
+            echo "Downloaded standard"
+          fi
+
+      - name: executeStructureGuard
+        env:
+          REPO_TYPE: ${{ inputs.repoType }}
+        run: |
+          python - << 'PY'
+          import os, re, sys, yaml, pathlib
+
+          def read(p):
+              try:
+                  return pathlib.Path(p).read_text(encoding="utf-8")
+              except Exception:
+                  return ""
+
+          std = yaml.safe_load(pathlib.Path("standard.yml").read_text(encoding="utf-8"))
+          issues, warnings = [], []
+
+          # Required root files
+          for f in std.get("requiredRootFiles", []):
+              if not pathlib.Path(f).exists():
+                  issues.append(f"❌ Missing required root file: {f}")
+
+          # README & branding checks
+          readme = read("README.md")
+          if std.get("branding", {}).get("enforceSpectraAllCaps") and "spectra" in readme and "SPECTRA" not in readme:
+              warnings.append("💂 Use 'SPECTRA' in all caps for brand consistency")
+
+          nav_ok, nav = False, ""
+          for blk in std.get("readme", {}).get("navBlocks", []):
+              s, e = blk.get("start"), blk.get("end")
+              if s and e and s in readme and e in readme:
+                  nav = readme.split(s, 1)[1].split(e, 1)[0]
+                  nav_ok = True
+                  break
+
+          if not nav_ok:
+              issues.append("❌ README missing required navigation header block")
+          else:
+              def grab(label):
+                  m = re.search(rf"(?:\*\*{label}\*\*|{label})\s*:\s*([^\n]+)", nav, re.I)
+                  return m.group(1).strip() if m else None
+
+              dream = grab("Dream")
+              pillar = grab("Pillar") or grab("Archetype")
+              domain = grab("Domain")
+              capability = grab("Capability")
+              service = grab("Service") or grab("Repo") or grab("Repository")
+
+              req = std.get("readme", {}).get("requiredFields", [])
+              if "dream" in req and (not dream or dream != std["readme"].get("dreamValue", "SPECTRA")):
+                  issues.append("❌ Dream must be 'SPECTRA'")
+              if "pillarOrArchetype" in req and not pillar:
+                  issues.append("❌ Missing Pillar/Archetype")
+
+              dom_pat = std.get("compatibility", {}).get("domainFormat", {}).get("regex")
+              cap_pat = std.get("compatibility", {}).get("capabilityFormat", {}).get("regex")
+              svc_pats = std.get("compatibility", {}).get("serviceFormats", [])
+
+              if "domain" in req and (not domain or (dom_pat and not re.match(dom_pat, domain))):
+                  issues.append("❌ Domain must be single-token camelCase")
+              if "capability" in req and (not capability or (cap_pat and not re.match(cap_pat, capability))):
+                  issues.append("❌ Capability must be single-token camelCase")
+
+              if "service" in req:
+                  if not service:
+                      issues.append("❌ Missing Service")
+                  else:
+                      ok = any(re.match(p, service) for p in svc_pats) if svc_pats else True
+                      if not ok:
+                          issues.append("❌ Service must be camelCase name or owner/repo")
+
+              # British English heuristics
+              if std.get("languageRules", {}).get("britishEnglish"):
+                  us_gb = {
+                      "organization": "organisation",
+                      "organize": "organise",
+                      "behavior": "behaviour",
+                      "color": "colour",
+                      "analyze": "analyse",
+                      "center": "centre",
+                  }
+                  low = readme.lower()
+                  for us, gb in us_gb.items():
+                      if us in low and gb not in low:
+                          warnings.append(f"💂 Consider British English: '{us}' → '{gb}' in README.md")
+
+          # .gitignore essentials
+          gi = read(".gitignore")
+          if gi:
+              miss = [e for e in std.get("gitignoreEssentials", []) if e not in gi]
+              if miss:
+                  warnings.append("💡 .gitignore: consider adding " + ", ".join(miss))
+
+          # Baseline folders
+          for d in std.get("baselineFolders", []):
+              if not pathlib.Path(d).exists():
+                  warnings.append(f"💡 Baseline folder missing: {d}/")
+
+          # Repository type enforcement
+          rtype = os.getenv("REPO_TYPE", "").strip()
+          if rtype:
+              cfg = std.get("repositoryTypes", {}).get(rtype)
+              if not cfg:
+                  warnings.append(f"ℹ️ Unknown repoType '{rtype}' – skipping type checks")
+              else:
+                  for d in cfg.get("requiredFolders", []):
+                      if not pathlib.Path(d).exists():
+                          issues.append(f"❌ Missing required {rtype} folder: {d}/")
+
+                  anyOf = cfg.get("requiredFoldersAnyOf", [])
+                  if anyOf:
+                      ok = any(all(pathlib.Path(x).exists() for x in group) for group in anyOf)
+                      if not ok:
+                          issues.append(f"❌ {rtype}: one of requiredFoldersAnyOf groups must exist: {anyOf}")
+
+                  for d in cfg.get("alsoRequire", []):
+                      if not pathlib.Path(d).exists():
+                          issues.append(f"❌ Missing required folder: {d}/")
+
+          if issues:
+              print("\n".join(issues))
+              if warnings:
+                  print("\n".join(warnings))
+              sys.exit(1)
+          else:
+              if warnings:
+                  print("\n".join(warnings))
+              print("✅ repoStructureGuard passed")
+              sys.exit(0)
+          PY

@@ -1,4 +1,4 @@
-name: validate-org-structure
+name: validate-organization-structure
 
 on:
   push:

@@ -45,7 +45,7 @@ on:
     branches: [ main, master, develop ]
 jobs:
   validate:
-    uses: SPECTRADataSolutions/.github/.github/workflows/repo-structure-guard.yml@main
+    uses: SPECTRADataSolutions/.github/.github/workflows/repoStructureGuard.yml@main
     with:
       repoType: engineering
 ```

@@ -161,8 +161,7 @@ jobs:
             const description=core.getInput('description').trim();
             const visibility=core.getInput('visibility').trim().toLowerCase();
 
-            const readme =
-`# ${repo}
+            const readme = `# ${repo}
 
 <!-- NAV_START -->
 **Dream**: SPECTRA  
@@ -184,8 +183,7 @@ This service delivers the ${capability} capability within the ${domain} domain o
 All rules derive from the SPECTRA Framework and are enforced by organisation guard workflows.
 `;
 
-            const gitignore =
-`# SPECTRA standard ignores
+            const gitignore = `# SPECTRA standard ignores
 *.pyc
 __pycache__/
 .ipynb_checkpoints/
@@ -198,8 +196,7 @@ dist/
 build/
 `;
 
-            const guard =
-`name: repoStructureGuard
+            const guard = `name: repoStructureGuard
 on:
   pull_request:
   push:
@@ -211,8 +208,7 @@ jobs:
       repoType: ${repoType}
 `;
 
-            const intent =
-`dream: SPECTRA
+            const intent = `dream: SPECTRA
 pillar: ${pillar}
 domain: ${domain}
 capability: ${capability}

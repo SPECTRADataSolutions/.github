@@ -10,14 +10,14 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
 
-from repo_factory import RepositoryFactory
+from generate_service_repository import ServiceRepositoryGenerator
 
 
 def test_command_parsing():
     """Test slash command parsing."""
     print("🧪 Testing command parsing...")
     
-    factory = RepositoryFactory()
+    generator = ServiceRepositoryGenerator()
     
     test_cases = [
         {
@@ -50,7 +50,7 @@ def test_command_parsing():
     ]
     
     for i, case in enumerate(test_cases):
-        result = factory.parse_slash_command(case["comment"])
+        result = generator.parse_slash_command(case["comment"])
         
         if result == case["expected"]:
             print(f"  ✅ Test case {i+1}: PASS")
@@ -66,7 +66,7 @@ def test_parameter_validation():
     """Test parameter validation."""
     print("🧪 Testing parameter validation...")
     
-    factory = RepositoryFactory()
+    generator = ServiceRepositoryGenerator()
     
     test_cases = [
         {
@@ -122,7 +122,7 @@ def test_parameter_validation():
     ]
     
     for i, case in enumerate(test_cases):
-        valid, errors = factory.validate_command_params(case["params"])
+        valid, errors = generator.validate_command_params(case["params"])
         
         if valid == case["should_be_valid"]:
             print(f"  ✅ Test case {i+1}: PASS")
@@ -140,7 +140,7 @@ def test_camel_case_validation():
     """Test camelCase validation specifically."""
     print("🧪 Testing camelCase validation...")
     
-    factory = RepositoryFactory()
+    generator = ServiceRepositoryGenerator()
     
     test_cases = [
         ("governancePolicy", True),
@@ -158,7 +158,7 @@ def test_camel_case_validation():
     ]
     
     for text, expected in test_cases:
-        result = factory._is_valid_camel_case(text)
+        result = generator._is_valid_camel_case(text)
         
         if result == expected:
             print(f"  ✅ '{text}': {result}")
@@ -172,7 +172,7 @@ def test_dry_run_repository_creation():
     """Test repository creation in dry-run mode."""
     print("🧪 Testing dry-run repository creation...")
     
-    factory = RepositoryFactory()
+    generator = ServiceRepositoryGenerator()
     
     params = {
         "repoName": "testRepo",
@@ -180,7 +180,7 @@ def test_dry_run_repository_creation():
         "visibility": "private"
     }
     
-    success, repo_url, warnings = factory.create_repository(params, dry_run=True)
+    success, repo_url, warnings = generator.create_repository(params, dry_run=True)
     
     if success and repo_url == "https://github.com/SPECTRADataSolutions/testRepo":
         print("  ✅ Dry-run repository creation: PASS")
@@ -197,10 +197,10 @@ def test_response_comment_formatting():
     """Test response comment formatting."""
     print("🧪 Testing response comment formatting...")
     
-    factory = RepositoryFactory()
+    generator = ServiceRepositoryGenerator()
     
     # Test success comment
-    success = factory.post_response_comment(
+    success = generator.post_response_comment(
         "SPECTRADataSolutions", ".github", 123,
         success=True, 
         repo_url="https://github.com/SPECTRADataSolutions/testRepo",
@@ -214,7 +214,7 @@ def test_response_comment_formatting():
         print("  ❌ Success comment formatting: FAIL")
     
     # Test failure comment
-    success = factory.post_response_comment(
+    success = generator.post_response_comment(
         "SPECTRADataSolutions", ".github", 123,
         success=False,
         repo_url="",
@@ -232,7 +232,7 @@ def test_response_comment_formatting():
 
 def main():
     """Run all tests."""
-    print("🏭 SPECTRA Repository Factory Test Suite")
+    print("🏗️ SPECTRA Service Repository Generator Test Suite")
     print("=" * 50)
     
     test_command_parsing()

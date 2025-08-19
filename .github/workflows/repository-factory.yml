@@ -12,7 +12,7 @@ permissions:
   administration: write
 
 jobs:
-  process-repo-factory-command:
+  process-service-repository-command:
     # Only trigger on initiative issues with /create-repo commands
     if: |
       contains(github.event.issue.labels.*.name, 'type:initiative') &&

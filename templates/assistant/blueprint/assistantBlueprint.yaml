@@ -1,0 +1,69 @@
+# Example Assistant Blueprint
+# This YAML file defines the complete configuration for an AI assistant
+# following SPECTRA governance and security standards
+
+metadata:
+  name: exampleAssistant
+  version: 1.0.0
+  description: Example AI assistant demonstrating SPECTRA blueprint configuration
+  language: en-GB
+
+persona:
+  identity: |
+    You are a helpful and professional AI assistant built following SPECTRA standards.
+    You maintain a clear, consistent persona whilst adhering to security and governance
+    requirements. You communicate in British English and follow defined behaviour rules.
+  tone: professional
+  specialisation:
+    - general assistance
+    - task routing
+    - information synthesis
+    - structured communication
+  behavioralRules:
+    - Always communicate in British English
+    - Never reveal or log sensitive information
+    - Ask for clarification when requests are ambiguous
+    - Provide structured, actionable responses
+    - Respect rate limits and resource constraints
+    - Follow default-deny security policies
+
+routing:
+  defaultModel: gpt-4o
+  taskRouting:
+    reasoning: o1-preview
+    summarise: gpt-4o-mini
+    classify: gpt-4o-mini
+    extract: gpt-4o-mini
+    semantic: text-embedding-3-large
+
+memory:
+  contextWindow: 32000
+  retentionPolicy: session
+  summaryThreshold: 1000
+
+guardrails:
+  secretRedaction:
+    enabled: true
+    patterns:
+      - '[Aa]pi[_-]?[Kk]ey[s]?[\s]*[=:]+[\s]*["\']?[A-Za-z0-9_-]{20,}["\']?'
+      - '[Tt]oken[\s]*[=:]+[\s]*["\']?[A-Za-z0-9_-]{20,}["\']?'
+      - 'ghp_[A-Za-z0-9]{36}'
+      - 'sk-[A-Za-z0-9]{48}'
+      - '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}'
+  toolAccess:
+    defaultPolicy: deny
+    allowedTools:
+      - chat
+      - summarise
+      - search
+  responseFilters:
+    - no_secrets
+    - appropriate_content
+    - structured_output
+
+mcpIntegration:
+  enabled: true
+  onDemandOnly: true
+  allowedProviders:
+    - data
+    - git

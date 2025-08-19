@@ -1,0 +1,213 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/assistant/assistantBlueprint.json",
+  "title": "SPECTRA AI Assistant Blueprint",
+  "description": "Schema defining AI assistant persona, behaviour, routing, and guardrails configuration",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-zA-Z0-9]*$",
+          "description": "Assistant name in camelCase"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "description": "Semantic version (e.g., 1.0.0)"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Brief description of assistant purpose"
+        },
+        "language": {
+          "type": "string",
+          "enum": ["en-GB"],
+          "description": "Must use British English"
+        }
+      },
+      "required": ["name", "version", "description", "language"],
+      "additionalProperties": false
+    },
+    "persona": {
+      "type": "object",
+      "properties": {
+        "identity": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Clear persona identity and role definition"
+        },
+        "tone": {
+          "type": "string",
+          "enum": ["professional", "friendly", "formal", "helpful", "technical"],
+          "description": "Consistent communication tone"
+        },
+        "specialisation": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 5,
+          "description": "Areas of expertise and focus"
+        },
+        "behavioralRules": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "description": "Specific behaviour guidelines and constraints"
+        }
+      },
+      "required": ["identity", "tone", "specialisation", "behavioralRules"],
+      "additionalProperties": false
+    },
+    "routing": {
+      "type": "object",
+      "properties": {
+        "defaultModel": {
+          "type": "string",
+          "enum": ["gpt-4o", "gpt-4o-mini"],
+          "description": "Default model for general tasks"
+        },
+        "taskRouting": {
+          "type": "object",
+          "properties": {
+            "reasoning": {
+              "type": "string",
+              "enum": ["o1-preview", "o1-mini"],
+              "description": "Model for complex reasoning tasks"
+            },
+            "summarise": {
+              "type": "string", 
+              "enum": ["gpt-4o-mini"],
+              "description": "Model for summarisation tasks"
+            },
+            "classify": {
+              "type": "string",
+              "enum": ["gpt-4o-mini"],
+              "description": "Model for classification tasks"
+            },
+            "extract": {
+              "type": "string",
+              "enum": ["gpt-4o-mini"],
+              "description": "Model for information extraction"
+            },
+            "semantic": {
+              "type": "string",
+              "enum": ["text-embedding-3-large", "text-embedding-3-small"],
+              "description": "Model for semantic similarity and embeddings"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["defaultModel", "taskRouting"],
+      "additionalProperties": false
+    },
+    "memory": {
+      "type": "object",
+      "properties": {
+        "contextWindow": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 128000,
+          "description": "Maximum context window size in tokens"
+        },
+        "retentionPolicy": {
+          "type": "string",
+          "enum": ["session", "none"],
+          "description": "Memory retention policy (session-only for security)"
+        },
+        "summaryThreshold": {
+          "type": "integer",
+          "minimum": 100,
+          "description": "Token threshold for conversation summarisation"
+        }
+      },
+      "required": ["contextWindow", "retentionPolicy", "summaryThreshold"],
+      "additionalProperties": false
+    },
+    "guardrails": {
+      "type": "object",
+      "properties": {
+        "secretRedaction": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "const": true,
+              "description": "Secret redaction must be enabled"
+            },
+            "patterns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Regex patterns for secret detection"
+            }
+          },
+          "required": ["enabled", "patterns"],
+          "additionalProperties": false
+        },
+        "toolAccess": {
+          "type": "object",
+          "properties": {
+            "defaultPolicy": {
+              "type": "string",
+              "enum": ["deny"],
+              "description": "Default-deny policy for tool access"
+            },
+            "allowedTools": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Explicitly allowed tools/providers"
+            }
+          },
+          "required": ["defaultPolicy", "allowedTools"],
+          "additionalProperties": false
+        },
+        "responseFilters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Response content filters and safety checks"
+        }
+      },
+      "required": ["secretRedaction", "toolAccess", "responseFilters"],
+      "additionalProperties": false
+    },
+    "mcpIntegration": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether MCP integration is enabled"
+        },
+        "onDemandOnly": {
+          "type": "boolean",
+          "const": true,
+          "description": "MCP providers called only when explicitly requested"
+        },
+        "allowedProviders": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["data", "git", "ticketing"]
+          },
+          "description": "Allowed MCP provider types"
+        }
+      },
+      "required": ["enabled", "onDemandOnly", "allowedProviders"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["metadata", "persona", "routing", "memory", "guardrails", "mcpIntegration"],
+  "additionalProperties": false
+}

@@ -1,0 +1,185 @@
+name: SPECTRA Assistant Blueprint Validation
+
+on:
+  workflow_call:
+    inputs:
+      blueprint-path:
+        description: 'Path to assistant blueprint YAML file'
+        required: false
+        default: 'blueprint/assistantBlueprint.yaml'
+        type: string
+      config-path:
+        description: 'Path to MCP configuration YAML file'
+        required: false
+        default: 'config/mcpConfig.yaml'
+        type: string
+
+jobs:
+  validate-assistant-config:
+    name: Validate Assistant Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install validation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install jsonschema pyyaml
+          
+      - name: Download SPECTRA contracts
+        run: |
+          mkdir -p .contracts
+          curl -o .contracts/assistantBlueprint.json \
+            https://raw.githubusercontent.com/SPECTRADataSolutions/.github/main/contracts/assistant/assistantBlueprint.json
+          curl -o .contracts/mcpConfig.json \
+            https://raw.githubusercontent.com/SPECTRADataSolutions/.github/main/contracts/assistant/mcpConfig.json
+            
+      - name: Validate assistant blueprint
+        run: |
+          python3 -c "
+          import json
+          import yaml
+          import jsonschema
+          
+          # Load blueprint
+          with open('${{ inputs.blueprint-path }}', 'r') as f:
+              blueprint = yaml.safe_load(f)
+              
+          # Load schema
+          with open('.contracts/assistantBlueprint.json', 'r') as f:
+              schema = json.load(f)
+              
+          # Validate
+          try:
+              jsonschema.validate(blueprint, schema)
+              print('✅ Assistant blueprint validation passed')
+          except jsonschema.ValidationError as e:
+              print(f'❌ Blueprint validation failed: {e.message}')
+              exit(1)
+          except Exception as e:
+              print(f'❌ Validation error: {e}')
+              exit(1)
+          "
+          
+      - name: Validate MCP configuration
+        run: |
+          python3 -c "
+          import json
+          import yaml
+          import jsonschema
+          
+          # Load MCP config
+          with open('${{ inputs.config-path }}', 'r') as f:
+              mcp_config = yaml.safe_load(f)
+              
+          # Load schema
+          with open('.contracts/mcpConfig.json', 'r') as f:
+              schema = json.load(f)
+              
+          # Validate
+          try:
+              jsonschema.validate(mcp_config, schema)
+              print('✅ MCP configuration validation passed')
+          except jsonschema.ValidationError as e:
+              print(f'❌ MCP validation failed: {e.message}')
+              exit(1)
+          except Exception as e:
+              print(f'❌ Validation error: {e}')
+              exit(1)
+          "
+          
+      - name: Validate persona compliance
+        run: |
+          python3 -c "
+          import yaml
+          
+          # Load blueprint
+          with open('${{ inputs.blueprint-path }}', 'r') as f:
+              blueprint = yaml.safe_load(f)
+              
+          # Check SPECTRA compliance
+          metadata = blueprint.get('metadata', {})
+          persona = blueprint.get('persona', {})
+          guardrails = blueprint.get('guardrails', {})
+          
+          # Validate British English
+          if metadata.get('language') != 'en-GB':
+              print('❌ Language must be en-GB (British English)')
+              exit(1)
+              
+          # Validate default-deny security
+          tool_access = guardrails.get('toolAccess', {})
+          if tool_access.get('defaultPolicy') != 'deny':
+              print('❌ Tool access must use default-deny policy')
+              exit(1)
+              
+          # Validate secret redaction enabled
+          secret_redaction = guardrails.get('secretRedaction', {})
+          if not secret_redaction.get('enabled'):
+              print('❌ Secret redaction must be enabled')
+              exit(1)
+              
+          print('✅ Persona compliance validation passed')
+          "
+          
+      - name: Check naming conventions
+        run: |
+          python3 -c "
+          import yaml
+          import re
+          
+          # Load blueprint
+          with open('${{ inputs.blueprint-path }}', 'r') as f:
+              blueprint = yaml.safe_load(f)
+              
+          # Check camelCase naming
+          name = blueprint.get('metadata', {}).get('name', '')
+          if not re.match(r'^[a-z][a-zA-Z0-9]*$', name):
+              print(f'❌ Assistant name \"{name}\" must be camelCase')
+              exit(1)
+              
+          print('✅ Naming convention validation passed')
+          "
+          
+      - name: Validate security requirements
+        run: |
+          python3 -c "
+          import yaml
+          
+          # Load MCP config
+          with open('${{ inputs.config-path }}', 'r') as f:
+              config = yaml.safe_load(f)
+              
+          # Check security settings
+          security = config.get('security', {})
+          
+          required_security = {
+              'defaultPolicy': 'deny',
+              'authenticationRequired': True,
+              'auditLogging': True,
+              'secretRedaction': True
+          }
+          
+          for setting, required_value in required_security.items():
+              actual_value = security.get(setting)
+              if actual_value != required_value:
+                  print(f'❌ Security setting {setting} must be {required_value}, got {actual_value}')
+                  exit(1)
+                  
+          print('✅ Security requirements validation passed')
+          "
+          
+      - name: Summary
+        run: |
+          echo "🎉 All SPECTRA assistant validations passed!"
+          echo "✅ Blueprint schema compliance"
+          echo "✅ MCP configuration compliance"  
+          echo "✅ Persona and behaviour validation"
+          echo "✅ Naming convention compliance"
+          echo "✅ Security requirements met"

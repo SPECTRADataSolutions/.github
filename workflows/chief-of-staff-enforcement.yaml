@@ -1,4 +1,4 @@
-name: chief-of-staff-enforcement
+name: enforce-chief-of-staff
 
 on:
   workflow_dispatch:

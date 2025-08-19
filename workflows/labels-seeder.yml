@@ -1,4 +1,4 @@
-name: labels-seeder
+name: seed-labels
 
 on:
   workflow_dispatch: {}  # run this by hand from the Actions tab

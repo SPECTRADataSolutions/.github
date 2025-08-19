@@ -1,4 +1,4 @@
-name: Context Manifest Validator
+name: validate-context-manifest
 description: "Validates contextManifest.yaml against SPECTRA context system contracts and SPECTRA governance rules"
 
 on:

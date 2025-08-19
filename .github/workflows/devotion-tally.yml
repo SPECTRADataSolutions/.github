@@ -1,4 +1,4 @@
-name: devotionTally
+name: tally-devotions
 
 on:
   issues:

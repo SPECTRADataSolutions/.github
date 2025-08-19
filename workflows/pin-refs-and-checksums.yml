@@ -1,4 +1,4 @@
-name: Pin Refs and Checksums
+name: pin-refs-checksums
 description: "Pins floating refs in context manifest to immutable commit SHAs and validates path content checksums for drift detection"
 
 on:

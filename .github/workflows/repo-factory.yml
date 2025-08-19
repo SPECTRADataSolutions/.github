@@ -1,4 +1,4 @@
-name: repoFactory
+name: create-repo
 on:
   workflow_dispatch:
     inputs:

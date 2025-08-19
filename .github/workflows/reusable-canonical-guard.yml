@@ -17,7 +17,7 @@
 # 2. Requires README.md to contain navigation markers or canonical three-line format
 # 3. Comments on issues containing banned C*O acronyms with canonical guidance
 
-name: Canonical Navigation Guard
+name: guard-canonical-navigation
 
 on:
   workflow_call:

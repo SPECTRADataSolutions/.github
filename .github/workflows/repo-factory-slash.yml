@@ -1,4 +1,4 @@
-name: repoFactorySlash
+name: create-repo-slash
 on:
   issue_comment:
     types: [created]

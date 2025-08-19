@@ -1,4 +1,4 @@
-name: Organizational Structure Validator
+name: validate-org-structure
 description: "Validates repository metadata against SPECTRA canonical organizational structure"
 
 on:

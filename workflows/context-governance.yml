@@ -1,4 +1,4 @@
-name: context-governance
+name: govern-context
 
 on:
   schedule:

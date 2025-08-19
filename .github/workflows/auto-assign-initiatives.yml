@@ -1,4 +1,4 @@
-name: autoAssignInitiatives
+name: assign-initiatives
 
 on:
   issues:

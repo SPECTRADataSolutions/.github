@@ -1,4 +1,4 @@
-name: repository-factory
+name: create-repository
 
 on:
   issue_comment:

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Integration demo for SPECTRA Repository Factory
+Integration demo for SPECTRA Service Repository Generator
 
-This script demonstrates how the repository factory would work in practice
+This script demonstrates how the service repository generator would work in practice
 by simulating the complete workflow without making actual API calls.
 """
 
@@ -10,14 +10,14 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
 
-from repo_factory import RepositoryFactory
+from generate_service_repository import ServiceRepositoryGenerator
 
 
 def simulate_initiative_comment_workflow():
     """Simulate the complete workflow triggered by an issue comment."""
     
-    print("🎭 SPECTRA Repository Factory - Integration Demo")
-    print("=" * 60)
+    print("🎭 SPECTRA Service Repository Generator - Integration Demo")
+    print("=" * 70)
     print()
     
     # Simulate initiative issue context
@@ -43,14 +43,14 @@ This will house all the policy frameworks and compliance documentation.
     print()
     
     # Process the command
-    factory = RepositoryFactory()
+    generator = ServiceRepositoryGenerator()
     
     print("🔍 Workflow Processing:")
     print()
     
     # Step 1: Parse command
     print("1️⃣ Parsing slash command...")
-    params = factory.parse_slash_command(comment_body)
+    params = generator.parse_slash_command(comment_body)
     if params:
         print(f"   ✅ Parsed parameters: {params}")
     else:
@@ -60,7 +60,7 @@ This will house all the policy frameworks and compliance documentation.
     
     # Step 2: Validate parameters
     print("2️⃣ Validating parameters...")
-    valid, errors = factory.validate_command_params(params)
+    valid, errors = generator.validate_command_params(params)
     if valid:
         print("   ✅ All parameters valid")
     else:
@@ -77,7 +77,7 @@ This will house all the policy frameworks and compliance documentation.
     
     # Step 4: Repository creation (dry run)
     print("4️⃣ Creating repository (DRY RUN)...")
-    success, repo_url, warnings = factory.create_repository(params, dry_run=True)
+    success, repo_url, warnings = generator.create_repository(params, dry_run=True)
     
     if success:
         print(f"   ✅ Repository would be created: {repo_url}")
@@ -93,7 +93,7 @@ This will house all the policy frameworks and compliance documentation.
     
     # Step 5: Response comment
     print("5️⃣ Posting response comment...")
-    comment_success = factory.post_response_comment(
+    comment_success = generator.post_response_comment(
         "SPECTRADataSolutions", ".github", 42,
         success=success, repo_url=repo_url, warnings=warnings, 
         dry_run=True
@@ -119,7 +119,7 @@ This will house all the policy frameworks and compliance documentation.
     print("💡 In production, this would:")
     print("   • Create https://github.com/SPECTRADataSolutions/governancePolicy")
     print("   • Seed with 36 canonical SPECTRA labels")
-    print("   • Add .spectra/metadata.yml with organizational structure")
+    print("   • Add .spectra/metadata.yml with organisational structure")
     print("   • Create README.md with framework compliance")
     print("   • Post success comment on issue #42")
 
@@ -130,7 +130,7 @@ def demonstrate_error_scenarios():
     print("\n🚨 Error Scenario Demonstrations")
     print("=" * 40)
     
-    factory = RepositoryFactory()
+    generator = ServiceRepositoryGenerator()
     
     # Test cases with expected errors
     error_cases = [
@@ -160,9 +160,9 @@ def demonstrate_error_scenarios():
         print(f"\n{i}️⃣ {case['name']}:")
         print(f"   Command: {case['comment']}")
         
-        params = factory.parse_slash_command(case['comment'])
+        params = generator.parse_slash_command(case['comment'])
         if params:
-            valid, errors = factory.validate_command_params(params)
+            valid, errors = generator.validate_command_params(params)
             if not valid:
                 print(f"   ❌ Error detected: {errors[0]}")
                 if case['expected_error'] in errors[0]:

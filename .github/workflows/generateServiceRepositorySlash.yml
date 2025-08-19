@@ -1,0 +1,51 @@
+name: generateServiceRepositorySlash
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  dispatch:
+    if: contains(github.event.comment.body, '/repo create ')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+      issues: write
+    steps:
+      - name: Parse command and dispatch
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = (context.payload.comment?.body || '').trim();
+            const m = body.match(/^\/repo\s+create\s+([a-z][a-zA-Z0-9]*)\s+(.+)$/);
+            if (!m) return;
+            const repoName = m[1];
+            const rest = m[2];
+            function grab(flag) {
+              const re = new RegExp(`--${flag}\\s+("([^"]+)"|\\S+)`);
+              const mm = rest.match(re);
+              if (!mm) return null;
+              return mm[2] || mm[1];
+            }
+            const pillar = grab('pillar') || 'Guidance';
+            const domain = grab('domain') || 'governance';
+            const capability = grab('capability') || 'capability';
+            const repoType = grab('type') || 'governance';
+            const visibility = (grab('visibility') || 'private').toLowerCase();
+            const desc = grab('desc') || `SPECTRA ${pillar} — ${domain} → ${capability}`;
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'generateServiceRepository.yml',
+              ref: context.payload.repository.default_branch,
+              inputs: { repoName, pillar, domain, capability, repoType, visibility, description: desc }
+            });
+            const issueNumber = context.payload.issue?.number || Number((context.payload.comment?.issue_url || '').split('/').pop());
+            if (issueNumber) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `🚀 Repository creation requested:\n- repoName: \`${repoName}\`\n- pillar: \`${pillar}\`\n- domain: \`${domain}\`\n- capability: \`${capability}\`\n- type: \`${repoType}\`\n- visibility: \`${visibility}\`\n\nThe generateServiceRepository workflow has been dispatched.`
+              });
+            }

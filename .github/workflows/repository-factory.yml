@@ -1,4 +1,4 @@
-name: repository-factory
+name: generateServiceRepository
 
 on:
   issue_comment:
@@ -58,9 +58,9 @@ jobs:
       - name: process repository factory command
         if: steps.validate-author.outputs.authorized == 'true'
         run: |
-          echo "🏭 Processing repository factory command..."
+          echo "🏗️ Processing service repository generation command..."
           
-          python scripts/repo_factory.py \
+          python scripts/generate_service_repository.py \
             "${{ github.event.comment.body }}" \
             "${{ github.repository_owner }}" \
             "${{ github.event.repository.name }}" \
@@ -80,7 +80,7 @@ jobs:
           from datetime import datetime, timezone
           
           # Post unauthorized response
-          comment_body = """## 🏭 Repository Factory - Unauthorized
+          comment_body = """## 🏗️ Service Repository Generator - Unauthorized
           
           ❌ **Access Denied**
           
@@ -114,7 +114,7 @@ jobs:
       - name: create workflow summary
         if: always()
         run: |
-          echo "## 🏭 Repository Factory Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## 🏗️ Service Repository Generator Workflow Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Issue:** #${{ github.event.issue.number }} - ${{ github.event.issue.title }}" >> $GITHUB_STEP_SUMMARY
           echo "**Commenter:** @${{ github.event.comment.user.login }}" >> $GITHUB_STEP_SUMMARY
@@ -122,7 +122,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ "${{ steps.validate-author.outputs.authorized }}" = "true" ]; then
-            echo "✅ **Action:** Repository factory command processed" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Action:** Service repository generator command processed" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ **Action:** Access denied - user not authorized" >> $GITHUB_STEP_SUMMARY
           fi

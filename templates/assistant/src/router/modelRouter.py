@@ -27,8 +27,6 @@ class ModelRouter:
             blueprint_path: Path to assistant blueprint YAML file
         """
         self.blueprint_path = Path(blueprint_path)
-        self.config = self._load_blueprint()
-        self.routing_config = self.config.get('routing', {})
         
         # Set up logging with minimal output (no content logging)
         logging.basicConfig(
@@ -36,6 +34,9 @@ class ModelRouter:
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
         self.logger = logging.getLogger(__name__)
+        
+        self.config = self._load_blueprint()
+        self.routing_config = self.config.get('routing', {})
         
     def _load_blueprint(self) -> Dict[str, Any]:
         """Load and validate blueprint configuration."""

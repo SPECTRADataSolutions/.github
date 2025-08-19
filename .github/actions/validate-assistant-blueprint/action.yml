@@ -1,0 +1,120 @@
+name: 'Validate SPECTRA Assistant Blueprint'
+description: 'Validates AI assistant blueprint and MCP configuration against SPECTRA schemas'
+author: 'SPECTRA'
+
+inputs:
+  blueprint-path:
+    description: 'Path to assistant blueprint YAML file'
+    required: false
+    default: 'blueprint/assistantBlueprint.yaml'
+  config-path:
+    description: 'Path to MCP configuration YAML file' 
+    required: false
+    default: 'config/mcpConfig.yaml'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install validation dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install jsonschema pyyaml
+        
+    - name: Download SPECTRA contracts
+      shell: bash
+      run: |
+        mkdir -p .contracts
+        curl -s -o .contracts/assistantBlueprint.json \
+          https://raw.githubusercontent.com/SPECTRADataSolutions/.github/main/contracts/assistant/assistantBlueprint.json
+        curl -s -o .contracts/mcpConfig.json \
+          https://raw.githubusercontent.com/SPECTRADataSolutions/.github/main/contracts/assistant/mcpConfig.json
+          
+    - name: Validate assistant blueprint
+      shell: bash
+      run: |
+        python3 -c "
+        import json
+        import yaml
+        import jsonschema
+        import sys
+        
+        # Load blueprint
+        try:
+            with open('${{ inputs.blueprint-path }}', 'r') as f:
+                blueprint = yaml.safe_load(f)
+        except FileNotFoundError:
+            print('❌ Blueprint file not found: ${{ inputs.blueprint-path }}')
+            sys.exit(1)
+        except yaml.YAMLError as e:
+            print(f'❌ Invalid YAML in blueprint: {e}')
+            sys.exit(1)
+            
+        # Load schema
+        try:
+            with open('.contracts/assistantBlueprint.json', 'r') as f:
+                schema = json.load(f)
+        except FileNotFoundError:
+            print('❌ Could not download blueprint schema')
+            sys.exit(1)
+            
+        # Validate
+        try:
+            jsonschema.validate(blueprint, schema)
+            print('✅ Assistant blueprint validation passed')
+        except jsonschema.ValidationError as e:
+            print(f'❌ Blueprint validation failed: {e.message}')
+            sys.exit(1)
+        except Exception as e:
+            print(f'❌ Validation error: {e}')
+            sys.exit(1)
+        "
+        
+    - name: Validate MCP configuration
+      shell: bash
+      run: |
+        python3 -c "
+        import json
+        import yaml
+        import jsonschema
+        import sys
+        
+        # Load MCP config
+        try:
+            with open('${{ inputs.config-path }}', 'r') as f:
+                mcp_config = yaml.safe_load(f)
+        except FileNotFoundError:
+            print('❌ MCP config file not found: ${{ inputs.config-path }}')
+            sys.exit(1)
+        except yaml.YAMLError as e:
+            print(f'❌ Invalid YAML in MCP config: {e}')
+            sys.exit(1)
+            
+        # Load schema
+        try:
+            with open('.contracts/mcpConfig.json', 'r') as f:
+                schema = json.load(f)
+        except FileNotFoundError:
+            print('❌ Could not download MCP config schema')
+            sys.exit(1)
+            
+        # Validate
+        try:
+            jsonschema.validate(mcp_config, schema)
+            print('✅ MCP configuration validation passed')
+        except jsonschema.ValidationError as e:
+            print(f'❌ MCP validation failed: {e.message}')
+            sys.exit(1)
+        except Exception as e:
+            print(f'❌ Validation error: {e}')
+            sys.exit(1)
+        "
+
+branding:
+  icon: 'shield'
+  color: 'blue'

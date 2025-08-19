@@ -71,8 +71,8 @@ def scanRepositoryText(files):
                     if re.search(r"https?://", context, re.IGNORECASE):
                         continue
                     
-                    # Skip if it's a .org domain (word before .org)
-                    if re.search(r"\w+\.org\b", context, re.IGNORECASE):
+                    # Skip if it's a .org domain (word before .org or .org itself)
+                    if re.search(r"\.org\b", context, re.IGNORECASE):
                         continue
                     
                     # Skip if followed by punctuation that suggests compound/filename

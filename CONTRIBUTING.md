@@ -10,6 +10,7 @@
 - follow **camelCase** for all IDs, fields, and custom names
 - issue titles: keep short, clear, and start with the correct emoji/type prefix
 - no acronyms unless required by external standards
+- do not abbreviate words like "organisation" to "org"; always spell them in full
 
 ## linking
 - link stories and tasks back to their parent epic or initiative

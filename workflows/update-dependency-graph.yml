@@ -1,4 +1,4 @@
-name: updateDependencyGraph
+name: update-dependency-graph
 
 on:
   issues:

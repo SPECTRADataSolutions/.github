@@ -1,4 +1,4 @@
-name: governanceGuards
+name: governance-guards
 
 on:
   issues:

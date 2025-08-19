@@ -1,0 +1,89 @@
+name: validate-workflow-names
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/*.yml"
+      - ".github/workflows/*.yaml"
+      - "standards/**"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  checkNames:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: install deps
+        run: pip install pyyaml
+
+      - name: validate workflow naming
+        run: |
+          python - <<'PY'
+          import os, re, sys, yaml, glob
+
+          allowed_verbs = {
+            "build","test","lint","validate","verify","check",
+            "enforce","guard","protect",
+            "plan","generate","scaffold","seed","sync","update","publish","deploy","release","package","scan",
+            "backup","restore","migrate","archive"
+          }
+
+          def is_kebab(s:str)->bool:
+            return bool(re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", s))
+
+          def first_token(name:str)->str:
+            return name.split("-")[0] if "-" in name else name
+
+          errors = []
+
+          files = sorted(glob.glob(".github/workflows/*.yml") + glob.glob(".github/workflows/*.yaml"))
+          if not files:
+            print("No workflows found to validate.")
+            sys.exit(0)
+
+          for path in files:
+            base = os.path.basename(path)
+            stem = re.sub(r"\.ya?ml$", "", base)
+
+            # 1) File name must be kebab-case
+            if not is_kebab(stem):
+              errors.append(f"{path}: file name must be kebab-case → '{stem}'")
+
+            # 2) First token must be an allowed verb
+            verb = first_token(stem)
+            if verb not in allowed_verbs:
+              errors.append(f"{path}: first token must be allowed verb → '{verb}'")
+
+            # 3) name: must exist and match base name
+            with open(path, "r", encoding="utf-8") as f:
+              try:
+                doc = yaml.safe_load(f) or {}
+              except Exception as e:
+                errors.append(f"{path}: invalid YAML ({e})")
+                continue
+
+            wf_name = str(doc.get("name","")).strip()
+            if not wf_name:
+              errors.append(f"{path}: missing 'name:'")
+            else:
+              if wf_name != stem:
+                errors.append(f"{path}: name: '{wf_name}' must equal file base name '{stem}'")
+
+          if errors:
+            print("❌ Workflow naming validation failed:\n")
+            for e in errors:
+              print(f" - {e}")
+            sys.exit(1)
+          else:
+            print("✅ Workflow naming validation passed.")
+          PY

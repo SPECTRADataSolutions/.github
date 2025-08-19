@@ -1,4 +1,4 @@
-name: Chief of Staff Enforcement
+name: chief-of-staff-enforcement
 
 on:
   workflow_dispatch:
@@ -14,6 +14,13 @@ on:
       - "organisation/contracts/chiefOfStaff.json"
       - "organisation/scripts/enforceChiefOfStaff.py"
       - "people/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chief-of-staff-enforcement-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   enforceChiefOfStaff:

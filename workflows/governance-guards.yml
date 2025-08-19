@@ -1,8 +1,16 @@
-name: governanceGuards
+name: governance-guards
 
 on:
   issues:
     types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: governance-guards-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -14,7 +22,7 @@ jobs:
           script: |
             const body = (context.payload.issue.body || '').toLowerCase();
             const required = [
-              'pillar', // preferred
+              'pillar',
               'domain',
               'initiativeTitle',
               'purpose',
@@ -23,13 +31,10 @@ jobs:
               'deliverables',
               'successIndicators'
             ];
-            // For compatibility, accept either pillar or archetype
             const hasPillar = body.includes('pillar');
             const hasArchetype = body.includes('archetype');
             const missing = required.filter(k => {
-              if (k === 'pillar') {
-                return !hasPillar && !hasArchetype; // accept either
-              }
+              if (k === 'pillar') return !hasPillar && !hasArchetype;
               return !body.includes(k.toLowerCase());
             });
             if (missing.length) {
@@ -46,7 +51,7 @@ jobs:
         with:
           script: |
             const title = context.payload.issue.title || '';
-            const noPrefix = title.replace(/\[.*?\]\s*/, ''); // strip [Type] prefix
+            const noPrefix = title.replace(/\[.*?\]\s*/, '');
             if (/[A-Z_]/.test(noPrefix)) {
               await github.rest.issues.createComment({
                 ...context.repo,
@@ -61,13 +66,9 @@ jobs:
         with:
           script: |
             const body = context.payload.issue.body || '';
-            
-            // Extract organizational metadata
             const pillarMatch = body.match(/### pillar\s*\n\s*([^\n]+)/i);
             const archetypeMatch = body.match(/### archetype\s*\n\s*([^\n]+)/i);
             const domainMatch = body.match(/### domain\s*\n\s*([^\n]+)/i);
-            
-            // Use pillar if present, otherwise fall back to archetype for compatibility
             const pillarValue = pillarMatch ? pillarMatch[1].trim() : (archetypeMatch ? archetypeMatch[1].trim() : null);
             
             if (!pillarValue || !domainMatch) {
@@ -82,8 +83,6 @@ jobs:
             
             const pillar = pillarValue;
             const domain = domainMatch[1].trim();
-            
-            // Validate pillar
             const validPillars = ['Protection', 'Sustenance', 'Innovation', 'Operations', 'Engagement', 'Growth', 'Guidance'];
             if (!validPillars.includes(pillar)) {
               await github.rest.issues.createComment({
@@ -95,7 +94,6 @@ jobs:
               return;
             }
             
-            // Validate domain format (single-word camelCase)
             if (!/^[a-z][a-zA-Z]*$/.test(domain)) {
               await github.rest.issues.createComment({
                 ...context.repo,
@@ -114,37 +112,26 @@ jobs:
         with:
           script: |
             const body = context.payload.issue.body || '';
-            
-            // Check for context-related content
             const contextKeywords = ['contextManifest', 'context', 'anchor', 'redaction', 'spectra.'];
-            const hasContextContent = contextKeywords.some(keyword => body.toLowerCase().includes(keyword.toLowerCase()));
-            
+            const hasContextContent = contextKeywords.some(k => body.toLowerCase().includes(k.toLowerCase()));
             if (hasContextContent) {
-              console.log('🔍 Context content detected, validating compliance...');
-              
-              // Check for required privacy considerations
               const privacyKeywords = ['redaction', 'privacy', 'logContent', 'defaultDeny'];
-              const hasPrivacyConsiderations = privacyKeywords.some(keyword => body.toLowerCase().includes(keyword.toLowerCase()));
-              
+              const hasPrivacyConsiderations = privacyKeywords.some(k => body.toLowerCase().includes(k.toLowerCase()));
               if (!hasPrivacyConsiderations) {
                 await github.rest.issues.createComment({
                   ...context.repo,
                   issue_number: context.issue.number,
-                  body: '⚠️ **Context Privacy Notice**: This issue relates to context functionality. Please ensure privacy and redaction policies are considered. Reference: contracts/context/redactionPolicy.json'
+                  body: '⚠️ Context Privacy: Ensure redaction/privacy policies. See contracts/context/redactionPolicy.json'
                 });
               }
-              
-              // Check for Framework is Law compliance
               const frameworkKeywords = ['framework', 'contract', 'schema', 'pinned', 'SHA'];
-              const hasFrameworkCompliance = frameworkKeywords.some(keyword => body.toLowerCase().includes(keyword.toLowerCase()));
-              
+              const hasFrameworkCompliance = frameworkKeywords.some(k => body.toLowerCase().includes(k.toLowerCase()));
               if (!hasFrameworkCompliance) {
                 await github.rest.issues.createComment({
                   ...context.repo,
                   issue_number: context.issue.number,
-                  body: '📋 **Framework is Law Reminder**: Context changes must comply with SPECTRA contracts in contracts/context/. Ensure refs are pinned to SHAs and validation is implemented.'
+                  body: '📋 Framework is Law: Context changes must comply with contracts in contracts/context/.'
                 });
               }
-              
               console.log('✅ Context compliance validated');
             }

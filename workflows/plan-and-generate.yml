@@ -1,22 +1,33 @@
-name: planAndGenerate
+name: plan-and-generate
 
 on:
   issues:
-    types: [opened, edited] # fire when initiatives are created or updated
+    types: [opened, edited]
 
 permissions:
-  contents: write   # commit outputs
-  issues: write     # create epics, comment
+  contents: write
+  issues: write
   projects: write
+
+concurrency:
+  group: plan-and-generate-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   run:
-    if: contains(github.event.issue.labels.*.name, 'type:initiative') # only for initiatives
+    if: contains(github.event.issue.labels.*.name, 'type:initiative')
     runs-on: ubuntu-latest
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4 # get repo files
+        uses: actions/checkout@v4
+
+      - name: ensureJq
+        run: |
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y jq
+          fi
 
       - name: parseIssue
         id: parse
@@ -35,7 +46,7 @@ jobs:
               return val
           out = {
             "initiativeTitle": grab("initiativeTitle"),
-            "pillar": grab("pillar") or grab("archetype"),  # prefer pillar, fallback to archetype
+            "pillar": grab("pillar") or grab("archetype"),
             "domain": grab("domain"),
             "capabilityAreas": grab("capabilityAreas", multi=True)
           }
@@ -46,19 +57,26 @@ jobs:
 
       - name: generateIds
         id: ids
+        shell: bash
         run: |
-          node -e "const p=require('./parsed.json'); const slug=(p.initiativeTitle||'untitled').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); const d=new Date().toISOString().slice(0,10); console.log(`initiativeId=${d}-${slug}`)"
+          node - <<'NODE' >> "$GITHUB_OUTPUT"
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('parsed.json','utf8'));
+          const slug = (p.initiativeTitle||'untitled').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+          const d = new Date().toISOString().slice(0,10);
+          console.log(`initiativeId=${d}-${slug}`);
+          NODE
       
       - name: saveSummaryCard
         run: |
-          mkdir -p outputs/${{ steps.ids.outputs.initiativeId }}
-          cat > outputs/${{ steps.ids.outputs.initiativeId }}/summaryCard.md <<EOF
+          mkdir -p "outputs/${{ steps.ids.outputs.initiativeId }}"
+          cat > "outputs/${{ steps.ids.outputs.initiativeId }}/summaryCard.md" <<EOF
           # summaryCard
           initiativeId: ${{ steps.ids.outputs.initiativeId }}
           pillar: $(jq -r .pillar parsed.json)
           domain: $(jq -r .domain parsed.json)
           capabilityAreas:
-          $(jq -r '.capabilityAreas[] | "- " + .' parsed.json)
+          $(jq -r '.capabilityAreas[]? | "- " + .' parsed.json)
           EOF
 
       - name: commitOutputs
@@ -96,5 +114,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: "✅ planAndGenerate completed: epics created and summaryCard saved."
+              body: "✅ plan-and-generate completed: epics created and summaryCard saved."
             })

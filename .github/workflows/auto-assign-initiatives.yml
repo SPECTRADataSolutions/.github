@@ -1,4 +1,4 @@
-name: assign-initiatives
+name: assign-initiative-owners
 
 on:
   issues:

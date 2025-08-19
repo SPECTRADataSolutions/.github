@@ -1,4 +1,4 @@
-name: guard-governance
+name: guard-governance-policies
 
 on:
   issues:

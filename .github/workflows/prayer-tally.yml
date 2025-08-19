@@ -1,4 +1,4 @@
-name: tally-prayers
+name: tally-prayer-requests
 
 on:
   issues:

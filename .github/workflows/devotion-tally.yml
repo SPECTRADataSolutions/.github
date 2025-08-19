@@ -1,4 +1,4 @@
-name: tally-devotions
+name: tally-devotion-metrics
 
 on:
   issues:

@@ -1,4 +1,4 @@
-name: govern-context
+name: govern-context-manifests
 
 on:
   schedule:

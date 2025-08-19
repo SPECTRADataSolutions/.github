@@ -8,15 +8,16 @@ This document establishes the naming convention for GitHub Actions workflows in 
 
 ### Format
 ```
-{action}-{object}[-{modifier}]
+{action}-{object}-{modifier}
 ```
 
 ### Rules
 
 1. **Use kebab-case**: All lowercase with hyphens separating words
-2. **Start with an action verb**: The first word should be a descriptive action (verb)
-3. **Follow with the object**: What the action is performed on
-4. **Add modifiers if needed**: Additional descriptive words to clarify the purpose
+2. **Exactly 3 parts**: All workflow names must have exactly 3 hyphen-separated parts
+3. **Start with an action verb**: The first word should be a descriptive action (verb)
+4. **Follow with the object**: What the action is performed on
+5. **End with a modifier**: Additional descriptive word that clarifies the purpose or context
 
 ### Action Verbs
 
@@ -40,16 +41,18 @@ Common action verbs to use as the first word:
 | Purpose | Workflow Name |
 |---------|---------------|
 | Validates organizational structure | `validate-org-structure` |
-| Creates new repositories | `create-repository` |
-| Analyzes initiative proposals | `analyze-initiatives` |
+| Creates new repositories | `create-repository-factory` |
+| Analyzes initiative proposals | `analyze-initiative-proposals` |
 | Updates dependency graphs | `update-dependency-graph` |
-| Assigns initiatives automatically | `assign-initiatives` |
-| Enforces governance policies | `enforce-governance` |
-| Seeds repository labels | `seed-labels` |
-| Tallies prayer requests | `tally-prayers` |
+| Assigns initiative owners | `assign-initiative-owners` |
+| Enforces governance policies | `guard-governance-policies` |
+| Seeds repository labels | `seed-repository-labels` |
+| Tallies prayer requests | `tally-prayer-requests` |
 | Guards repository structure | `guard-repo-structure` |
 | Validates context manifests | `validate-context-manifest` |
 | Pins reference checksums | `pin-refs-checksums` |
+| Governs context manifests | `govern-context-manifests` |
+| Tallies devotion metrics | `tally-devotion-metrics` |
 
 ## Migration Guide
 

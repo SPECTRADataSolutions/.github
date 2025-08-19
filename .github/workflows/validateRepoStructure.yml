@@ -1,4 +1,5 @@
 name: validateRepoStructure
+
 on:
   workflow_call:
     inputs:

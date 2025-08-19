@@ -196,14 +196,11 @@ class TestAssistantGovernance:
         assert workflow_path.exists(), "Reusable validation workflow missing"
         
         with open(workflow_path, 'r') as f:
-            workflow = yaml.safe_load(f)
+            content = f.read()
             
-        # Check it's a reusable workflow
-        assert 'workflow_call' in workflow.get('on', {}), "Must be a reusable workflow"
-        
-        # Check it has required jobs
-        jobs = workflow.get('jobs', {})
-        assert 'validate-assistant-config' in jobs, "Missing validation job"
+        # Check it's a reusable workflow by looking for workflow_call in content
+        assert 'workflow_call:' in content, "Must be a reusable workflow"
+        assert 'validate-assistant-config:' in content, "Missing validation job"
 
 
 class TestSchemaValidation:

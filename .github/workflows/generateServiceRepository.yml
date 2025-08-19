@@ -161,65 +161,65 @@ jobs:
             const description=core.getInput('description').trim();
             const visibility=core.getInput('visibility').trim().toLowerCase();
 
-            const readme =
-`# ${repo}
+            const readme = [
+              `# ${repo}`,
+              '',
+              '<!-- NAV_START -->',
+              '**Dream**: SPECTRA  ',
+              `**Pillar**: ${pillar}  `,
+              `**Domain**: ${domain}  `,
+              `**Capability**: ${capability}  `,
+              `**Service**: ${owner}/${repo}`,
+              '<!-- NAV_END -->',
+              '',
+              `> ${description}`,
+              '',
+              '## Purpose',
+              `This service delivers the ${capability} capability within the ${domain} domain of the ${pillar} pillar.`,
+              '',
+              '## Structure',
+              '- source → extract → clean → transform → refine → analyse',
+              '',
+              '## Governance',
+              'All rules derive from the SPECTRA Framework and are enforced by organisation guard workflows.'
+            ].join('\n');
 
-<!-- NAV_START -->
-**Dream**: SPECTRA  
-**Pillar**: ${pillar}  
-**Domain**: ${domain}  
-**Capability**: ${capability}  
-**Service**: ${owner}/${repo}
-<!-- NAV_END -->
+            const gitignore = [
+              '# SPECTRA standard ignores',
+              '*.pyc',
+              '__pycache__/',
+              '.ipynb_checkpoints/',
+              '.env',
+              '.DS_Store',
+              '*.log',
+              '*.sqlite',
+              'node_modules/',
+              'dist/',
+              'build/'
+            ].join('\n');
 
-> ${description}
+            const guard = [
+              'name: repoStructureGuard',
+              'on:',
+              '  pull_request:',
+              '  push:',
+              '    branches: [ main, master, develop ]',
+              'jobs:',
+              '  validate:',
+              '    uses: SPECTRADataSolutions/.github/.github/workflows/validateRepoStructure.yml@main',
+              '    with:',
+              `      repoType: ${repoType}`
+            ].join('\n');
 
-## Purpose
-This service delivers the ${capability} capability within the ${domain} domain of the ${pillar} pillar.
-
-## Structure
-- source → extract → clean → transform → refine → analyse
-
-## Governance
-All rules derive from the SPECTRA Framework and are enforced by organisation guard workflows.
-`;
-
-            const gitignore =
-`# SPECTRA standard ignores
-*.pyc
-__pycache__/
-.ipynb_checkpoints/
-.env
-.DS_Store
-*.log
-*.sqlite
-node_modules/
-dist/
-build/
-`;
-
-            const guard =
-`name: repoStructureGuard
-on:
-  pull_request:
-  push:
-    branches: [ main, master, develop ]
-jobs:
-  validate:
-    uses: SPECTRADataSolutions/.github/.github/workflows/repoStructureGuard.yml@main
-    with:
-      repoType: ${repoType}
-`;
-
-            const intent =
-`dream: SPECTRA
-pillar: ${pillar}
-domain: ${domain}
-capability: ${capability}
-service: ${repo}
-repoType: ${repoType}
-visibility: ${visibility}
-`;
+            const intent = [
+              'dream: SPECTRA',
+              `pillar: ${pillar}`,
+              `domain: ${domain}`,
+              `capability: ${capability}`,
+              `service: ${repo}`,
+              `repoType: ${repoType}`,
+              `visibility: ${visibility}`
+            ].join('\n');
 
             async function putFile(path, content, message){
               const b64 = Buffer.from(content,'utf8').toString('base64');
@@ -267,8 +267,8 @@ visibility: ${visibility}
 
             await github.rest.repos.replaceAllTopics({
               owner, repo,
-              names: ['spectra','framework',`pillar-${pillar}`,`domain-${domain}`,`capability-${capability}`]
+              names: ['spectra','framework','pillar-'+pillar.toLowerCase(),'domain-'+domain.toLowerCase(),'capability-'+capability.toLowerCase()]
             });
 
       - name: outputResult
-        run: echo "✅ Created or updated: ${{ steps.createRepository.outputs.repoUrl }}"
+        run: echo "Created or updated repository at ${{ steps.createRepository.outputs.repoUrl }}"

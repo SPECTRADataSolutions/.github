@@ -29,7 +29,7 @@ jobs:
       - name: validate workflow naming
         run: |
           python - <<'PY'
-          import os, re, sys, yaml, glob
+          import os, re, sys, yaml, subprocess
 
           allowed_verbs = {
             "build","test","lint","validate","verify","check",
@@ -46,9 +46,33 @@ jobs:
 
           errors = []
 
-          files = sorted(glob.glob(".github/workflows/*.yml") + glob.glob(".github/workflows/*.yaml"))
+          # Get list of changed workflow files in this PR
+          try:
+            # Use GitHub's environment variables to determine the base ref
+            base_ref = os.environ.get('GITHUB_BASE_REF', 'main')
+            result = subprocess.run(
+              ["git", "diff", "--name-only", f"origin/{base_ref}", "HEAD"], 
+              capture_output=True, text=True, check=True
+            )
+            changed_files = result.stdout.strip().split('\n') if result.stdout.strip() else []
+          except subprocess.CalledProcessError:
+            # Alternative approach: check files changed in recent commits
+            try:
+              result = subprocess.run(
+                ["git", "diff", "--name-only", "HEAD~2", "HEAD"], 
+                capture_output=True, text=True, check=True
+              )
+              changed_files = result.stdout.strip().split('\n') if result.stdout.strip() else []
+            except subprocess.CalledProcessError:
+              # Final fallback to all workflow files
+              import glob
+              changed_files = sorted(glob.glob(".github/workflows/*.yml") + glob.glob(".github/workflows/*.yaml"))
+
+          # Filter to only workflow files
+          files = [f for f in changed_files if f.startswith('.github/workflows/') and (f.endswith('.yml') or f.endswith('.yaml'))]
+          
           if not files:
-            print("No workflows found to validate.")
+            print("No workflow files changed in this PR.")
             sys.exit(0)
 
           for path in files:

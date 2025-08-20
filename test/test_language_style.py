@@ -64,6 +64,16 @@ def test_language_style_enforcement():
             "content": "The 'org' should not be used",
             "should_violate": False,
             "description": "org in single quotes"
+        },
+        {
+            "content": "Use `org` for organization structure",
+            "should_violate": False,
+            "description": "org in backticks (code example)"
+        },
+        {
+            "content": "Avoid using org without backticks",
+            "should_violate": True,
+            "description": "org without backticks should still violate"
         }
     ]
     

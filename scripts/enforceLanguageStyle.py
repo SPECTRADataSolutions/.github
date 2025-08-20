@@ -85,7 +85,7 @@ def scanRepositoryText(files):
                     if prev == ":":
                         continue
                     
-                    # Skip if the word appears within quotes (examples of what not to do)
+                    # Skip if the word appears within quotes or backticks (examples of what not to do)
                     line_before_match = line[:m.start()]
                     line_after_match = line[m.end():]
                     
@@ -93,8 +93,12 @@ def scanRepositoryText(files):
                     quotes_before = line_before_match.count('"') + line_before_match.count("'")
                     quotes_after = line_after_match.count('"') + line_after_match.count("'")
                     
-                    # If odd number of quotes before, we're likely inside quotes
-                    if quotes_before % 2 == 1:
+                    # Count backticks before and after to see if we're inside code
+                    backticks_before = line_before_match.count('`')
+                    backticks_after = line_after_match.count('`')
+                    
+                    # If odd number of quotes or backticks before, we're likely inside quotes/code
+                    if quotes_before % 2 == 1 or backticks_before % 2 == 1:
                         continue
                     
                     segment = line.strip()

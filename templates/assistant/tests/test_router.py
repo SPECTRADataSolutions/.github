@@ -319,7 +319,9 @@ class TestModelRouter:
             
             # Test different cases should fall back to default
             # (since we convert to lowercase in the method)
-            assert router.routeTaskModel('REASONING') == 'gpt-4o'  # Falls back because key is 'reasoning'
+            # Test different cases should match due to case-insensitive handling
+            # (since we convert to lowercase in the method)
+            assert router.routeTaskModel('REASONING') == 'o1-preview'  # Should match 'reasoning' key
             
         finally:
             os.unlink(blueprint_path)

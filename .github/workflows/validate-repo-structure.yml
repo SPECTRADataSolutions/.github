@@ -1,4 +1,4 @@
-name: validateRepoStructure
+name: validate-repo-structure
 
 on:
   workflow_call:

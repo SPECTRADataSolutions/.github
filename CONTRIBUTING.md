@@ -1,3 +1,11 @@
+## Framework Standards
+
+**📋 Complete Standards**: See [SPECTRA Framework Blueprint](https://github.com/SPECTRADataSolutions/core/blob/main/blueprint.yaml) for comprehensive governance standards, naming conventions, and engineering practices.
+
+**🎯 Style Guide**: Reference our [Style Guide](STYLE_GUIDE.md) signpost for style-specific guidance.
+
+---
+
 # contributing
 
 ## workflow

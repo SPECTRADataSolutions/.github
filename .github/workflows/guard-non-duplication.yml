@@ -1,0 +1,134 @@
+name: guard-non-duplication
+
+on:
+  push:
+    paths:
+      - '**/*.md'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - 'CONTRIBUTING.md'
+      - 'STYLE_GUIDE.md'
+  pull_request:
+    paths:
+      - '**/*.md'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '.github/ISSUE_TEMPLATE/**'
+      - 'CONTRIBUTING.md'
+      - 'STYLE_GUIDE.md'
+
+jobs:
+  guard-governance-duplication:
+    name: Guard Against Standards Duplication
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Check for framework standards duplication
+        run: |
+          echo "🔍 Checking for duplicated standards content..."
+          
+          # Define prohibited patterns that indicate standards duplication
+          PROHIBITED_PATTERNS=(
+            "camelCase.*naming.*convention"
+            "kebab-case.*workflow.*naming"
+            "British.*English.*spelling"
+            "framework.*is.*law"
+            "canonical.*sets.*change.*by.*governance.*only"
+            "pillar.*domain.*capability.*repository"
+            "no.*local.*variations.*permitted"
+            "single.*word.*camelcase.*domain"
+          )
+          
+          # Files that are allowed to contain these patterns (signposts only)
+          ALLOWED_FILES=(
+            "./STYLE_GUIDE.md"
+            "./CONTRIBUTING.md"
+            "./.github/ISSUE_TEMPLATE/config.yml"
+            "./.github/PULL_REQUEST_TEMPLATE.md"
+          )
+          
+          VIOLATIONS=0
+          
+          # Check all markdown and yaml files except allowed signposts
+          for file in $(find . -name "*.md" -o -name "*.yml" -o -name "*.yaml" | grep -v ".git"); do
+            # Skip allowed files
+            SKIP_FILE=false
+            for allowed in "${ALLOWED_FILES[@]}"; do
+              if [[ "$file" == "$allowed" ]]; then
+                SKIP_FILE=true
+                break
+              fi
+            done
+            
+            if [[ "$SKIP_FILE" == "true" ]]; then
+              continue
+            fi
+            
+            # Check for prohibited patterns
+            for pattern in "${PROHIBITED_PATTERNS[@]}"; do
+              if grep -iE "$pattern" "$file" >/dev/null 2>&1; then
+                echo "❌ VIOLATION: $file contains standards content: '$pattern'"
+                echo "   Standards must only exist in core/blueprint.yaml"
+                echo "   Use signpost links instead of duplicating content"
+                VIOLATIONS=$((VIOLATIONS + 1))
+              fi
+            done
+          done
+          
+          # Check for placeholder links
+          echo ""
+          echo "🔗 Checking for placeholder links..."
+          
+          PLACEHOLDER_PATTERNS=(
+            "https://example.com"
+            "https://placeholder"
+            "TODO:"
+            "FIXME:"
+            "CHANGEME:"
+          )
+          
+          for file in $(find . -name "*.md" -o -name "*.yml" -o -name "*.yaml" | grep -v ".git"); do
+            for pattern in "${PLACEHOLDER_PATTERNS[@]}"; do
+              if grep -E "$pattern" "$file" >/dev/null 2>&1; then
+                echo "❌ PLACEHOLDER LINK: $file contains placeholder: '$pattern'"
+                echo "   All links must be functional and point to real resources"
+                VIOLATIONS=$((VIOLATIONS + 1))
+              fi
+            done
+          done
+          
+          # Check for proper signpost structure
+          echo ""
+          echo "📋 Validating signpost files..."
+          
+          if [[ -f "./STYLE_GUIDE.md" ]]; then
+            if ! grep -q "core.*blueprint.yaml" "./STYLE_GUIDE.md"; then
+              echo "❌ SIGNPOST ERROR: STYLE_GUIDE.md must reference core blueprint.yaml"
+              VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+            if grep -iE "(kebab-case|camelCase|British English)" "./STYLE_GUIDE.md" | grep -v "signpost\|reference\|see\|canonical"; then
+              echo "❌ SIGNPOST ERROR: STYLE_GUIDE.md contains standards content instead of signpost"
+              VIOLATIONS=$((VIOLATIONS + 1))
+            fi
+          fi
+          
+          # Summary
+          echo ""
+          if [[ $VIOLATIONS -eq 0 ]]; then
+            echo "✅ Non-duplication guard passed: No standards duplication detected"
+            echo "✅ All governance files are signpost-only"
+            echo "✅ No placeholder links found"
+          else
+            echo "❌ Non-duplication guard failed: $VIOLATIONS violations detected"
+            echo ""
+            echo "🔧 Remediation:"
+            echo "  1. Remove standards content from governance files"
+            echo "  2. Replace with signpost links to core/blueprint.yaml"
+            echo "  3. Fix all placeholder links to point to real resources"
+            echo "  4. Ensure STYLE_GUIDE.md is signpost-only"
+            exit 1
+          fi

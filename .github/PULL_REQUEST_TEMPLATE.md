@@ -54,7 +54,7 @@
 
 ---
 
-**For SPECTRA Standards**: This PR follows the [SPECTRA framework](https://example.com/spectra-framework) for all engineering practices, naming conventions, and documentation standards. Local deviations must be justified and documented.
+**For SPECTRA Standards**: This PR follows the [SPECTRA framework](https://github.com/SPECTRADataSolutions/core/blob/main/blueprint.yaml) for all engineering practices, naming conventions, and documentation standards. Local deviations must be justified and documented.
 
 **Copilot Guidance**: If you're unsure about assignment or categorisation, assign to @copilot for triage. This template serves as the organisation-wide standard—do not duplicate in individual projects.
 

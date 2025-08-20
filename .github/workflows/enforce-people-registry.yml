@@ -1,0 +1,183 @@
+name: enforce-people-registry
+
+on:
+  workflow_call:
+    inputs:
+      registry-path:
+        description: 'Path to the people registry file'
+        required: false
+        type: string
+        default: 'registry/people.yml'
+      check-structure:
+        description: 'Whether to validate registry structure'
+        required: false
+        type: boolean
+        default: true
+      check-completeness:
+        description: 'Whether to check registry completeness'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  enforce-people-registry:
+    name: Enforce People Registry Standards
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yq
+        
+      - name: Validate people registry
+        run: |
+          echo "👥 Enforcing people registry standards..."
+          
+          REGISTRY_FILE="${{ inputs.registry-path }}"
+          VIOLATIONS=0
+          
+          # Check if registry file exists
+          if [[ ! -f "$REGISTRY_FILE" ]]; then
+            echo "❌ People registry not found at: $REGISTRY_FILE"
+            echo "   Create registry file with proper structure"
+            exit 1
+          fi
+          
+          echo "📁 Found registry file: $REGISTRY_FILE"
+          
+          # Validate YAML structure
+          if ! yq eval . "$REGISTRY_FILE" >/dev/null 2>&1; then
+            echo "❌ Invalid YAML structure in $REGISTRY_FILE"
+            VIOLATIONS=$((VIOLATIONS + 1))
+          else
+            echo "✅ Valid YAML structure"
+          fi
+          
+          if [[ "${{ inputs.check-structure }}" == "true" ]]; then
+            echo ""
+            echo "🔍 Checking registry structure..."
+            
+            # Check for required top-level sections
+            REQUIRED_SECTIONS=("people" "roles" "capabilities")
+            
+            for section in "${REQUIRED_SECTIONS[@]}"; do
+              if ! yq eval "has(\"$section\")" "$REGISTRY_FILE" | grep -q "true"; then
+                echo "❌ Missing required section: $section"
+                VIOLATIONS=$((VIOLATIONS + 1))
+              else
+                echo "✅ Found section: $section"
+              fi
+            done
+            
+            # Validate people entries structure
+            if yq eval "has(\"people\")" "$REGISTRY_FILE" | grep -q "true"; then
+              PEOPLE_COUNT=$(yq eval '.people | length' "$REGISTRY_FILE")
+              echo "👥 Found $PEOPLE_COUNT people entries"
+              
+              # Check each person has required fields
+              REQUIRED_FIELDS=("name" "github" "role")
+              
+              for i in $(seq 0 $((PEOPLE_COUNT - 1))); do
+                PERSON_NAME=$(yq eval ".people[$i].name // \"Unknown\"" "$REGISTRY_FILE")
+                echo "  Checking person: $PERSON_NAME"
+                
+                for field in "${REQUIRED_FIELDS[@]}"; do
+                  if ! yq eval ".people[$i] | has(\"$field\")" "$REGISTRY_FILE" | grep -q "true"; then
+                    echo "    ❌ Missing field '$field' for $PERSON_NAME"
+                    VIOLATIONS=$((VIOLATIONS + 1))
+                  fi
+                done
+                
+                # Validate GitHub username format
+                GITHUB_USER=$(yq eval ".people[$i].github // \"\"" "$REGISTRY_FILE")
+                if [[ -n "$GITHUB_USER" ]]; then
+                  if [[ ! "$GITHUB_USER" =~ ^[a-zA-Z0-9]([a-zA-Z0-9-])*[a-zA-Z0-9]$ ]] && [[ ! "$GITHUB_USER" =~ ^[a-zA-Z0-9]$ ]]; then
+                    echo "    ❌ Invalid GitHub username format: $GITHUB_USER"
+                    VIOLATIONS=$((VIOLATIONS + 1))
+                  fi
+                fi
+              done
+            fi
+          fi
+          
+          if [[ "${{ inputs.check-completeness }}" == "true" ]]; then
+            echo ""
+            echo "📊 Checking registry completeness..."
+            
+            # Check if all roles referenced in people exist in roles section
+            if yq eval "has(\"people\") and has(\"roles\")" "$REGISTRY_FILE" | grep -q "true"; then
+              REFERENCED_ROLES=$(yq eval '.people[].role' "$REGISTRY_FILE" | sort -u)
+              DEFINED_ROLES=$(yq eval '.roles | keys | .[]' "$REGISTRY_FILE" | sort -u)
+              
+              echo "Referenced roles: $REFERENCED_ROLES"
+              echo "Defined roles: $DEFINED_ROLES"
+              
+              while IFS= read -r role; do
+                if [[ -n "$role" ]] && ! echo "$DEFINED_ROLES" | grep -q "^$role$"; then
+                  echo "❌ Referenced role '$role' not defined in roles section"
+                  VIOLATIONS=$((VIOLATIONS + 1))
+                fi
+              done <<< "$REFERENCED_ROLES"
+            fi
+            
+            # Check for orphaned capabilities
+            if yq eval "has(\"capabilities\") and has(\"roles\")" "$REGISTRY_FILE" | grep -q "true"; then
+              ROLE_CAPABILITIES=$(yq eval '.roles[] | select(has("capabilities")) | .capabilities[]?' "$REGISTRY_FILE" | sort -u)
+              DEFINED_CAPABILITIES=$(yq eval '.capabilities | keys | .[]' "$REGISTRY_FILE" | sort -u)
+              
+              while IFS= read -r capability; do
+                if [[ -n "$capability" ]] && ! echo "$DEFINED_CAPABILITIES" | grep -q "^$capability$"; then
+                  echo "❌ Referenced capability '$capability' not defined in capabilities section"
+                  VIOLATIONS=$((VIOLATIONS + 1))
+                fi
+              done <<< "$ROLE_CAPABILITIES"
+            fi
+          fi
+          
+          # Check naming conventions
+          echo ""
+          echo "📝 Checking naming conventions..."
+          
+          # Role names should be camelCase
+          if yq eval "has(\"roles\")" "$REGISTRY_FILE" | grep -q "true"; then
+            ROLE_NAMES=$(yq eval '.roles | keys | .[]' "$REGISTRY_FILE")
+            while IFS= read -r role; do
+              if [[ -n "$role" ]] && [[ ! "$role" =~ ^[a-z][a-zA-Z0-9]*$ ]]; then
+                echo "❌ Role name '$role' should be camelCase"
+                VIOLATIONS=$((VIOLATIONS + 1))
+              fi
+            done <<< "$ROLE_NAMES"
+          fi
+          
+          # Capability names should be camelCase
+          if yq eval "has(\"capabilities\")" "$REGISTRY_FILE" | grep -q "true"; then
+            CAPABILITY_NAMES=$(yq eval '.capabilities | keys | .[]' "$REGISTRY_FILE")
+            while IFS= read -r capability; do
+              if [[ -n "$capability" ]] && [[ ! "$capability" =~ ^[a-z][a-zA-Z0-9]*$ ]]; then
+                echo "❌ Capability name '$capability' should be camelCase"
+                VIOLATIONS=$((VIOLATIONS + 1))
+              fi
+            done <<< "$CAPABILITY_NAMES"
+          fi
+          
+          # Summary
+          echo ""
+          if [[ $VIOLATIONS -eq 0 ]]; then
+            echo "✅ People registry enforcement passed"
+            echo "✅ Structure is valid"
+            echo "✅ All references are complete"
+            echo "✅ Naming conventions followed"
+          else
+            echo "❌ People registry enforcement failed: $VIOLATIONS violations"
+            echo ""
+            echo "🔧 Remediation:"
+            echo "  1. Fix YAML structure and required fields"
+            echo "  2. Ensure all role references are defined"
+            echo "  3. Use camelCase for role and capability names"
+            echo "  4. Validate GitHub usernames are properly formatted"
+            exit 1
+          fi

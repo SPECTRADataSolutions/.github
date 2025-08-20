@@ -1,4 +1,4 @@
-name: generateServiceRepositorySlash
+name: generate-service-repository-slash
 on:
   issue_comment:
     types: [created]

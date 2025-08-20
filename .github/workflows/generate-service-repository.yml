@@ -1,4 +1,4 @@
-name: generateServiceRepository
+name: generate-service-repository
 on:
   workflow_dispatch:
     inputs:

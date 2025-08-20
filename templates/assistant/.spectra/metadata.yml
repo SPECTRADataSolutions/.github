@@ -1,0 +1,9 @@
+# .spectra/metadata.yml
+# SPECTRA Canonical Organisational Structure Metadata
+# This file defines the repository's position in the hierarchy:
+# Pillar → Domain → Capabilities → Repository
+
+pillar: Innovation
+domain: assistantPlatform
+capabilities: customAiAssistant
+repository: [REPOSITORY_NAME]

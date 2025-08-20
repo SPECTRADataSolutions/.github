@@ -35,7 +35,7 @@ body:
     id: pillar
     attributes:
       label: pillar
-      description: High-level capability categorisation (Dream → Pillar → Domain → Repo)
+      description: "High-level capability categorisation (Dream → Pillar → Domain → Repo). AI/Agents: Select the pillar that best matches the initiative's primary focus. If uncertain, choose based on the main deliverable type - technical work typically goes to Innovation or Sustenance, governance to Guidance, user-facing to Engagement."
       options: [Protection, Sustenance, Innovation, Operations, Engagement, Growth, Guidance]
     validations:
       required: true
@@ -44,7 +44,7 @@ body:
     id: domain
     attributes:
       label: domain
-      description: Single-token camelCase (singular concept) pertinent to pillar
+      description: "Single-token camelCase (singular concept) pertinent to pillar. AI/Agents: Use lowercase camelCase, singular nouns only. Examples - governance, security, engineering, marketing. Must be pertinent to the selected pillar per organisational structure."
       placeholder: "governance"
     validations:
       required: true
@@ -53,7 +53,7 @@ body:
     id: initiativeTitle
     attributes:
       label: initiativeTitle
-      description: Short, clear name
+      description: "Short, clear name. AI/Agents: Use camelCase, singular nouns, be descriptive but concise. Examples - spectraWebsiteV1, contextSystemExtraction, governanceFrameworkV2."
       placeholder: "spectraWebsiteV1"
     validations:
       required: true
@@ -62,7 +62,7 @@ body:
     id: purpose
     attributes:
       label: purpose
-      description: One sentence explaining why this initiative exists and the outcome it aims to achieve
+      description: "One sentence explaining why this initiative exists and the outcome it aims to achieve. AI/Agents: Write a clear, concise sentence that captures both the motivation (why) and the desired outcome (what success looks like). Use active voice and specific language."
     validations:
       required: true
 
@@ -70,6 +70,7 @@ body:
     id: scope
     attributes:
       label: scope
+      description: "AI/Agents: Define what is included and excluded from this initiative. Be specific about boundaries, systems affected, and any limitations. Include both functional and technical scope."
     validations:
       required: true
 
@@ -77,7 +78,7 @@ body:
     id: capabilityAreas
     attributes:
       label: capabilityAreas
-      description: One per line; becomes epics 1:1
+      description: "One per line; becomes epics 1:1. AI/Agents: List the major capability areas or workstreams, one per line. Each should represent a significant deliverable or functional area. These become epics in project management."
     validations:
       required: true
 
@@ -85,6 +86,7 @@ body:
     id: deliverables
     attributes:
       label: deliverables
+      description: "AI/Agents: List concrete, measurable outputs this initiative will produce. Include artifacts, systems, documentation, processes, or services. Be specific and measurable."
     validations:
       required: true
 
@@ -92,6 +94,7 @@ body:
     id: successIndicators
     attributes:
       label: successIndicators
+      description: "AI/Agents: Define how success will be measured. Include metrics, acceptance criteria, or observable outcomes that indicate the initiative has achieved its purpose. Use SMART criteria where possible."
     validations:
       required: true
 
@@ -99,6 +102,7 @@ body:
     id: constraints
     attributes:
       label: constraints
+      description: "AI/Agents: Identify limitations, dependencies, resources, timeline, regulatory, or technical constraints that may impact delivery. Include both hard constraints and risk factors."
     validations:
       required: true
 
@@ -106,11 +110,13 @@ body:
     id: dependencies
     attributes:
       label: dependencies
+      description: "AI/Agents: List other initiatives, systems, teams, or external factors this initiative depends on. Include both prerequisite dependencies and parallel coordination needs."
 
   - type: dropdown
     id: developmentMethodology
     attributes:
       label: developmentMethodology
+      description: "AI/Agents: Select the primary development approach. If not specified or uncertain, default to 'Hybrid/Other – specify in notes'. Choose BDD for user-facing features, TDD for technical components, DDD for complex business logic."
       options:
         - Behaviour-Driven Development (BDD) – user-facing features & behaviour scenarios
         - Test-Driven Development (TDD) – technical components & reliability
@@ -125,6 +131,7 @@ body:
     id: nonNegotiables
     attributes:
       label: nonNegotiables
+      description: "AI/Agents: Identify absolute requirements that cannot be compromised - security standards, compliance requirements, performance thresholds, architectural principles, etc. These are hard boundaries for the initiative."
     validations:
       required: true
 
@@ -132,31 +139,37 @@ body:
     id: reusePriority
     attributes:
       label: reusePriority
+      description: "AI/Agents: Identify opportunities for reusing existing components, patterns, or solutions. Consider SPECTRA framework components, established patterns, and existing systems that could be leveraged."
 
   - type: textarea
     id: securityPosture
     attributes:
       label: securityPosture
+      description: "AI/Agents: Define security requirements, threat model considerations, data protection needs, access controls, and compliance requirements relevant to this initiative."
 
   - type: textarea
     id: humanInTheLoop
     attributes:
       label: humanInTheLoop
+      description: "AI/Agents: Identify where human oversight, decision-making, or intervention is required. Consider approval workflows, quality gates, and areas where automation should be limited."
 
   - type: textarea
     id: testStrategy
     attributes:
       label: testStrategy
+      description: "AI/Agents: Define testing approach including unit tests, integration tests, acceptance criteria validation, performance testing, and quality assurance processes. Include both automated and manual testing considerations."
 
   - type: textarea
     id: rolloutPlan
     attributes:
       label: rolloutPlan
+      description: "AI/Agents: Define deployment and rollout strategy including staging environments, rollback procedures, communication plans, and success monitoring. Consider phased rollouts and risk mitigation."
 
   - type: textarea
     id: lessonsFromPastInitiatives
     attributes:
       label: lessonsFromPastInitiatives
+      description: "AI/Agents: Reference lessons learned from similar past initiatives. Include risks encountered, successful mitigation strategies, and recommendations for avoiding common pitfalls. This field may be auto-populated by lessons automation."
 
   - type: checkboxes
     id: automationOptions
@@ -175,59 +188,60 @@ body:
     id: outcomeStatus
     attributes:
       label: outcomeStatus
+      description: "AI/Agents: Always set to 'planned' when creating new initiatives. Use other values only when updating existing initiatives based on actual progress."
       options: [planned, inProgress, delivered, delayed, cancelled]
 
   - type: textarea
     id: postmortem
     attributes:
       label: postmortem
-      description: Link to retro or brief notes (root cause, mitigations)
+      description: "Link to retro or brief notes (root cause, mitigations). AI/Agents: Only fill this for completed initiatives. Include links to retrospective documents, lessons learned, and actionable insights for future initiatives."
 
   # ---- Legacy fields to map existing drafts (temporary bridge) ----
   - type: markdown
     attributes:
       value: |
-        ### Legacy fields (for existing drafts)
-        These map old drafts so values appear here. Copy them into the new sections above, then submit. We will remove this block after migration.
+        ### ⚠️ Legacy fields (MIGRATION ONLY - DO NOT USE FOR NEW INITIATIVES)
+        These fields are provided only to migrate values from old draft initiatives. AI/Agents: DO NOT populate these fields for new initiatives. Copy values from these fields into the corresponding new sections above, then leave these blank. This block will be removed after migration is complete.
 
   - type: textarea
     id: summary
     attributes:
-      label: "[LEGACY] summary"
-      description: Old field; copy into 'purpose' and/or 'initiativeTitle' as appropriate.
+      label: "[LEGACY - MIGRATION ONLY] summary"
+      description: "Old field; copy into 'purpose' and/or 'initiativeTitle' as appropriate. AI/Agents: Do not use for new initiatives."
 
   - type: textarea
     id: rationale
     attributes:
-      label: "[LEGACY] rationale"
-      description: Old field; fold into 'purpose' and 'constraints' as appropriate.
+      label: "[LEGACY - MIGRATION ONLY] rationale"
+      description: "Old field; fold into 'purpose' and 'constraints' as appropriate. AI/Agents: Do not use for new initiatives."
 
   - type: textarea
     id: successCriteria
     attributes:
-      label: "[LEGACY] successCriteria"
-      description: Old field; copy into 'successIndicators'.
+      label: "[LEGACY - MIGRATION ONLY] successCriteria"
+      description: "Old field; copy into 'successIndicators'. AI/Agents: Do not use for new initiatives."
 
   - type: textarea
     id: keyMilestones
     attributes:
-      label: "[LEGACY] keyMilestones"
-      description: Old field; map into 'deliverables' and 'rolloutPlan'.
+      label: "[LEGACY - MIGRATION ONLY] keyMilestones"
+      description: "Old field; map into 'deliverables' and 'rolloutPlan'. AI/Agents: Do not use for new initiatives."
 
   - type: textarea
     id: stakeholders
     attributes:
-      label: "[LEGACY] stakeholders"
-      description: Old field; include in 'humanInTheLoop' and project docs.
+      label: "[LEGACY - MIGRATION ONLY] stakeholders"
+      description: "Old field; include in 'humanInTheLoop' and project docs. AI/Agents: Do not use for new initiatives."
 
   - type: textarea
     id: risksMitigations
     attributes:
-      label: "[LEGACY] risksMitigations"
-      description: Old field; move into 'constraints' and 'testStrategy' (risk handling).
+      label: "[LEGACY - MIGRATION ONLY] risksMitigations"
+      description: "Old field; move into 'constraints' and 'testStrategy' (risk handling). AI/Agents: Do not use for new initiatives."
 
   - type: textarea
     id: references
     attributes:
-      label: "[LEGACY] references"
-      description: Old field; link under 'postmortem' or repo docs as needed.
+      label: "[LEGACY - MIGRATION ONLY] references"
+      description: "Old field; link under 'postmortem' or repo docs as needed. AI/Agents: Do not use for new initiatives."

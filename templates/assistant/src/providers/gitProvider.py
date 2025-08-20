@@ -12,7 +12,7 @@ import yaml
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 from datetime import datetime, timedelta
-from dataProvider import DataProvider, RateLimit, ProviderAuth
+from .dataProvider import DataProvider, RateLimit, ProviderAuth
 
 
 class GitProvider(DataProvider):

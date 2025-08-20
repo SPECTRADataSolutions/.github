@@ -1,12 +1,3 @@
-name: "🚀 Initiative"
-description: Strategic or operational work starting point. Auto-generates projects, epics, stories, tasks, work packages, and sprint plans.
-title: "🚀 [Initiative] <shortTitle>"
-# Note: 'type' is not a standard Issue Forms key; GitHub ignores unknown keys.
-type: "initiative"
-assignees: ["copilot"]
-projects: ["SPECTRADataSolutions/1"]
-labels: ["type:initiative","status:planning"]
-
 ---
 name: "📦 Repo"
 description: Create a new SPECTRA repository (Pillar → Domain → Capability → Service)

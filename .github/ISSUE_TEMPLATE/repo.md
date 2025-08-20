@@ -1,12 +1,12 @@
 ---
-name: "📦 Repo Request"
+name: "📦 Repo"
 description: Create a new SPECTRA repository (Pillar → Domain → Capability → Service)
 title: "📦 [Repo] <repoName>"
 labels: ["type:task","status:todo","steward:guidance"]
 ---
 
 ### pillar
-Guidance | Innovation | Engagement | Operations | Protection | Sustenance | Growth
+Doctrine | Transformation | Relations | Operations | Protection | Sustenance | Growth
 
 ### domain
 single-token camelCase (e.g. platformSecurity)

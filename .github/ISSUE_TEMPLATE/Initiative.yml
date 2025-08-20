@@ -11,13 +11,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## SPECTRA Standards
+        ## Standards
         - British English spelling
         - SPECTRA in ALL CAPS
         - Repo names: camelCase, singular nouns
         - camelCase only for Fabric pipelines, repo names, and code
         - No secrets in code
-        **Dream:** SPECTRA
+        **Core:** SPECTRA
         ☁️ core — All cross-pillar, meta, or org-wide work is governed by core. Never categorise or label it as a pillar or archetype.
 
   - type: markdown
@@ -35,8 +35,8 @@ body:
     id: pillar
     attributes:
       label: pillar
-      description: "High-level capability categorisation (Dream → Pillar → Domain → Repo). AI/Agents: Select the pillar that best matches the initiative's primary focus. If uncertain, choose based on the main deliverable type - technical work typically goes to Innovation or Sustenance, governance to Guidance, user-facing to Engagement."
-      options: [Protection, Sustenance, Innovation, Operations, Engagement, Growth, Guidance]
+      description: "High-level capability categorisation (Core → Pillar → Domain → Repo). AI/Agents: Select the pillar that best matches the initiative's primary focus. If uncertain, choose based on the main deliverable type - technical work typically goes to Transformation or Sustenance, governance to Doctrine, user-facing to Relations. If work is higer level than the pillar level, then put it in core"
+      options: [Core, Protection, Sustenance, Transformation, Operations, Relations, Growth, Doctrine]
     validations:
       required: true
 

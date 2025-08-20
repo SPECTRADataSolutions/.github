@@ -1,4 +1,4 @@
-name: repoFactory
+name: create-repository-instance
 on:
   workflow_dispatch:
     inputs:

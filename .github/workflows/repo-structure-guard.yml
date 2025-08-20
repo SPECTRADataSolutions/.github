@@ -1,4 +1,4 @@
-name: repoStructureGuard
+name: guard-repository-structure
 on:
   workflow_call:
     inputs:

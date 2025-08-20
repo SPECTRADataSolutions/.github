@@ -1,4 +1,4 @@
-name: planAndGenerate
+name: plan-and-generate
 
 on:
   issues:

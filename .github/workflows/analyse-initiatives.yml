@@ -1,4 +1,4 @@
-name: analyse-initiatives
+name: analyze-initiative-proposals
 
 on:
   issues:

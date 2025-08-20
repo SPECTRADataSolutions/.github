@@ -1,4 +1,4 @@
-name: Anchor Reachability and Size Validator
+name: validate-anchor-reachability
 description: "Validates that context anchors (allowed paths/refs) are reachable, within size limits, and meet coverage SLOs"
 
 on:

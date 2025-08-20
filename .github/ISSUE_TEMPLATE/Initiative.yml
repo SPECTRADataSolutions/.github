@@ -18,7 +18,7 @@ body:
         - camelCase only for Fabric pipelines, repo names, and code
         - No secrets in code
         **Dream:** SPECTRA
-        ☁️ theDream — All cross-pillar, meta, or org-wide work is governed by theDream. Never categorise or label it as a pillar or archetype.
+        ☁️ core — All cross-pillar, meta, or org-wide work is governed by core. Never categorise or label it as a pillar or archetype.
 
   - type: markdown
     attributes:

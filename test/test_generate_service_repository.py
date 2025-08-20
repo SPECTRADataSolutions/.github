@@ -233,7 +233,9 @@ def test_response_comment_formatting():
 def main():
     """Run all tests."""
     print("🏗️ SPECTRA Service Repository Generator Test Suite")
-    print("=" * 60)
+    title = "🏗️ SPECTRA Service Repository Generator Test Suite"
+    print(title)
+    print("=" * len(title))
     
     test_command_parsing()
     test_parameter_validation()

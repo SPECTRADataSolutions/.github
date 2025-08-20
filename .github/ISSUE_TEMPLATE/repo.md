@@ -2,7 +2,7 @@ name: "📦 Repo"
 description: "Create a new SPECTRA repository (Pillar → Domain → Capability → Service)."
 title: "📦 [Repo] <repoName>"
 assignees: ["copilot"]
-projects: ["SPECTRADataSolutions/1"]   # org/number format
+projects: ["SPECTRADataSolutions/1"]
 labels: ["type:task","status:todo","steward:guidance"]
 
 body:
@@ -14,54 +14,77 @@ body:
         - SPECTRA in ALL CAPS
         - repo names: camelCase, singular nouns
         - camelCase only for fabric pipelines, repo names, and code
-        - no secrets in code
-        **core:** SPECTRA — cross-pillar/meta/org-wide work belongs under **core**.
+        - no secrets in code  
+        **core:** SPECTRA — cross-pillar/meta/org-wide work belongs under core.
 
   - type: dropdown
     id: pillar
     attributes:
       label: pillar
-      options: [Doctrine, Transformation, Relations, Operations, Protection, Sustenance, Growth, Core]
       description: "pick the primary pillar. if higher than pillar scope, choose Core."
-    validations: { required: true }
+      options:
+        - Doctrine
+        - Transformation
+        - Relations
+        - Operations
+        - Protection
+        - Sustenance
+        - Growth
+        - Core
+    validations:
+      required: true
 
   - type: input
     id: domain
     attributes:
       label: domain
-      placeholder: platformSecurity
       description: "single-token camelCase pertinent to pillar."
-    validations: { required: true }
+      placeholder: "platformSecurity"
+    validations:
+      required: true
 
   - type: input
     id: capability
     attributes:
       label: capability
-      placeholder: threatDetection
       description: "single-token camelCase."
-    validations: { required: true }
+      placeholder: "threatDetection"
+    validations:
+      required: true
 
   - type: input
     id: repoName
     attributes:
       label: repoName
-      placeholder: security
       description: "service name in camelCase, singular noun."
-    validations: { required: true }
+      placeholder: "security"
+    validations:
+      required: true
 
   - type: dropdown
     id: repoType
     attributes:
       label: repoType
-      options: [engineering, operations, applications, governance, content]
-    validations: { required: true }
+      description: "classify the repository."
+      options:
+        - engineering
+        - operations
+        - applications
+        - governance
+        - content
+    validations:
+      required: true
 
   - type: dropdown
     id: visibility
     attributes:
       label: visibility
-      options: [public, private]
-    validations: { required: true }
+      description: "repository visibility."
+      options:
+        - public
+        - private
+    validations:
+      required: true
 
   - type: textarea
     id: repoDescription
@@ -70,7 +93,8 @@ body:
       description: "short purpose & scope (cannot be blank)."
       placeholder: "TBC"
       value: "TBC"
-    validations: { required: true }
+    validations:
+      required: true
 
   - type: textarea
     id: command
@@ -80,4 +104,5 @@ body:
       render: shell
       value: |
         /repo create <repoName> --pillar <pillar> --domain <domain> --capability <capability> --type <repoType> --visibility <visibility> --desc "<repoDescription>"
-    validations: { required: true }
+    validations:
+      required: true

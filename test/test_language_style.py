@@ -49,6 +49,21 @@ def test_language_style_enforcement():
             "content": "The organisation is great",
             "should_violate": False,
             "description": "full word organisation"
+        },
+        {
+            "content": 'do not abbreviate "organisation" to "org"',
+            "should_violate": False,
+            "description": "org in quotes as example"
+        },
+        {
+            "content": "scopes: repo, admin:org",
+            "should_violate": False,
+            "description": "org after colon (technical parameter)"
+        },
+        {
+            "content": "The 'org' should not be used",
+            "should_violate": False,
+            "description": "org in single quotes"
         }
     ]
     

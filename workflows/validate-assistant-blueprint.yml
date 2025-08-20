@@ -179,7 +179,7 @@ jobs:
         run: |
           echo "🎉 All SPECTRA assistant validations passed!"
           echo "✅ Blueprint schema compliance"
-          echo "✅ MCP configuration compliance"  
+          echo "✅ MCP configuration compliance"
           echo "✅ Persona and behaviour validation"
           echo "✅ Naming convention compliance"
           echo "✅ Security requirements met"

@@ -52,11 +52,11 @@ persona:
     - your-expertise
 ```
 
-### MCP Provider Configuration
-Edit `config/mcpConfig.yaml` to enable/disable providers:
+### Context Server Configuration
+Edit `config/contextConfig.yaml` to enable/disable context servers:
 
 ```yaml
-providers:
+contextServers:
   data:
     enabled: true            # Enable if you need data access
     # Configure authentication and rate limits

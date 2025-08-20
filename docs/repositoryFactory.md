@@ -1,6 +1,6 @@
 # 🏭 SPECTRA Repository Factory
 
-The Repository Factory provides an automated way to create new repositories from Initiative issues using slash commands. This ensures all new repositories start with proper organizational structure, canonical labels, and compliance standards.
+The Repository Factory provides an automated way to create new repositories from Initiative issues using slash commands. This ensures all new repositories start with proper organisational structure, canonical labels, and compliance standards.
 
 ## Usage
 
@@ -36,7 +36,7 @@ Post a comment on any Initiative issue with the following command:
 
 ## Authorization
 
-- Only SPECTRADataSolutions organization members can create repositories
+- Only SPECTRADataSolutions organisation members can create repositories
 - Comments from unauthorized users receive an access denied response
 - Organization membership verification is performed automatically
 
@@ -45,7 +45,7 @@ Post a comment on any Initiative issue with the following command:
 When a repository is created, the following actions are performed:
 
 ### 1. Repository Creation
-- Creates repository in SPECTRADataSolutions organization
+- Creates repository in SPECTRADataSolutions organisation
 - Sets default branch to `main`
 - Configures visibility (public/private) as specified
 - Creates from template if `templateRepo` is provided
@@ -56,12 +56,12 @@ When a repository is created, the following actions are performed:
 - Maintains consistent labelling across all repositories
 
 ### 3. Organizational Metadata
-- Adds `.spectra/metadata.yml` with organizational structure
+- Adds `.spectra/metadata.yml` with organisational structure
 - Includes dream, archetype (TBD), domain, and repository name
-- Provides machine-readable organizational classification
+- Provides machine-readable organisational classification
 
 ### 4. Baseline Files (if not templated)
-- Creates comprehensive `README.md` with organizational structure
+- Creates comprehensive `README.md` with organisational structure
 - Includes setup instructions and SPECTRA framework links
 - Adds Python `.gitignore` template
 - Provides starting point for project documentation
@@ -119,14 +119,14 @@ The Repository Factory provides immediate feedback through issue comments:
 - Required parameter for security compliance
 
 ### Template Repository (`templateRepo`)
-- Must be from SPECTRADataSolutions organization
+- Must be from SPECTRADataSolutions organisation
 - Format: `SPECTRADataSolutions/repositoryName`
 - Optional parameter
 
 ## Governance Integration
 
 ### Framework as Law
-- All repositories created follow SPECTRA organizational standards
+- All repositories created follow SPECTRA organisational standards
 - Consistent metadata structure across all repositories
 - Enforced naming conventions and compliance requirements
 
@@ -172,7 +172,7 @@ Future enhancements planned:
 
 For issues with the Repository Factory:
 - Check parameter format and values
-- Verify organization membership
+- Verify organisation membership
 - Review Initiative issue for proper labelling
 - Contact SPECTRA stewards for assistance
 

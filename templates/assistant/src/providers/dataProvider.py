@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-SPECTRA Data Provider Stub
+SPECTRA Data Context Server Stub
 
-Stub implementation for data MCP provider following SPECTRA security standards.
+Stub implementation for data context server following SPECTRA security standards.
 Implements default-deny policy, rate limiting, and audit logging.
 """
 
@@ -32,7 +32,7 @@ class ProviderAuth:
 
 class DataProvider:
     """
-    Data provider stub implementing SPECTRA MCP security standards.
+    Data context server stub implementing SPECTRA security standards.
     
     Features:
     - Default-deny access policy
@@ -42,12 +42,12 @@ class DataProvider:
     - Explicit operation allowlists
     """
     
-    def __init__(self, config_path: str = "config/mcpConfig.yaml"):
+    def __init__(self, config_path: str = "config/contextConfig.yaml"):
         """
         Initialise data provider with configuration.
         
         Args:
-            config_path: Path to MCP configuration file
+            config_path: Path to context configuration file
         """
         self.config_path = Path(config_path)
         self.config = self._load_config()
@@ -71,12 +71,12 @@ class DataProvider:
         self.auth = self._get_authentication()
         
     def _load_config(self) -> Dict[str, Any]:
-        """Load MCP configuration."""
+        """Load context configuration."""
         try:
             with open(self.config_path, 'r', encoding='utf-8') as file:
                 return yaml.safe_load(file)
         except Exception as e:
-            self.logger.error(f"Error loading MCP config: {e}")
+            self.logger.error(f"Error loading context config: {e}")
             raise
             
     def _validate_config(self) -> None:
@@ -373,7 +373,7 @@ def main():
             print(f"  {key}: {value}")
             
         if not status['enabled']:
-            print("\n⚠️  Provider is disabled. Enable in config/mcpConfig.yaml to test operations.")
+            print("\n⚠️  Provider is disabled. Enable in config/contextConfig.yaml to test operations.")
             return
             
         if not status['auth_configured']:

@@ -349,7 +349,7 @@ export ENVIRONMENT=testing
 export LOG_LEVEL=DEBUG
 
 # Use test configurations
-cp config/mcpConfig.test.yaml config/mcpConfig.yaml
+cp config/contextConfig.test.yaml config/contextConfig.yaml
 cp blueprint/assistantBlueprint.test.yaml blueprint/assistantBlueprint.yaml
 ```
 

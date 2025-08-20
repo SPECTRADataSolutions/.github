@@ -9,16 +9,16 @@ your-assistant/
 ├── blueprint/
 │   └── assistantBlueprint.yaml     # Persona, routing, guardrails configuration
 ├── config/
-│   └── mcpConfig.yaml              # MCP provider configuration
+│   └── contextConfig.yaml           # Context server configuration
 ├── src/
 │   ├── router/
 │   │   └── modelRouter.py          # Model routing logic
 │   ├── client/
 │   │   └── chatCli.py              # CLI chat interface
 │   └── providers/
-│       ├── dataProvider.py        # Data MCP provider stub
-│       ├── gitProvider.py         # Git MCP provider stub
-│       └── ticketingProvider.py   # Ticketing MCP provider stub
+│       ├── dataProvider.py        # Data context server stub
+│       ├── gitProvider.py         # Git context server stub
+│       └── ticketingProvider.py   # Ticketing context server stub
 ├── tests/
 │   ├── test_router.py              # Router unit tests
 │   ├── test_persona.py             # Persona adherence tests
@@ -42,8 +42,8 @@ your-assistant/
 
 - **Persona-driven**: Clear identity and behaviour rules loaded from YAML
 - **Model routing**: Deterministic model selection based on task type
-- **Default-deny security**: Explicit allow-list for tools and providers
-- **MCP integration**: On-demand Model Context Protocol provider access
+- **Default-deny security**: Explicit allow-list for tools and context servers
+- **Context integration**: On-demand context server access
 - **Secret safety**: Automatic redaction of tokens and sensitive data
 - **British English**: Consistent language conventions throughout
 - **SPECTRA compliance**: Follows organisational structure and governance

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Tests for SPECTRA MCP Providers
+Tests for SPECTRA Context Servers
 
-Tests provider connectivity, security controls, and error handling.
+Tests context server connectivity, security controls, and error handling.
 """
 
 import pytest

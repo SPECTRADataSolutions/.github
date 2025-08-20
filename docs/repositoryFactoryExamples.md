@@ -30,11 +30,11 @@
 ## Expected Results
 
 When successful, the command will:
-1. Create the repository in SPECTRADataSolutions organization
+1. Create the repository in SPECTRADataSolutions organisation
 2. Set the default branch to `main`
 3. Seed with all canonical SPECTRA labels
-4. Add organizational metadata (`.spectra/metadata.yml`)
-5. Create baseline README with organizational structure
+4. Add organisational metadata (`.spectra/metadata.yml`)
+5. Create baseline README with organisational structure
 6. Post success comment with repository URL
 
 ## Error Scenarios
@@ -58,8 +58,8 @@ When successful, the command will:
 **Error:** `❌ Repository 'existingRepo' already exists in SPECTRADataSolutions`
 
 ### Unauthorized User
-If a non-organization member tries to use the command:
-**Error:** `❌ Access Denied - Repository creation is restricted to SPECTRADataSolutions organization members only`
+If a non-organisation member tries to use the command:
+**Error:** `❌ Access Denied - Repository creation is restricted to SPECTRADataSolutions organisation members only`
 
 ## Next Steps After Creation
 
@@ -72,7 +72,7 @@ If a non-organization member tries to use the command:
 ## Framework Compliance
 
 All repositories created by the Factory automatically include:
-- SPECTRA organizational metadata
+- SPECTRA organisational metadata
 - Canonical labelling system
 - Baseline documentation structure
 - British English compliance

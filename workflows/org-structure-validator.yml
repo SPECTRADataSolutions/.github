@@ -1,5 +1,5 @@
-name: Organizational Structure Validator
-description: "Validates repository metadata against SPECTRA canonical organizational structure"
+name: Organisational Structure Validator
+description: "Validates repository metadata against SPECTRA canonical organisational structure"
 
 on:
   workflow_call:
@@ -23,9 +23,9 @@ on:
         default: ${{ github.repository }}
 
 jobs:
-  validate-org-structure:
+  validate-organisational-structure:
     runs-on: ubuntu-latest
-    name: Validate Organizational Structure
+    name: Validate Organisational Structure
     
     steps:
       - name: Checkout .github repository for schema
@@ -70,7 +70,7 @@ jobs:
           
       - name: Validate against schema
         run: |
-          echo "Validating organizational structure metadata..."
+          echo "Validating organisational structure metadata..."
           ajv validate \
             -s .github-repo/contracts/orgStructureMetadata.json \
             -d metadata.json
@@ -118,7 +118,7 @@ jobs:
           
       - name: Validation Summary
         run: |
-          echo "🎯 Organizational Structure Validation Complete"
+          echo "🎯 Organisational Structure Validation Complete"
           echo "   Pillar: ${{ inputs.pillar }}"
           echo "   Domain: ${{ inputs.domain }}"
           echo "   Capabilities: ${{ inputs.capabilities }}"

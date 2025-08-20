@@ -1,12 +1,12 @@
-name: 'Validate SPECTRA MCP Configuration'
-description: 'Validates MCP provider configuration against SPECTRA security standards'
+name: 'Validate SPECTRA Context Configuration'
+description: 'Validates context server configuration against SPECTRA security standards'
 author: 'SPECTRA'
 
 inputs:
   config-path:
-    description: 'Path to MCP configuration YAML file'
+    description: 'Path to context configuration YAML file'
     required: false
-    default: 'config/mcpConfig.yaml'
+    default: 'config/contextConfig.yaml'
 
 runs:
   using: 'composite'
@@ -22,14 +22,14 @@ runs:
         python -m pip install --upgrade pip
         pip install jsonschema pyyaml
         
-    - name: Download MCP config schema
+    - name: Download context config schema
       shell: bash
       run: |
         mkdir -p .contracts
-        curl -s -o .contracts/mcpConfig.json \
-          https://raw.githubusercontent.com/SPECTRADataSolutions/.github/main/contracts/assistant/mcpConfig.json
+        curl -s -o .contracts/contextConfig.json \
+          https://raw.githubusercontent.com/SPECTRADataSolutions/.github/main/contracts/assistant/contextConfig.json
           
-    - name: Validate MCP configuration
+    - name: Validate context configuration
       shell: bash
       run: |
         python3 -c "
@@ -38,29 +38,29 @@ runs:
         import jsonschema
         import sys
         
-        # Load MCP config
+        # Load context config
         try:
             with open('${{ inputs.config-path }}', 'r') as f:
                 config = yaml.safe_load(f)
         except FileNotFoundError:
-            print('❌ MCP config file not found: ${{ inputs.config-path }}')
+            print('❌ Context config file not found: ${{ inputs.config-path }}')
             sys.exit(1)
         except yaml.YAMLError as e:
-            print(f'❌ Invalid YAML in MCP config: {e}')
+            print(f'❌ Invalid YAML in context config: {e}')
             sys.exit(1)
             
         # Load schema
         try:
-            with open('.contracts/mcpConfig.json', 'r') as f:
+            with open('.contracts/contextConfig.json', 'r') as f:
                 schema = json.load(f)
         except FileNotFoundError:
-            print('❌ Could not download MCP config schema')
+            print('❌ Could not download context config schema')
             sys.exit(1)
             
         # Schema validation
         try:
             jsonschema.validate(config, schema)
-            print('✅ MCP configuration schema validation passed')
+            print('✅ Context configuration schema validation passed')
         except jsonschema.ValidationError as e:
             print(f'❌ Schema validation failed: {e.message}')
             sys.exit(1)
@@ -83,7 +83,7 @@ runs:
                 print(f'❌ Security requirement failed: {setting} must be {required_value}, got {actual_value}')
                 sys.exit(1)
                 
-        print('✅ MCP security requirements validation passed')
+        print('✅ Context security requirements validation passed')
         "
 
 branding:

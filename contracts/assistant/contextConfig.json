@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/assistant/mcpConfig.json",
-  "title": "SPECTRA MCP Provider Configuration",
-  "description": "Schema defining Model Context Protocol provider configuration with default-deny security",
+  "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/assistant/contextConfig.json",
+  "title": "SPECTRA Context Server Configuration",
+  "description": "Schema defining context server configuration with default-deny security",
   "type": "object",
   "properties": {
     "metadata": {
@@ -33,12 +33,12 @@
         "defaultPolicy": {
           "type": "string",
           "enum": ["deny"],
-          "description": "Default-deny access policy for all providers"
+          "description": "Default-deny access policy for all context servers"
         },
         "authenticationRequired": {
           "type": "boolean",
           "const": true,
-          "description": "Authentication required for all provider access"
+          "description": "Authentication required for all context server access"
         },
         "auditLogging": {
           "type": "boolean",
@@ -54,7 +54,7 @@
       "required": ["defaultPolicy", "authenticationRequired", "auditLogging", "secretRedaction"],
       "additionalProperties": false
     },
-    "providers": {
+    "contextServers": {
       "type": "object",
       "properties": {
         "data": {
@@ -62,12 +62,12 @@
           "properties": {
             "enabled": {
               "type": "boolean",
-              "description": "Whether data provider is enabled"
+              "description": "Whether data context server is enabled"
             },
             "endpoint": {
               "type": "string",
               "format": "uri",
-              "description": "Provider endpoint URL"
+              "description": "Context server endpoint URL"
             },
             "authentication": {
               "type": "object",
@@ -120,12 +120,12 @@
           "properties": {
             "enabled": {
               "type": "boolean",
-              "description": "Whether git provider is enabled"
+              "description": "Whether git context server is enabled"
             },
             "endpoint": {
               "type": "string",
               "format": "uri",
-              "description": "Git provider endpoint URL"
+              "description": "Git context server endpoint URL"
             },
             "authentication": {
               "type": "object",
@@ -186,7 +186,7 @@
           "properties": {
             "enabled": {
               "type": "boolean",
-              "description": "Whether ticketing provider is enabled"
+              "description": "Whether ticketing context server is enabled"
             },
             "endpoint": {
               "type": "string",
@@ -297,6 +297,6 @@
       "additionalProperties": false
     }
   },
-  "required": ["metadata", "security", "providers", "monitoring"],
+  "required": ["metadata", "security", "contextServers", "monitoring"],
   "additionalProperties": false
 }

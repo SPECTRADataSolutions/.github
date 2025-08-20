@@ -24,10 +24,10 @@ jobs:
         with:
           blueprint-path: blueprint/assistantBlueprint.yaml
           
-      - name: Validate MCP config schema  
-        uses: SPECTRADataSolutions/.github/.github/actions/validate-mcp-config@main
+      - name: Validate context config schema  
+        uses: SPECTRADataSolutions/.github/.github/actions/validate-context-config@main
         with:
-          config-path: config/mcpConfig.yaml
+          config-path: config/contextConfig.yaml
 
   secret-scan:
     name: Secret Scanning
@@ -244,9 +244,9 @@ jobs:
             exit 1
           fi
           
-          # Verify MCP config exists
-          if [ ! -f "config/mcpConfig.yaml" ]; then
-            echo "❌ MCP config missing"
+          # Verify context config exists
+          if [ ! -f "config/contextConfig.yaml" ]; then
+            echo "❌ Context config missing"
             exit 1
           fi
           

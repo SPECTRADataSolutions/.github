@@ -62,7 +62,7 @@ jobs:
           script: |
             const body = context.payload.issue.body || '';
             
-            // Extract organizational metadata
+            // Extract organisational metadata
             const pillarMatch = body.match(/### pillar\s*\n\s*([^\n]+)/i);
             const archetypeMatch = body.match(/### archetype\s*\n\s*([^\n]+)/i);
             const domainMatch = body.match(/### domain\s*\n\s*([^\n]+)/i);

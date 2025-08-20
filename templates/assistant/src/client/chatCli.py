@@ -3,7 +3,7 @@
 SPECTRA Chat CLI
 
 Simple command-line interface for interacting with AI assistant, demonstrating
-proper persona adherence, secret redaction, and MCP integration.
+proper persona adherence, secret redaction, and context integration.
 """
 
 import os
@@ -91,10 +91,10 @@ class ChatCli:
         """Validate required environment variables are present."""
         required_vars = ['OPENAI_API_KEY']
         
-        # Check for MCP provider tokens if enabled
-        mcp_config = self.config.get('mcpIntegration', {})
-        if mcp_config.get('enabled', False):
-            allowed_providers = mcp_config.get('allowedProviders', [])
+        # Check for context server tokens if enabled
+        context_config = self.config.get('contextIntegration', {})
+        if context_config.get('enabled', False):
+            allowed_servers = context_config.get('allowedServers', [])
             for provider in allowed_providers:
                 if provider == 'data':
                     required_vars.append('DATA_TOKEN')
@@ -230,14 +230,14 @@ class ChatCli:
             status = "✅ Set" if os.environ.get(var) else "❌ Missing"
             print(f"    {var}: {status}")
             
-        # MCP integration status
-        mcp_config = self.config.get('mcpIntegration', {})
-        mcp_enabled = mcp_config.get('enabled', False)
-        print(f"  MCP Integration: {'✅ Enabled' if mcp_enabled else '❌ Disabled'}")
+        # Context integration status
+        context_config = self.config.get('contextIntegration', {})
+        context_enabled = context_config.get('enabled', False)
+        print(f"  Context Integration: {'✅ Enabled' if context_enabled else '❌ Disabled'}")
         
-        if mcp_enabled:
-            providers = mcp_config.get('allowedProviders', [])
-            print(f"  Allowed Providers: {', '.join(providers) if providers else 'None'}")
+        if context_enabled:
+            servers = context_config.get('allowedServers', [])
+            print(f"  Allowed Servers: {', '.join(servers) if servers else 'None'}")
             
         print()
         

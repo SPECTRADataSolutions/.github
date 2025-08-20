@@ -9,9 +9,9 @@ on:
         default: 'blueprint/assistantBlueprint.yaml'
         type: string
       config-path:
-        description: 'Path to MCP configuration YAML file'
+        description: 'Path to context configuration YAML file'
         required: false
-        default: 'config/mcpConfig.yaml'
+        default: 'config/contextConfig.yaml'
         type: string
 
 jobs:
@@ -37,8 +37,8 @@ jobs:
           mkdir -p .contracts
           curl -o .contracts/assistantBlueprint.json \
             https://raw.githubusercontent.com/SPECTRADataSolutions/.github/main/contracts/assistant/assistantBlueprint.json
-          curl -o .contracts/mcpConfig.json \
-            https://raw.githubusercontent.com/SPECTRADataSolutions/.github/main/contracts/assistant/mcpConfig.json
+          curl -o .contracts/contextConfig.json \
+            https://raw.githubusercontent.com/SPECTRADataSolutions/.github/main/contracts/assistant/contextConfig.json
             
       - name: Validate assistant blueprint
         run: |
@@ -67,27 +67,27 @@ jobs:
               exit(1)
           "
           
-      - name: Validate MCP configuration
+      - name: Validate context configuration
         run: |
           python3 -c "
           import json
           import yaml
           import jsonschema
           
-          # Load MCP config
+          # Load context config
           with open('${{ inputs.config-path }}', 'r') as f:
-              mcp_config = yaml.safe_load(f)
+              context_config = yaml.safe_load(f)
               
           # Load schema
-          with open('.contracts/mcpConfig.json', 'r') as f:
+          with open('.contracts/contextConfig.json', 'r') as f:
               schema = json.load(f)
               
           # Validate
           try:
-              jsonschema.validate(mcp_config, schema)
-              print('✅ MCP configuration validation passed')
+              jsonschema.validate(context_config, schema)
+              print('✅ Context configuration validation passed')
           except jsonschema.ValidationError as e:
-              print(f'❌ MCP validation failed: {e.message}')
+              print(f'❌ Context validation failed: {e.message}')
               exit(1)
           except Exception as e:
               print(f'❌ Validation error: {e}')
@@ -152,7 +152,7 @@ jobs:
           python3 -c "
           import yaml
           
-          # Load MCP config
+          # Load context config
           with open('${{ inputs.config-path }}', 'r') as f:
               config = yaml.safe_load(f)
               
@@ -179,7 +179,7 @@ jobs:
         run: |
           echo "🎉 All SPECTRA assistant validations passed!"
           echo "✅ Blueprint schema compliance"
-          echo "✅ MCP configuration compliance"  
+          echo "✅ Context configuration compliance"  
           echo "✅ Persona and behaviour validation"
           echo "✅ Naming convention compliance"
           echo "✅ Security requirements met"

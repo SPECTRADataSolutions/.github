@@ -38,9 +38,9 @@ All provider access requires valid authentication:
 
 ```yaml
 security:
-  authenticationRequired: true   # Mandatory for all providers
+  authenticationRequired: true   # Mandatory for all context servers
   
-providers:
+contextServers:
   data:
     authentication:
       type: token               # Supported: token, bearer, api-key
@@ -106,11 +106,11 @@ def _redact_secrets(self, text: str) -> str:
 
 ## ⚡ Rate Limiting and Resource Protection
 
-### Provider-Specific Limits
-Each provider has configurable rate limits:
+### Context Server-Specific Limits
+Each context server has configurable rate limits:
 
 ```yaml
-providers:
+contextServers:
   data:
     rateLimits:
       requestsPerMinute: 30      # Per-minute limit
@@ -207,11 +207,11 @@ monitoring:
 
 ## 🏗️ Provider Security Architecture
 
-### Repository Allowlists (Git Provider)
+### Repository Allowlists (Git Context Server)
 Strict repository access control:
 
 ```yaml
-providers:
+contextServers:
   git:
     repositoryAllowlist:
       - SPECTRADataSolutions/public-repo
@@ -219,11 +219,11 @@ providers:
     # All other repositories blocked
 ```
 
-### Project Allowlists (Ticketing Provider)
+### Project Allowlists (Ticketing Context Server)
 Controlled project access:
 
 ```yaml
-providers:
+contextServers:
   ticketing:
     projectAllowlist:
       - PROJ-001
@@ -232,7 +232,7 @@ providers:
 ```
 
 ### Read-Only Enforcement
-Git provider prevents write operations:
+Git context server prevents write operations:
 
 ```python
 def _validate_git_config(self):

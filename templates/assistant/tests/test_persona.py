@@ -75,10 +75,10 @@ class TestPersonaAdherence:
                 },
                 'responseFilters': ['no_secrets', 'appropriate_content']
             },
-            'mcpIntegration': {
+            'contextIntegration': {
                 'enabled': False,
                 'onDemandOnly': True,
-                'allowedProviders': []
+                'allowedServers': []
             }
         }
     

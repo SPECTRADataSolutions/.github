@@ -1,5 +1,5 @@
-# MCP Provider Configuration
-# Defines connection and security settings for Model Context Protocol providers
+# Context Server Configuration
+# Defines connection and security settings for context servers
 # following default-deny security principles
 
 metadata:
@@ -13,10 +13,10 @@ security:
   auditLogging: true
   secretRedaction: true
 
-providers:
+contextServers:
   data:
     enabled: false  # Enable only when needed
-    endpoint: "https://data.example.com/mcp"
+    endpoint: "https://data.example.com/context"
     authentication:
       type: token
       envVariable: DATA_TOKEN

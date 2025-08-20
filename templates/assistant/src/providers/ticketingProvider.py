@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-SPECTRA Ticketing Provider Stub
+SPECTRA Ticketing Context Server Stub
 
-Stub implementation for ticketing MCP provider following SPECTRA security standards.
+Stub implementation for ticketing context server following SPECTRA security standards.
 Implements project allowlists, controlled operations, and audit logging.
 """
 
@@ -26,12 +26,12 @@ class TicketingProvider(DataProvider):
     - Project access validation
     """
     
-    def __init__(self, config_path: str = "config/mcpConfig.yaml"):
+    def __init__(self, config_path: str = "config/contextConfig.yaml"):
         """
         Initialise ticketing provider with configuration.
         
         Args:
-            config_path: Path to MCP configuration file
+            config_path: Path to context configuration file
         """
         # Load config for ticketing provider
         self.config_path = Path(config_path)
@@ -425,7 +425,7 @@ def main():
                 print(f"  {key}: {value}")
                 
         if not status['enabled']:
-            print("\n⚠️  Provider is disabled. Enable in config/mcpConfig.yaml to test operations.")
+            print("\n⚠️  Provider is disabled. Enable in config/contextConfig.yaml to test operations.")
             return
             
         if not status['auth_configured']:

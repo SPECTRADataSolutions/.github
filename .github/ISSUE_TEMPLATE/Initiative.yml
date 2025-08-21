@@ -31,12 +31,12 @@ body:
         - Feature-Driven Development (FDD) – incremental feature delivery
         - Hybrid/Other – specify in notes
 
-  - type: dropdown
+  - type: input
     id: pillar
     attributes:
       label: pillar
-      description: "High-level capability categorisation (Core → Pillar → Domain → Repo). AI/Agents: Select the pillar that best matches the initiative's primary focus. If uncertain, choose based on the main deliverable type - technical work typically goes to Innovation or Sustenance, governance to Guidance, user-facing to Engagement. If work is higher level than the pillar level, then put it in core"
-      options: [Core, Protection, Guidance, Growth, Engagement, Innovation, Sustenance, Execution]
+      description: "High-level capability categorisation (Core → Pillar → Domain → Repo). AI/Agents: Enter the pillar that best matches the initiative's primary focus. Common options: Core, Protection, Guidance, Growth, Engagement, Innovation, Sustenance, Execution. If uncertain, choose based on the main deliverable type - technical work typically goes to Innovation or Sustenance, governance to Guidance, user-facing to Engagement. If work is higher level than the pillar level, then put it in core"
+      placeholder: "Guidance"
     validations:
       required: true
 

@@ -1,4 +1,4 @@
-name: SPECTRA Assistant Blueprint Validation
+name: validate-assistant-blueprint
 
 on:
   workflow_call:

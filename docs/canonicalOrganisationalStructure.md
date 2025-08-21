@@ -6,69 +6,110 @@ This document defines SPECTRA's authoritative organisational structure based on 
 
 ## 📋 Hierarchy Definition
 
+### Spectrafied 7×7×7 Organisational Grid
+The SPECTRA organisational structure follows a canonical 7×7×7 cube design: 7 pillars × 7 domains × 7 capabilities = 343 atomic elements. Each element is mononym (single word), orthogonal (no overlaps), canonical (universally recognised), pertinent (directly relevant), and elemental (irreducible at this layer).
+
 ### Pillars
-High-level capability categorisations that represent fundamental organisational functions, designed around human brain activity patterns:
+Seven high-level capability categorisations representing fundamental organisational functions:
 
-- **Guidance** - Standards, policies, documentation, training, compliance, frameworks
-- **Innovation** - Research, experimentation, prototyping, emerging technologies, futures  
-- **Engagement** - Community, partnerships, communication, outreach, collaboration
-- **Operations** - Infrastructure, deployment, monitoring, automation, maintenance
-- **Sustenance** - Maintenance, support, optimisation, performance, reliability
-- **Protection** - Security, privacy, compliance, risk management, auditing, recovery
-- **Growth** - Expansion, acquisition, scaling, development, enhancement, evolution
+1. **Protection** - Security, compliance, privacy, resilience, risk management, safety, assurance
+2. **Guidance** - Vision, leadership, navigation, ethics, governance, alignment, decision-making
+3. **Growth** - Learning, scaling, adaptation, performance, talent development, opportunity, progression
+4. **Engagement** - Community, communication, partnerships, participation, culture, reputation, inclusion
+5. **Innovation** - Creativity, research, technology, transformation, design, experimentation, invention
+6. **Sustenance** - Resources, energy, provision, maintenance, logistics, support, capacity
+7. **Execution** - Process, delivery, operations, precision, efficiency, method, output
 
-#### CEO Experience Pillar Ordering
-For the CEO experience interface, pillars are arranged in a semi-circle layout based on human brain activity patterns:
-**Protection, Sustenance, Innovation, Operations, Engagement, Growth, Guidance**
-
-#### Executive Identification
-Executives are identified by canonical pillar names only. **C*O acronyms are legacy aliases and must not be used operationally.**
-
-**Legacy Aliases (NOT for operational use):**
-- CFO → use **Guidance** (canonical)
-- CTO → use **Innovation** (canonical)
-- CMO → use **Engagement** (canonical)
-- COO → use **Operations** (canonical)
-- CSO → use **Protection** (canonical)
-- CDO → use **Sustenance** (canonical)
-- CEO → use **Growth** (canonical)
-- CIO, CKO, CAO, COS → use appropriate canonical pillar
+#### Pillar Ordering
+Pillars are ordered for optimal cognitive load distribution:
+**Protection, Guidance, Growth, Engagement, Innovation, Sustenance, Execution**
 
 ### Domains
-Single-word camelCase domains that are pertinent to their parent pillar:
-
-#### Guidance Domains
-- `governance`, `standard`, `structure`, `intelligence`
-
-#### Innovation Domains  
-- `research`, `design`, `architecture`, `engineering`
-
-#### Engagement Domains
-- `brand`, `marketing`, `messaging`, `media`, `network`, `developer`
-
-#### Operations Domains
-- `coordination`, `schedule`, `response`, `delivery`
-
-#### Sustenance Domains
-- `infrastructure`, `platform`, `pipeline`, `reliability`, `support`, `maintenance`
+Each pillar contains exactly 7 single-word camelCase domains (49 total):
 
 #### Protection Domains
-- `security`, `compliance`, `risk`, `safety`, `ethic`, `privacy`
+- `security` - Access control, identity management, defence, monitoring, encryption, firewall, response
+- `compliance` - Policy, audit, control, standard, licence, mandate, assessment
+- `privacy` - Consent, anonymity, confidentiality, redaction, retention, minimisation, disclosure
+- `resilience` - Backup, recovery, continuity, redundancy, failover, tolerance, restoration
+- `risk` - Analysis, exposure, likelihood, impact, mitigation, contingency, register
+- `safety` - Hazard, health, prevention, equipment, environment, awareness, readiness
+- `assurance` - Quality, testing, validation, verification, inspection, certification, guarantee
+
+#### Guidance Domains
+- `vision` - Purpose, mission, dream, principle, future, goal, aspiration
+- `leadership` - Influence, authority, mentoring, stewardship, accountability, delegation, empowerment
+- `navigation` - Plan, roadmap, schedule, milestone, direction, adjustment, foresight
+- `ethics` - Fairness, justice, honesty, integrity, responsibility, equity, trust
+- `governance` - Charter, constitution, bylaw, oversight, board, rule, statute
+- `alignment` - Coherence, integration, balance, synergy, convergence, priority, fit
+- `decision` - Choice, option, judgement, resolution, approval, selection, mandate
 
 #### Growth Domains
-- `finance`, `collaboration`, `acquisition`, `insight`, `revenue`
+- `learning` - Training, teaching, study, reflection, mentoring, coaching, practice
+- `scaling` - Replication, expansion, standardisation, automation, distribution, integration, acceleration
+- `adaptation` - Flexibility, change, response, evolution, redesign, reorganisation, recalibration
+- `performance` - Metric, outcome, target, efficiency, result, score, benchmark
+- `talent` - Hiring, onboarding, retention, succession, promotion, recognition, reward
+- `opportunity` - Market, trend, niche, prospect, lead, opening, advantage
+- `progression` - Stage, ladder, pathway, journey, cycle, transition, development
+
+#### Engagement Domains
+- `community` - Group, network, forum, association, membership, circle, solidarity
+- `communication` - Message, signal, channel, medium, dialogue, broadcast, exchange
+- `partnerships` - Alliance, contract, deal, venture, merger, sponsor, agreement
+- `participation` - Vote, join, attend, contribute, collaborate, volunteer, engage
+- `culture` - Value, norm, custom, practice, ritual, story, symbol
+- `reputation` - Brand, image, trust, standing, review, rating, profile
+- `inclusion` - Access, equity, diversity, belonging, voice, fairness, opportunity
+
+#### Innovation Domains
+- `creativity` - Idea, concept, sketch, vision, draft, imagination, inspiration
+- `research` - Hypothesis, experiment, study, evidence, survey, trial, result
+- `technology` - System, platform, network, tool, interface, device, software
+- `transformation` - Shift, reframe, breakthrough, revolution, disruption, renewal, pivot
+- `design` - Form, function, pattern, model, plan, layout, structure
+- `experimentation` - Test, iteration, sandbox, assay, beta, pilot, feedback
+- `invention` - Discovery, creation, mechanism, solution, product, method, patent
+
+#### Sustenance Domains
+- `resources` - Finance, capital, asset, stock, supply, fund, reserve
+- `energy` - Fuel, power, current, charge, flow, storage, output
+- `provision` - Amenity, delivery, assistance, aid, benefit, grant, allocation
+- `maintenance` - Repair, upkeep, servicing, inspection, cleaning, renewal, preservation
+- `logistics` - Transport, storage, handling, routing, scheduling, tracking, distribution
+- `support` - Help, advice, care, counsel, backing, enablement
+- `capacity` - Load, throughput, quota, bandwidth, volume, range, scale
+
+#### Execution Domains
+- `process` - Step, method, stage, sequence, cycle, framework, flow
+- `delivery` - Product, service, release, shipment, package, outcome, completion
+- `operations` - Production, handling, running, activity, execution, dispatch, administration
+- `precision` - Accuracy, detail, standard, measure, calibration, tolerance, exactness
+- `efficiency` - Speed, cost, waste, lean, productivity, economy, optimisation
+- `method` - Approach, technique, tactic, procedure, practice, model, style
+- `output` - Result, effect, artefact, deliverable, unit, value, yield
 
 ### Capabilities
-Single-word camelCase capabilities that represent specific functional areas within each domain.
+Each domain contains exactly 7 single-word camelCase capabilities (343 total). Capabilities represent atomic, irreducible functional units within their domain context.
 
 ### Repositories
-Individual GitHub repositories following standard naming conventions.
+Individual GitHub repositories classified within the 7×7×7 structure following standard naming conventions.
 
 ## 🔧 Implementation Requirements
 
 ### Repository Metadata
-Every repository must declare its organisational position in machine-readable format:
+Every repository must declare its organisational position in machine-readable format using the Spectrafied 7×7×7 structure:
 
+```yaml
+# .spectra/metadata.yml
+pillar: [Protection|Guidance|Growth|Engagement|Innovation|Sustenance|Execution]
+domain: [one of 7 domains per pillar]
+capabilities: [one of 7 capabilities per domain]
+repository: [repository-name]
+```
+
+**Example:**
 ```yaml
 # .spectra/metadata.yml
 pillar: Guidance
@@ -86,6 +127,9 @@ Every repository README must include the organisational hierarchy:
 **Domain:** governance  
 **Capabilities:** framework  
 **Repository:** .github
+
+This repository is part of SPECTRA's Spectrafied 7×7×7 organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).
+```
 ```
 
 ### Issue Template Integration

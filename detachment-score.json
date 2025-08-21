@@ -1,0 +1,10 @@
+{
+  "detachmentScore": 100,
+  "status": "\ud83c\udf1f EXCELLENT - Ready for extraction",
+  "timestamp": "2025-08-21T09:12:54.892850Z",
+  "bonuses": [
+    "Server directory does not exist yet (+5)"
+  ],
+  "deductions": [],
+  "recommendation": "System is ready for extraction. Proceed with migration checklist."
+}

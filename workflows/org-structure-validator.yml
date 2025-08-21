@@ -86,12 +86,12 @@ jobs:
           
           # Check pillar is in allowed list
           case $PILLAR in
-            "Guidance"|"Innovation"|"Engagement"|"Operations"|"Protection"|"Sustenance"|"Growth")
+            "Protection"|"Guidance"|"Growth"|"Engagement"|"Innovation"|"Sustenance"|"Execution")
               echo "✅ Valid pillar: $PILLAR"
               ;;
             *)
               echo "❌ Invalid pillar: $PILLAR"
-              echo "   Must be one of: Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth"
+              echo "   Must be one of: Protection, Guidance, Growth, Engagement, Innovation, Sustenance, Execution"
               exit 1
               ;;
           esac

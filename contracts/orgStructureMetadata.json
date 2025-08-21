@@ -2,31 +2,31 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/SPECTRADataSolutions/.github/contracts/orgStructureMetadata.json",
   "title": "SPECTRA Canonical Organizational Structure Metadata",
-  "description": "Schema defining the Spectrafied 7x7x7 hierarchy: Pillar → Domain → Capabilities → Repository",
+  "description": "Schema defining the hierarchy: Pillar → Domain → Capabilities → Repository",
   "type": "object",
   "properties": {
     "pillar": {
       "type": "string",
       "enum": [
-        "Protection",
         "Guidance",
-        "Growth",
+        "Innovation", 
         "Engagement",
-        "Innovation",
+        "Operations",
+        "Protection",
         "Sustenance",
-        "Execution"
+        "Growth"
       ],
-      "description": "High-level categorization of organizational capability (7 Spectrafied pillars)"
+      "description": "High-level categorization of organizational capability"
     },
     "domain": {
       "type": "string",
       "pattern": "^[a-z][a-zA-Z]*$",
-      "description": "Single-word camelCase domain pertinent to the pillar (7 domains per pillar)"
+      "description": "Single-word camelCase domain pertinent to the pillar"
     },
     "capabilities": {
       "type": "string",
       "pattern": "^[a-z][a-zA-Z]*$",
-      "description": "Single-word camelCase capabilities within the domain (7 capabilities per domain)"
+      "description": "Single-word camelCase capabilities within the domain"
     },
     "repository": {
       "type": "string",
@@ -40,28 +40,6 @@
     {
       "if": {
         "properties": {
-          "pillar": { "const": "Protection" }
-        }
-      },
-      "then": {
-        "properties": {
-          "domain": {
-            "enum": [
-              "security",
-              "compliance",
-              "privacy",
-              "resilience",
-              "risk",
-              "safety",
-              "assurance"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
           "pillar": { "const": "Guidance" }
         }
       },
@@ -69,57 +47,10 @@
         "properties": {
           "domain": {
             "enum": [
-              "vision",
-              "leadership",
-              "navigation",
-              "ethics",
               "governance",
-              "alignment",
-              "decision"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "pillar": { "const": "Growth" }
-        }
-      },
-      "then": {
-        "properties": {
-          "domain": {
-            "enum": [
-              "learning",
-              "scaling",
-              "adaptation",
-              "performance",
-              "talent",
-              "opportunity",
-              "progression"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "pillar": { "const": "Engagement" }
-        }
-      },
-      "then": {
-        "properties": {
-          "domain": {
-            "enum": [
-              "community",
-              "communication",
-              "partnerships",
-              "participation",
-              "culture",
-              "reputation",
-              "inclusion"
+              "standard",
+              "structure",
+              "intelligence"
             ]
           }
         }
@@ -135,13 +66,72 @@
         "properties": {
           "domain": {
             "enum": [
-              "creativity",
               "research",
-              "technology",
-              "transformation",
               "design",
-              "experimentation",
-              "invention"
+              "architecture",
+              "engineering",
+              "assistantPlatform"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "pillar": { "const": "Engagement" }
+        }
+      },
+      "then": {
+        "properties": {
+          "domain": {
+            "enum": [
+              "brand",
+              "marketing",
+              "messaging",
+              "media",
+              "network",
+              "developer"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "pillar": { "const": "Operations" }
+        }
+      },
+      "then": {
+        "properties": {
+          "domain": {
+            "enum": [
+              "coordination",
+              "schedule",
+              "response",
+              "delivery"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "pillar": { "const": "Protection" }
+        }
+      },
+      "then": {
+        "properties": {
+          "domain": {
+            "enum": [
+              "security",
+              "compliance",
+              "risk",
+              "safety",
+              "ethic",
+              "privacy"
             ]
           }
         }
@@ -157,13 +147,12 @@
         "properties": {
           "domain": {
             "enum": [
-              "resources",
-              "energy",
-              "provision",
-              "maintenance",
-              "logistics",
+              "infrastructure",
+              "platform",
+              "pipeline",
+              "reliability",
               "support",
-              "capacity"
+              "maintenance"
             ]
           }
         }
@@ -172,20 +161,18 @@
     {
       "if": {
         "properties": {
-          "pillar": { "const": "Execution" }
+          "pillar": { "const": "Growth" }
         }
       },
       "then": {
         "properties": {
           "domain": {
             "enum": [
-              "process",
-              "delivery",
-              "operations",
-              "precision",
-              "efficiency",
-              "method",
-              "output"
+              "finance",
+              "collaboration",
+              "acquisition",
+              "insight",
+              "revenue"
             ]
           }
         }

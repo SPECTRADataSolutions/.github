@@ -5,23 +5,23 @@ Copy this template to `.spectra/metadata.yml` in your repository root.
 ```yaml
 # .spectra/metadata.yml
 # SPECTRA Canonical Organisational Structure Metadata
-# This file defines the repository's position in the Spectrafied 7×7×7 hierarchy:
+# This file defines the repository's position in the hierarchy:
 # Pillar → Domain → Capabilities → Repository
 
-pillar: [CHOOSE_ONE: Protection|Guidance|Growth|Engagement|Innovation|Sustenance|Execution]
+pillar: [CHOOSE_ONE: Guidance|Innovation|Engagement|Operations|Protection|Sustenance|Growth]
 domain: [SINGLE_WORD_CAMELCASE_DOMAIN]
 capabilities: [SINGLE_WORD_CAMELCASE_CAPABILITIES]
 repository: [REPOSITORY_NAME]
 
-# Spectrafied 7×7×7 Pillar-Domain Mapping Reference:
+# Pillar-Domain Mapping Reference:
 # 
-# Protection: security, compliance, privacy, resilience, risk, safety, assurance
-# Guidance: vision, leadership, navigation, ethics, governance, alignment, decision
-# Growth: learning, scaling, adaptation, performance, talent, opportunity, progression
-# Engagement: community, communication, partnerships, participation, culture, reputation, inclusion
-# Innovation: creativity, research, technology, transformation, design, experimentation, invention
-# Sustenance: resources, energy, provision, maintenance, logistics, support, capacity
-# Execution: process, delivery, operations, precision, efficiency, method, output
+# Guidance: governance, standard, structure, intelligence
+# Innovation: research, design, architecture, engineering
+# Engagement: brand, marketing, messaging, media, network, developer
+# Operations: coordination, schedule, response, delivery
+# Protection: security, compliance, risk, safety, ethic, privacy
+# Sustenance: infrastructure, platform, pipeline, reliability, support, maintenance
+# Growth: finance, collaboration, acquisition, insight, revenue
 ```
 
 ## README Section Template
@@ -35,7 +35,7 @@ Add this section to your repository's README.md:
 **Capabilities:** [yourCapabilities]  
 **Repository:** [repository-name]
 
-This repository is part of SPECTRA's Spectrafied 7×7×7 organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).
+This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).
 ```
 
 ## Workflow Integration Template
@@ -85,5 +85,5 @@ repository: .github
 **Capabilities:** framework  
 **Repository:** .github
 
-This repository is part of SPECTRA's Spectrafied 7×7×7 organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).
+This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).
 ```

@@ -1,32 +1,59 @@
-# contributing
+# 🤝 Contributing to the SPECTRA Framework
 
-## workflow
-- all work starts as an **initiative**  
-- initiatives may generate **epics** automatically  
-- break epics down into **stories** and **tasks**  
-- use only the provided issue templates for each work item type
+Thank you for your interest in contributing to **SPECTRA**.  
+This framework is designed as a **self-governing digital ecosystem** — contributions are welcome, but must align with the **Doctrine of Selves** and the **7×7×7 lattice**.
 
-## naming
-- follow **camelCase** for all IDs, fields, and custom names
-- issue titles: keep short, clear, and start with the correct emoji/type prefix
-- no acronyms unless required by external standards
+---
 
-## linking
-- link stories and tasks back to their parent epic or initiative
-- link epics back to their parent initiative
-- dependencies between items must use the **🔗 Dependency** template
+## 🛠 Contribution Workflow
 
-## labels
-- use only labels from `.github/labels.json`
-- do not create ad-hoc labels
+1. **Fork** the repository and create your feature branch:
+   ```bash
+   git checkout -b feature/your-feature
+   ```
+2. **Commit** changes with clear, conventional messages:
+   ```
+   feat(principles): add resilience buffer capability
+   fix(tools): update generate_readme.py for multi-pillar support
+   ```
+3. **Open a Pull Request** and link it to an Issue if applicable.  
+   All PRs are reviewed for **Spectra alignment** (mononyms, structure, governance).
 
-## reviews
-- small changes: 1 review from another contributor
-- major changes: approval from the repo maintainer
+---
 
-## automation
-- do not edit files in `outputs/` manually unless you are updating generated content intentionally
-- workflows will reject incomplete or non-compliant issues
+## ✅ Contribution Standards
 
-## conduct
-- follow the [code of conduct](CODE_OF_CONDUCT.md)
+- **Mononyms only** – all repo names, capabilities, and services must be single, canonical words.  
+- **Orthogonality** – no overlaps between domains or capabilities.  
+- **Purity** – YAML is always the canonical source; Markdown is generated.  
+- **Compliance** – all workflows must pass CI/CD, linting, and security scans.  
+
+---
+
+## 📖 Documentation
+
+- Do not edit pillar `README.md` files directly.  
+- Update the corresponding `*.yaml` under `framework/principles/<pillar>/`.  
+- Run:
+  ```bash
+  python framework/tools/generate_readme.py framework/principles/<pillar>/<pillar>.yaml
+  ```
+  to regenerate the human-readable docs.
+
+---
+
+## 🛡️ Code of Conduct
+
+We adhere to a strict **zero-toxicity policy**:  
+- Respect all contributors.  
+- Critique ideas, not people.  
+- No harassment, discrimination, or hostility.
+
+---
+
+## 🏆 Recognition
+
+Every merged contribution is part of the **SPECTRA self-evolution**.  
+You are shaping a living system that grows smarter with every commit.  
+
+Thank you for helping **Spectrafy** the ecosystem! 🌟

@@ -1,4 +1,4 @@
-name: guard-governance-policies
+name: check-issue-metadata
 
 on:
   issues:

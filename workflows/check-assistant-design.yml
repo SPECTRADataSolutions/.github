@@ -1,4 +1,4 @@
-name: validate-assistant-blueprint
+name: check-assistant-design
 
 on:
   workflow_call:

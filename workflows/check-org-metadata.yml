@@ -1,4 +1,4 @@
-name: validate-org-structure
+name: check-org-metadata
 description: "Validates repository metadata against SPECTRA canonical organizational structure"
 
 on:

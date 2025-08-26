@@ -1,4 +1,4 @@
-name: plan-and-generate
+name: create-initiative-epics
 
 on:
   issues:
@@ -7,7 +7,6 @@ on:
 permissions:
   contents: write   # commit outputs
   issues: write     # create epics, comment
-  projects: write
 
 jobs:
   run:

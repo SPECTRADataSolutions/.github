@@ -1,4 +1,4 @@
-name: validate-context-manifest
+name: check-context-file
 description: "Validates contextManifest.yaml against SPECTRA context system contracts and SPECTRA governance rules"
 
 on:

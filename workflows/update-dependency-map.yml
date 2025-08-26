@@ -1,4 +1,4 @@
-name: update-dependency-graph
+name: update-dependency-map
 
 on:
   issues:

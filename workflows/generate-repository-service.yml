@@ -1,0 +1,52 @@
+name: generate-repository-service
+
+on:
+  workflow_dispatch:
+    inputs:
+      repoName:
+        description: "service (camelCase) — becomes repository name"
+        required: true
+        type: string
+      pillar:
+        description: "Strategic pillar"
+        required: true
+        type: string
+      domain:
+        description: "single-token camelCase domain"
+        required: true
+        type: string
+      capability:
+        description: "single-token camelCase capability"
+        required: true
+        type: string
+      repoType:
+        description: "engineering|operations|applications|governance|content"
+        required: true
+        type: string
+      visibility:
+        description: "public or private"
+        required: true
+        type: string
+        default: private
+      description:
+        description: "Short description"
+        required: true
+        type: string
+      homepage:
+        description: "Optional homepage URL"
+        required: false
+        type: string
+
+jobs:
+  invoke-generate:
+    uses: spectradatasolutions/framework/.github/workflows/generate-repository-service.yml@main
+    with:
+      repoName: ${{ github.event.inputs.repoName }}
+      pillar: ${{ github.event.inputs.pillar }}
+      domain: ${{ github.event.inputs.domain }}
+      capability: ${{ github.event.inputs.capability }}
+      repoType: ${{ github.event.inputs.repoType }}
+      visibility: ${{ github.event.inputs.visibility }}
+      description: ${{ github.event.inputs.description }}
+      homepage: ${{ github.event.inputs.homepage }}
+    secrets: inherit

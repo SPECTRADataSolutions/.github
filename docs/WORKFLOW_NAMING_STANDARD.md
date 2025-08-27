@@ -7,8 +7,26 @@ This document establishes the naming convention for GitHub Actions workflows in 
 ## Naming Convention
 
 ### Format
-```
+
 {action}-{object}-{modifier}
+
+```yaml
+# Example workflow file using the naming standard
+
+name: validate-organization-structure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate organization structure
+        run: echo "Validating organization structure..."
 ```
 
 ### Rules

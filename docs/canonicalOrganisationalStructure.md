@@ -147,14 +147,14 @@ Every repository README must include the organisational hierarchy:
 This repository is part of SPECTRA's Spectrafied 7×7×7 organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).
 ```
 
-```
-
 ### Issue Template Integration
+
 All issue templates must capture and validate organisational metadata through structured forms.
 
 ## ⚙️ Automation & Enforcement
 
 ### Validation Workflow
+
 Repositories now use the inline workflow `validate-organisation-structure` (centralised logic; reusable variant deprecated). Example minimal workflow already provided in this repository at `.github/workflows/validate-organisation-structure.yml`:
 
 ```yaml
@@ -240,6 +240,17 @@ This repository is part of SPECTRA's canonical organisational structure. For mor
 ```
 
 ## 📞 Support & Governance
+
+- **Schema Questions**: Reference `contracts/orgStructureMetadata.json`
+- **Classification Help**: Create issue with `@copilot` assignment
+- **Change Requests**: Follow governance approval process
+- **Validation Issues**: Check CI logs and validator workflow
+
+---
+
+> 🏛️ **Governance Principle**: This structure provides the foundational taxonomy for all SPECTRA operations, enabling consistent classification, automated governance, and clear organisational visibility.
+
+````## 📞 Support & Governance
 
 - **Schema Questions**: Reference `contracts/orgStructureMetadata.json`
 - **Classification Help**: Create issue with `@copilot` assignment

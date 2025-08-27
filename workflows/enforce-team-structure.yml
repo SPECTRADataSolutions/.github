@@ -1,7 +1,0 @@
-name: removed-enforce-team-structure
-on: {}
-jobs:
-  removed:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "enforce-team-structure workflow removed (stub)."

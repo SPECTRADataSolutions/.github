@@ -15,8 +15,8 @@ Use the nav block; values must be accurate.
 <!-- NAV_START -->
 **Dream**: SPECTRA
 **Pillar**: Guidance | Innovation | Engagement | Execution | Protection | Sustenance | Growth
-**Domain**: <singleTokenCamelCase>
-**Capability**: <singleTokenCamelCase>
+**Domain**: `singleTokenCamelCase`
+**Capability**: `singleTokenCamelCase`
 **Service**: <serviceName or owner/repo>
 <!-- NAV_END -->
 

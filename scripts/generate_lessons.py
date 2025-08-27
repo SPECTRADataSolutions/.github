@@ -12,7 +12,7 @@ import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, DefaultDict, Dict, List, Tuple, Iterable, cast
+from typing import Any, DefaultDict, Dict, List, Tuple, cast
 
 RE_WORD = re.compile(r"\b[a-zA-Z]{3,}\b")
 STOP_WORDS = {
@@ -159,9 +159,7 @@ class InitiativeLessonsGenerator:
                     obj["lessons"] = lessons_any
                 lessons = cast(Lessons, lessons_any)
                 for cat in LESSON_CATEGORIES:
-                    existing = lessons.setdefault(cat, [])
-                    if not isinstance(existing, list):
-                        lessons[cat] = []
+                    lessons.setdefault(cat, [])
                 raw_entries.append(obj)
         for obj in raw_entries:
             self.vocabulary.update(self._tokenize(self._compose_text_from_history(obj)))

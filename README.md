@@ -35,7 +35,30 @@ This repository maintains a perfect detachment score, indicating optimal organiz
 
 ## 📁 Repository Structure
 
-```
+.github/                    # Organization-wide GitHub configurations
+├── ISSUE_TEMPLATE/        # Standardized issue templates for all repositories
+├── workflows/             # Reusable governance workflows
+├── labels.json           # Canonical label definitions
+└── PULL_REQUEST_TEMPLATE.md
+
+docs/                      # Governance documentation
+├── canonicalOrganisationalStructure.md  # Authority on 7×7×7 structure
+├── repositoryProvisioning.md   # Automated repository creation guide
+├── contextSystemGovernance.md           # Context system governance
+├── implementationSummary.md             # System implementation overview
+└── repoStructureStandard.md            # Repository structure requirements
+
+scripts/                   # Governance automation scripts
+├── computeDetachmentScore.py            # Spectrafy score calculator
+├── label_readiness.py                   # Initiative readiness assessment
+├── repo_factory.py                     # Repository creation automation
+└── generate_lessons.py                 # Learning extraction automation
+
+.spectra/                  # Organizational metadata
+└── metadata.yml           # Machine-readable organizational classification
+
+```plaintext
+
 .github/                    # Organization-wide GitHub configurations
 ├── ISSUE_TEMPLATE/        # Standardized issue templates for all repositories
 ├── workflows/             # Reusable governance workflows

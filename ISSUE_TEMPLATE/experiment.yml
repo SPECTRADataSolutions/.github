@@ -1,0 +1,30 @@
+name: "🧪 Experiment"
+description: Structured hypothesis test / discovery.
+title: "🧪 [Experiment] <shortTitle>"
+labels: ["type:experiment","status:proposed"]
+body:
+  - type: textarea
+    id: hypothesis
+    attributes:
+      label: hypothesis
+      description: expected outcome statement
+    validations: { required: true }
+  - type: textarea
+    id: method
+    attributes:
+      label: method
+      description: how will you test?
+    validations: { required: true }
+  - type: textarea
+    id: successCriteria
+    attributes:
+      label: successCriteria
+      description: measurable pass/fail criteria
+    validations: { required: true }
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: createStoriesFromSuccessCriteria
+        - label: archiveResultsToKnowledgeBase

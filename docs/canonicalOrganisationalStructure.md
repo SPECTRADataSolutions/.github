@@ -7,9 +7,11 @@ This document defines SPECTRA's authoritative organisational structure based on 
 ## 📋 Hierarchy Definition
 
 ### Spectrafied 7×7×7 Organisational Grid
+
 The SPECTRA organisational structure follows a canonical 7×7×7 cube design: 7 pillars × 7 domains × 7 capabilities = 343 atomic elements. Each element is mononym (single word), orthogonal (no overlaps), canonical (universally recognised), pertinent (directly relevant), and elemental (irreducible at this layer).
 
 ### Pillars
+
 Seven high-level capability categorisations representing fundamental organisational functions:
 
 1. **Protection** - Security, compliance, privacy, resilience, risk management, safety, assurance
@@ -21,13 +23,16 @@ Seven high-level capability categorisations representing fundamental organisatio
 7. **Execution** - Process, delivery, operations, precision, efficiency, method, output
 
 #### Pillar Ordering
+
 Pillars are ordered for optimal cognitive load distribution:
 **Protection, Guidance, Growth, Engagement, Innovation, Sustenance, Execution**
 
 ### Domains
+
 Each pillar contains exactly 7 single-word camelCase domains (49 total):
 
 #### Protection Domains
+
 - `security` - Access control, identity management, defence, monitoring, encryption, firewall, response
 - `compliance` - Policy, audit, control, standard, licence, mandate, assessment
 - `privacy` - Consent, anonymity, confidentiality, redaction, retention, minimisation, disclosure
@@ -37,6 +42,7 @@ Each pillar contains exactly 7 single-word camelCase domains (49 total):
 - `assurance` - Quality, testing, validation, verification, inspection, certification, guarantee
 
 #### Guidance Domains
+
 - `vision` - Purpose, mission, dream, principle, future, goal, aspiration
 - `leadership` - Influence, authority, mentoring, stewardship, accountability, delegation, empowerment
 - `navigation` - Plan, roadmap, schedule, milestone, direction, adjustment, foresight
@@ -46,6 +52,7 @@ Each pillar contains exactly 7 single-word camelCase domains (49 total):
 - `decision` - Choice, option, judgement, resolution, approval, selection, mandate
 
 #### Growth Domains
+
 - `learning` - Training, teaching, study, reflection, mentoring, coaching, practice
 - `scaling` - Replication, expansion, standardisation, automation, distribution, integration, acceleration
 - `adaptation` - Flexibility, change, response, evolution, redesign, reorganisation, recalibration
@@ -55,6 +62,7 @@ Each pillar contains exactly 7 single-word camelCase domains (49 total):
 - `progression` - Stage, ladder, pathway, journey, cycle, transition, development
 
 #### Engagement Domains
+
 - `community` - Group, network, forum, association, membership, circle, solidarity
 - `communication` - Message, signal, channel, medium, dialogue, broadcast, exchange
 - `partnerships` - Alliance, contract, deal, venture, merger, sponsor, agreement
@@ -64,6 +72,7 @@ Each pillar contains exactly 7 single-word camelCase domains (49 total):
 - `inclusion` - Access, equity, diversity, belonging, voice, fairness, opportunity
 
 #### Innovation Domains
+
 - `creativity` - Idea, concept, sketch, vision, draft, imagination, inspiration
 - `research` - Hypothesis, experiment, study, evidence, survey, trial, result
 - `technology` - System, platform, network, tool, interface, device, software
@@ -73,6 +82,7 @@ Each pillar contains exactly 7 single-word camelCase domains (49 total):
 - `invention` - Discovery, creation, mechanism, solution, product, method, patent
 
 #### Sustenance Domains
+
 - `resources` - Finance, capital, asset, stock, supply, fund, reserve
 - `energy` - Fuel, power, current, charge, flow, storage, output
 - `provision` - Amenity, delivery, assistance, aid, benefit, grant, allocation
@@ -82,6 +92,7 @@ Each pillar contains exactly 7 single-word camelCase domains (49 total):
 - `capacity` - Load, throughput, quota, bandwidth, volume, range, scale
 
 #### Execution Domains
+
 - `process` - Step, method, stage, sequence, cycle, framework, flow
 - `delivery` - Product, service, release, shipment, package, outcome, completion
 - `operations` - Production, handling, running, activity, execution, dispatch, administration
@@ -91,14 +102,17 @@ Each pillar contains exactly 7 single-word camelCase domains (49 total):
 - `output` - Result, effect, artefact, deliverable, unit, value, yield
 
 ### Capabilities
+
 Each domain contains exactly 7 single-word camelCase capabilities (343 total). Capabilities represent atomic, irreducible functional units within their domain context.
 
 ### Repositories
+
 Individual GitHub repositories classified within the 7×7×7 structure following standard naming conventions.
 
 ## 🔧 Implementation Requirements
 
 ### Repository Metadata
+
 Every repository must declare its organisational position in machine-readable format using the Spectrafied 7×7×7 structure:
 
 ```yaml
@@ -110,6 +124,7 @@ repository: [repository-name]
 ```
 
 **Example:**
+
 ```yaml
 # .spectra/metadata.yml
 pillar: Guidance
@@ -119,17 +134,19 @@ repository: .github
 ```
 
 ### README Declaration
+
 Every repository README must include the organisational hierarchy:
 
 ```markdown
 ## 🏛️ Organisational Structure
-**Pillar:** Guidance  
-**Domain:** governance  
-**Capabilities:** framework  
+**Pillar:** Guidance
+**Domain:** governance
+**Capabilities:** framework
 **Repository:** .github
 
 This repository is part of SPECTRA's Spectrafied 7×7×7 organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/blob/main/docs/canonicalOrganisationalStructure.md).
 ```
+
 ```
 
 ### Issue Template Integration
@@ -137,23 +154,31 @@ All issue templates must capture and validate organisational metadata through st
 
 ## ⚙️ Automation & Enforcement
 
-### Reusable Validator Workflow
-Use the organisation-wide validator in your repository workflows:
+### Validation Workflow
+Repositories now use the inline workflow `validate-organisation-structure` (centralised logic; reusable variant deprecated). Example minimal workflow already provided in this repository at `.github/workflows/validate-organisation-structure.yml`:
 
 ```yaml
-name: Validate Organisational Structure
-on: [push, pull_request]
+name: validate-organisation-structure
+on:
+  pull_request:
+    paths: [".spectra/metadata.yml", "README.md"]
+  push:
+    paths: [".spectra/metadata.yml", "README.md"]
 
 jobs:
-  validate:
-    uses: SPECTRADataSolutions/.github/.github/workflows/org-structure-validator.yml@main
-    with:
-      pillar: Guidance
-      domain: governance
-      capabilities: framework
+  validate-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            // See repository workflow for full logic – validates README nav block & metadata coherence
+            console.log('Refer to validate-organisation-structure workflow implementation.')
 ```
 
 ### CI Enforcement Rules
+
 - **Schema Validation**: All metadata must conform to `contracts/orgStructureMetadata.json`
 - **Naming Conventions**: Domains must be single-word camelCase
 - **Pertinence Check**: Domains must be valid for their pillar
@@ -162,12 +187,14 @@ jobs:
 ## 📚 Governance Rules
 
 ### Framework Authority
+
 - **frameworkIsLaw**: No local variations permitted
 - **britishEnglish**: All documentation uses British spelling
 - **camelCase**: Consistent naming conventions throughout
 - **canonicalSetsChangeByGovernanceOnly**: Archetype and domain enumerations require governance approval
 
 ### Change Management
+
 1. **Pillar Changes**: Require leadership approval and organisation-wide impact assessment
 2. **Domain Changes**: Must demonstrate pertinence to pillar and avoid naming conflicts
 3. **Repository Migration**: Follow structured playbooks and validation checklists
@@ -182,28 +209,31 @@ jobs:
 ## 🛠️ Migration Guide
 
 ### For Existing Repositories
+
 1. **Assess Current State**: Identify existing metadata patterns
 2. **Classify Repository**: Determine appropriate pillar and domain
 3. **Add Metadata**: Create `.spectra/metadata.yml` with organisational structure
 4. **Update README**: Add organisational structure section
-5. **Configure CI**: Integrate org-structure-validator workflow
+5. **Configure CI**: Add / adapt `validate-organisation-structure` workflow
 6. **Validate**: Run validation and fix any issues
 
 ### Repository Metadata Pattern
+
 ```yaml
 # .spectra/metadata.yml
-pillar: [Guidance|Innovation|Engagement|Operations|Protection|Sustenance|Growth]
+pillar: [Guidance|Innovation|Engagement|Execution|Protection|Sustenance|Growth]
 domain: [pertinent single-word camelCase domain]
 capabilities: [single-word camelCase capabilities]
 repository: [repository-name]
 ```
 
 ### README Snippet Template
+
 ```markdown
 ## 🏛️ Organisational Structure
-**Pillar:** [Your Pillar]  
-**Domain:** [yourDomain]  
-**Capabilities:** [yourCapabilities]  
+**Pillar:** [Your Pillar]
+**Domain:** [yourDomain]
+**Capabilities:** [yourCapabilities]
 **Repository:** [repository-name]
 
 This repository is part of SPECTRA's canonical organisational structure. For more information, see [Canonical Organisational Structure](https://github.com/SPECTRADataSolutions/.github/docs/canonicalOrganisationalStructure.md).

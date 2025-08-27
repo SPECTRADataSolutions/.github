@@ -1,0 +1,20 @@
+name: "🛠️ Task"
+description: Atomic unit of work.
+title: "🛠️ [Task] <shortTitle>"
+labels: ["type:task","status:triage"]
+body:
+  - type: textarea
+    id: work
+    attributes:
+      label: work
+    validations: { required: true }
+  - type: textarea
+    id: definitionOfDone
+    attributes:
+      label: definitionOfDone
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: linkToParentWorkItem

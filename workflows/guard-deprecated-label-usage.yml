@@ -1,0 +1,23 @@
+name: guard-deprecated-label-usage
+
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [labeled]
+
+jobs:
+  prevent-deprecated-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: block-deprecated-steward-operations
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const payload = context.payload;
+            const labels = (payload.issue?.labels || payload.pull_request?.labels || []).map(l=>l.name);
+            if(!labels.includes('steward:operations')) return;
+            const issue_number = payload.issue?.number || payload.pull_request?.number;
+            if(!issue_number) return;
+            await github.rest.issues.createComment({ ...context.repo, issue_number, body: '⚠️ `steward:operations` is deprecated. Use `steward:execution`. Label will be removed.' });
+            try { await github.rest.issues.removeLabel({ ...context.repo, issue_number, name: 'steward:operations' }); } catch(e){ core.warning('Could not remove deprecated label: '+e.message); }

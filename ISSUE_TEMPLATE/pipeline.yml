@@ -1,0 +1,53 @@
+name: "🧬 Pipeline"
+description: Plan & govern multi-stage data/processing pipeline.
+title: "🧬 [Pipeline] <shortTitle>"
+labels: ["type:pipeline","status:planning"]
+body:
+  - type: input
+    id: pipelineName
+    attributes:
+      label: pipelineName
+      placeholder: myPipeline
+    validations: { required: true }
+  - type: textarea
+    id: goal
+    attributes:
+      label: goal
+      description: purpose & outcome
+    validations: { required: true }
+  - type: textarea
+    id: scope
+    attributes:
+      label: scope
+      description: in/out of scope
+      placeholder: |
+        inScope: ...
+        outOfScope: ...
+    validations: { required: true }
+  - type: checkboxes
+    id: stages
+    attributes:
+      label: stages
+      options:
+        - label: Source
+        - label: Parameters
+        - label: Extract
+        - label: Clean
+        - label: Transform
+        - label: Refine
+        - label: Analyse
+  - type: textarea
+    id: refineConventions
+    attributes:
+      label: refineConventions
+      description: naming / allowed ops / outputs
+    validations: { required: true }
+  - type: textarea
+    id: acceptanceCriteria
+    attributes:
+      label: acceptanceCriteria
+      description: testable outcomes (one per line)
+      placeholder: |
+        - stageBoundariesRespected
+        - logsWiredForEachStage
+    validations: { required: true }

@@ -7,7 +7,7 @@ This reusable navigation block can be copied and pasted into any repository READ
 Copy the content below between the `<!-- NAVIGATION_START -->` and `<!-- NAVIGATION_END -->` markers into your README.md file, then replace the placeholders:
 
 - `{owner}/{repo}` - Replace with your GitHub owner/repository name
-- `{PillarName}` - Replace with your canonical pillar (Guidance, Innovation, Engagement, Operations, Protection, Sustenance, Growth)  
+- `{PillarName}` - Replace with your canonical pillar (Guidance, Innovation, Engagement, Execution, Protection, Sustenance, Growth)
 - `{domainName}` - Replace with your domain name in camelCase
 
 ## Navigation Block Template
@@ -15,8 +15,8 @@ Copy the content below between the `<!-- NAVIGATION_START -->` and `<!-- NAVIGAT
 ```markdown
 <!-- NAVIGATION_START -->
 ## 🏛️ Organisational Structure
-**Pillar:** {PillarName}  
-**Domain:** {domainName}  
+**Pillar:** {PillarName}
+**Domain:** {domainName}
 **Repository:** {owner}/{repo}
 
 ### Quick Links
@@ -34,13 +34,14 @@ This repository is part of SPECTRA's canonical organisational structure. For gov
 For repositories that prefer the two-line format, use:
 
 ```markdown
-**Pillar:** {PillarName}  
+**Pillar:** {PillarName}
 **Domain:** {domainName}
 ```
 
 ## Requirements
 
 Every repository must include either:
+
 1. The full navigation block with `<!-- NAVIGATION_START -->` and `<!-- NAVIGATION_END -->` markers, OR
 2. The two required lines: "Pillar:", "Domain:"
 

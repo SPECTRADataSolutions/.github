@@ -1,0 +1,185 @@
+name: analyze-initiative-proposals
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read # checkout only
+  issues: write # create/update issue comments & labels via issues API
+
+jobs:
+  analyse-initiative:
+    if: contains(github.event.issue.labels.*.name, 'type:initiative')
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: install-deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: parse-initiative
+        id: parse
+        run: |
+          python - <<'EOF'
+          import os, re, json
+          body = os.environ['ISSUE_BODY']
+          title = os.environ['ISSUE_TITLE']
+          def extract(field, multiline=False):
+              pattern = rf"###\s*{field}\s*\n\s*([^#]*?)(?=\n###|\n\n|\Z)"
+              m = re.search(pattern, body, re.I | re.DOTALL)
+              if not m:
+                  return [] if multiline else ""
+              content = m.group(1).strip()
+              if multiline:
+                  return [re.sub(r"^[-*]\s*", "", l.strip()) for l in content.splitlines() if l.strip()]
+              return content
+          data = {
+              k: extract(k) for k in [
+                  'archetype','domain','initiativeTitle','purpose','scope','capabilityAreas','deliverables',
+                  'successIndicators','constraints','dependencies','developmentMethodology','nonNegotiables',
+                  'reusePriority','securityPosture','humanInTheLoop','testStrategy','rolloutPlan',
+                  'lessonsFromPastInitiatives','outcomeStatus','postmortem'
+              ]
+          }
+          data['title'] = title
+          json.dump(data, open('initiative_data.json','w'), indent=2)
+          print('Parsed initiative')
+          EOF
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+
+      - name: build-history
+        run: python scripts/build_history.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: generate-lessons
+        run: |
+          python - <<'EOF'
+          import json, sys
+          sys.path.insert(0, 'scripts')
+          try:
+            from generate_lessons import InitiativeLessonsGenerator
+            data = json.load(open('initiative_data.json'))
+            gen = InitiativeLessonsGenerator()
+            lessons = gen.generate_lessons(data)
+            json.dump(lessons, open('lessons_data.json','w'), indent=2)
+            print('Generated lessons')
+          except Exception as e:
+            json.dump({'error': str(e), 'confidence': 0, 'similar_count': 0}, open('lessons_data.json','w'), indent=2)
+            print('Error generating lessons:', e)
+          EOF
+
+      - name: assess-readiness
+        run: |
+          python - <<'EOF'
+          import json, sys
+          sys.path.insert(0, 'scripts')
+          try:
+            from label_readiness import InitiativeReadinessLabeller
+            data = json.load(open('initiative_data.json'))
+            lessons = json.load(open('lessons_data.json'))
+            labeller = InitiativeReadinessLabeller()
+            assess = labeller.assess_readiness(data, lessons)
+            json.dump(assess, open('readiness_assessment.json','w'), indent=2)
+            print('Readiness', assess.get('readiness_score'))
+          except Exception as e:
+            assess = { 'readiness_score': 50.0, 'readiness_level': 'needs-work', 'recommendations':[str(e)], 'labels_to_add':['readiness:needs-work'], 'labels_to_remove':[] }
+            json.dump(assess, open('readiness_assessment.json','w'), indent=2)
+            print('Error assessing readiness:', e)
+          EOF
+
+      - name: post-lessons
+        run: |
+          python - <<'EOF'
+          import json, sys, os
+          sys.path.insert(0, 'scripts')
+          try:
+            from post_comment import InitiativeCommentPoster
+            lessons = json.load(open('lessons_data.json'))
+            poster = InitiativeCommentPoster()
+            ok = poster.post_lessons_comment(repo_owner='SPECTRADataSolutions', repo_name='.github', issue_number=int(os.environ['ISSUE_NUMBER']), lessons_data=lessons)
+            print('Posted lessons' if ok else 'Failed posting lessons')
+          except Exception as e:
+            print('Error posting lessons:', e)
+          EOF
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+      - name: apply-readiness-labels
+        run: |
+          python - <<'EOF'
+          import json, sys, os
+          sys.path.insert(0, 'scripts')
+          try:
+            from label_readiness import InitiativeReadinessLabeller
+            assess = json.load(open('readiness_assessment.json'))
+            labeller = InitiativeReadinessLabeller()
+            ok = labeller.apply_readiness_labels(repo_owner='SPECTRADataSolutions', repo_name='.github', issue_number=int(os.environ['ISSUE_NUMBER']), labels_to_add=assess['labels_to_add'], labels_to_remove=assess['labels_to_remove'])
+            print('Applied labels' if ok else 'Failed labels')
+          except Exception as e:
+            print('Error applying labels:', e)
+          EOF
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+      - name: commit-history
+        if: success()
+        run: |
+          if [ -f "analytics/initiatives-history.jsonl" ]; then
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add analytics/initiatives-history.jsonl || true
+            if ! git diff --cached --quiet; then
+              git commit -m "chore(analytics): update initiative history index" || true
+              git push || true
+            else
+              echo "No changes to history index"
+            fi
+          fi
+
+      - name: summary
+        if: always()
+        run: |
+          echo "## 🎓 Initiative Analysis Summary" >> $GITHUB_STEP_SUMMARY
+          if [ -f "lessons_data.json" ]; then
+            confidence=$(jq -r '.confidence // 0' lessons_data.json)
+            similar=$(jq -r '.similar_count // 0' lessons_data.json)
+            echo "**Lessons Analysis:** ${confidence}% confidence from ${similar} similar initiatives" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ -f "readiness_assessment.json" ]; then
+            score=$(jq -r '.readiness_score // 0' readiness_assessment.json)
+            level=$(jq -r '.readiness_level // "unknown"' readiness_assessment.json)
+            echo "**Readiness Score:** ${score}/100 (${level})" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Actions Completed:**" >> $GITHUB_STEP_SUMMARY
+          echo "- History index updated" >> $GITHUB_STEP_SUMMARY
+          echo "- Lessons extracted" >> $GITHUB_STEP_SUMMARY
+          echo "- Readiness assessed" >> $GITHUB_STEP_SUMMARY
+          echo "- Lessons comment posted" >> $GITHUB_STEP_SUMMARY
+          echo "- Labels applied" >> $GITHUB_STEP_SUMMARY
+
+      - name: artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: initiative-analysis-${{ github.event.issue.number }}
+          path: |
+            initiative_data.json
+            lessons_data.json
+            readiness_assessment.json
+            analytics/initiatives-history.jsonl
+          retention-days: 90

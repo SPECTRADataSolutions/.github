@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       repoType:
-        description: "engineering|operations|applications|governance|content"
+        description: "engineering|execution|applications|governance|content"
         type: string
         required: false
 
 jobs:
   invoke-validate:
-    uses: spectradatasolutions/framework/.github/workflows/validate-repository-structure.yml@main
+    uses: SPECTRADataSolutions/framework/.github/workflows/validate-repository-structure.yml@main
     with:
       repoType: ${{ github.event.inputs.repoType }}
     secrets: inherit

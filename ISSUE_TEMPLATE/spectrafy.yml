@@ -1,0 +1,57 @@
+name: "⚡ Spectrafy"
+description: Request SPECTRA governance & automation application or level elevation.
+title: "⚡ [Spectrafy] <shortTitle>"
+labels: ["spectrafy","governance","automation","status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ⚡ Spectrafy Request
+        Use this to apply or elevate SPECTRA governance & automation maturity.
+  - type: dropdown
+    id: targetLevel
+    attributes:
+      label: targetLevel
+      options: [L1, L2, L3, L4]
+    validations: { required: true }
+  - type: checkboxes
+    id: capabilities
+    attributes:
+      label: capabilities
+      options:
+        - label: ciCdPipeline
+        - label: codeQualityGates
+        - label: securityScanning
+        - label: documentationGeneration
+        - label: dependencyManagement
+        - label: performanceMonitoring
+        - label: releaseAutomation
+        - label: observability
+  - type: textarea
+    id: currentState
+    attributes:
+      label: currentState
+      description: brief current repository state
+  - type: textarea
+    id: requirements
+    attributes:
+      label: requirements
+      description: any specific constraints or compliance requirements
+  - type: textarea
+    id: risks
+    attributes:
+      label: risks
+      description: known risks or blockers
+  - type: textarea
+    id: stakeholders
+    attributes:
+      label: stakeholders
+      description: involved owners / teams (@handles)
+  - type: checkboxes
+    id: acknowledgment
+    attributes:
+      label: acknowledgment
+      options:
+        - label: understandsRepositoryWillBeModified
+        - label: hasAuthorityToRequest
+        - label: teamNotified

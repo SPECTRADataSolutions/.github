@@ -1,0 +1,35 @@
+name: "🎨 Design"
+description: Capture a proposed design before build.
+title: "🎨 [Design] <shortTitle>"
+labels: ["type:design","status:review"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: context
+      description: background & constraints
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes:
+      label: proposal
+      description: approach, flows, data structures, interfaces
+    validations: { required: true }
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: alternatives
+      description: considered & rejected options
+  - type: textarea
+    id: successMeasures
+    attributes:
+      label: successMeasures
+      description: measurable acceptance / KPIs
+    validations: { required: true }
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: runImpactAnalysis
+        - label: createEpicOnApproval

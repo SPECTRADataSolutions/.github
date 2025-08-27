@@ -1,0 +1,55 @@
+name: "🌟 Feature"
+description: Propose a new capability or enhancement.
+title: "🌟 [Feature] <shortTitle>"
+labels: ["type:feature","status:review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🌟 Feature
+        Describe the problem first, then the value & solution. Provide acceptance criteria.
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      options: [Protection, Sustenance, Innovation, Execution, Engagement, Growth, Guidance]
+    validations: { required: true }
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      placeholder: "experienceEngineering"
+    validations: { required: true }
+  - type: textarea
+    id: problem
+    attributes:
+      label: problem
+      description: what problem does this feature solve?
+    validations: { required: true }
+  - type: textarea
+    id: outcome
+    attributes:
+      label: outcome
+      description: the value and result expected
+    validations: { required: true }
+  - type: textarea
+    id: acceptanceCriteria
+    attributes:
+      label: acceptanceCriteria
+      placeholder: "- [ ] condition one\n- [ ] condition two"
+    validations: { required: true }
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: createStoriesFromAcceptanceCriteria
+        - label: runImpactAnalysis
+  - type: checkboxes
+    id: submissionChecklist
+    attributes:
+      label: submissionChecklist
+      options:
+        - label: searchedExistingIssues
+        - label: clearProblemDescribed
+        - label: acceptanceCriteriaProvided

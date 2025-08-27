@@ -1,0 +1,36 @@
+name: "🩹 Diagnosis"
+description: Root cause analysis with corrective actions.
+title: "🩹 [Diagnosis] <shortTitle>"
+labels: ["type:diagnosis","status:analysis","severity:high"]
+body:
+  - type: textarea
+    id: incidentSummary
+    attributes:
+      label: incidentSummary
+      description: what happened & impact
+    validations: { required: true }
+  - type: textarea
+    id: timeline
+    attributes:
+      label: timeline
+      description: chronological events
+  - type: textarea
+    id: rootCause
+    attributes:
+      label: rootCause
+      description: five whys or causal chain
+    validations: { required: true }
+  - type: textarea
+    id: correctiveActions
+    attributes:
+      label: correctiveActions
+      description: actions with owners (one per line)
+    validations: { required: true }
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: createTasksForActions
+        - label: updateRunbooksAndDocs
+        - label: addIncidentToRiskModels

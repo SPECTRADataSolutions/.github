@@ -1,0 +1,25 @@
+name: "🗺️ Epic"
+description: High-level capability area grouping multiple stories.
+title: "🗺️ [Epic] <shortTitle>"
+labels: ["type:epic","status:planning"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: summary
+    validations: { required: true }
+  - type: textarea
+    id: value
+    attributes:
+      label: value
+  - type: textarea
+    id: acceptanceCriteria
+    attributes:
+      label: acceptanceCriteria
+      placeholder: "- [ ] condition one"
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: generateStoriesFromAcceptanceCriteria

@@ -1,0 +1,37 @@
+name: assign-initiative-owners
+
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  issues: write
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue || {};
+            const title = issue.title || "";
+            const labels = (issue.labels || []).map(l => l.name);
+            const isInitiative = title.startsWith('🚀 [Initiative]') || labels.includes('type:initiative');
+            if (!isInitiative) return;
+
+            try {
+              await github.rest.issues.addAssignees({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                assignees: ['copilot']
+              });
+            } catch (e) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: '⚠️ Could not auto-assign @copilot. Ensure the user is a collaborator.'
+              });
+            }

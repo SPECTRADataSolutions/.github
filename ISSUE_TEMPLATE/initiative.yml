@@ -1,0 +1,67 @@
+name: "🚀 Initiative"
+description: Strategic or operational work starting point.
+title: "🚀 [Initiative] <shortTitle>"
+labels: ["type:initiative","status:planning"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🚀 Initiative
+        Provide purpose, scope, capability areas, and success indicators.
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      options: [Core, Protection, Guidance, Growth, Engagement, Innovation, Sustenance, Execution]
+    validations: { required: true }
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      placeholder: governance
+    validations: { required: true }
+  - type: input
+    id: initiativeTitle
+    attributes:
+      label: initiativeTitle
+      placeholder: workflowModernisation
+    validations: { required: true }
+  - type: textarea
+    id: purpose
+    attributes:
+      label: purpose
+    validations: { required: true }
+  - type: textarea
+    id: scope
+    attributes:
+      label: scope
+    validations: { required: true }
+  - type: textarea
+    id: capabilityAreas
+    attributes:
+      label: capabilityAreas
+      placeholder: "areaOne\nareaTwo"
+    validations: { required: true }
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: deliverables
+    validations: { required: true }
+  - type: textarea
+    id: successIndicators
+    attributes:
+      label: successIndicators
+    validations: { required: true }
+  - type: textarea
+    id: constraints
+    attributes:
+      label: constraints
+    validations: { required: true }
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: generateProjectsEpicsStories
+        - label: runImpactAnalysis
+        - label: computeExecutionReadinessScore

@@ -1,12 +1,16 @@
-name: generate-repository-service
+name: repository-provisioning
 
-# Unified canonical workflow (previously nested). Supports direct dispatch and reuse.
+# Canonical governed repository provisioning workflow (creates & bootstraps new repositories)
 on:
   workflow_dispatch:
     inputs:
       repoName:
         description: "service (camelCase) — becomes repository name"
         required: true
+        type: string
+      templateRepo:
+        description: "Optional template repository org/name (must be within org)"
+        required: false
         type: string
       pillar:
         description: "Guidance|Innovation|Engagement|Execution|Protection|Sustenance|Growth"
@@ -43,6 +47,10 @@ on:
         description: "service (camelCase) — becomes repository name"
         type: string
         required: true
+      templateRepo:
+        description: "Optional template repository org/name (must be within org)"
+        type: string
+        required: false
       pillar:
         description: "Guidance|Innovation|Engagement|Execution|Protection|Sustenance|Growth"
         type: string
@@ -73,14 +81,13 @@ on:
         type: string
         required: false
     secrets:
-      SPECTRA_GOV_REPO_FACTORY_APP_ID:
+      SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_ID:
         required: true
-      SPECTRA_GOV_REPO_FACTORY_APP_PRIVATE_KEY:
+      SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_PRIVATE_KEY:
         required: true
-      SPECTRA_GOV_REPO_FACTORY_INSTALLATION_ID:
+      SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_INSTALLATION_ID:
         required: true
 
-# Permissions needed to create repos, seed files, apply labels
 permissions:
   contents: write
   issues: write
@@ -89,28 +96,38 @@ jobs:
   create:
     runs-on: ubuntu-latest
     steps:
+      - name: preflight-secrets
+        run: |
+          missing=0
+          for v in SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_ID SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_PRIVATE_KEY SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_INSTALLATION_ID; do
+            if [ -z "${!v}" ]; then echo "::error::Missing required secret $v"; missing=1; fi
+          done
+          if [ $missing -ne 0 ]; then exit 1; fi
+        env:
+          SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_ID: ${{ secrets.SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_ID }}
+          SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_PRIVATE_KEY: ${{ secrets.SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_PRIVATE_KEY }}
+          SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_INSTALLATION_ID: ${{ secrets.SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_INSTALLATION_ID }}
       - name: authenticate-github-app
         id: app-auth
         env:
-          APP_ID: ${{ secrets.SPECTRA_GOV_REPO_FACTORY_APP_ID }}
-          APP_PK: ${{ secrets.SPECTRA_GOV_REPO_FACTORY_APP_PRIVATE_KEY }}
-          INSTALLATION_ID: ${{ secrets.SPECTRA_GOV_REPO_FACTORY_INSTALLATION_ID }}
+          NEW_APP_ID: ${{ secrets.SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_ID }}
+          NEW_APP_PK: ${{ secrets.SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_PRIVATE_KEY }}
+          NEW_INSTALLATION_ID: ${{ secrets.SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_INSTALLATION_ID }}
         uses: actions/github-script@v7
         with:
           script: |
             const crypto = require('crypto');
-            function b64(obj){return Buffer.from(JSON.stringify(obj)).toString('base64url');}
-            const now = Math.floor(Date.now()/1000);
-            const payload = { iat: now-60, exp: now+600, iss: process.env.APP_ID };
-            const header = { alg:'RS256', typ:'JWT' };
-            const signingInput = b64(header)+'.'+b64(payload);
-            const sign = crypto.createSign('RSA-SHA256');
-            sign.update(signingInput).end();
-            const jwt = signingInput+'.'+sign.sign(process.env.APP_PK,'base64url');
-            const instId = process.env.INSTALLATION_ID;
-            const { data: tokenData } = await github.request('POST /app/installations/{installation_id}/access_tokens', { installation_id: instId, headers:{ Authorization: `Bearer ${jwt}`, Accept: 'application/vnd.github+json' }});
-            core.setSecret(tokenData.token);
-            core.setOutput('token', tokenData.token);
+            const appId = process.env.NEW_APP_ID;
+            const pk = process.env.NEW_APP_PK;
+            const instId = process.env.NEW_INSTALLATION_ID;
+            if(!appId || !pk || !instId){ core.setFailed('Missing required GitHub App secrets (expect SPECTRA_REPOSITORY_PROVISIONING_GITHUB_APP_*).'); return; }
+            function b64(o){ return Buffer.from(JSON.stringify(o)).toString('base64url'); }
+            const now=Math.floor(Date.now()/1000);
+            const jwt = [b64({alg:'RS256',typ:'JWT'}), b64({iat:now-60, exp:now+600, iss:appId})];
+            const signer=crypto.createSign('RSA-SHA256'); signer.update(jwt.join('.')); signer.end();
+            const sig=signer.sign(pk,'base64url'); const tokenJWT=jwt.join('.')+'.'+sig;
+            const { data: tokenData } = await github.request('POST /app/installations/{installation_id}/access_tokens',{ installation_id: instId, headers:{ Authorization:`Bearer ${tokenJWT}`, Accept:'application/vnd.github+json'}});
+            core.setSecret(tokenData.token); core.setOutput('token', tokenData.token);
       - name: fetch-pillar-policy
         id: pillarPolicy
         uses: ./.github/actions/fetch-policy
@@ -133,6 +150,7 @@ jobs:
             const capability = get('capability');
             const repoType = get('repoType');
             const visibility = get('visibility').toLowerCase();
+            const templateRepo = get('templateRepo');
             const errs = [];
             if (!camel.test(repoName)) errs.push(`repoName must be camelCase: ${repoName}`);
             if (!camel.test(domain)) errs.push(`domain must be camelCase: ${domain}`);
@@ -140,8 +158,12 @@ jobs:
             if (!pillars.includes(pillar)) errs.push(`pillar invalid: ${pillar}`);
             if (!types.includes(repoType)) errs.push(`repoType invalid: ${repoType}`);
             if (!['public','private'].includes(visibility)) errs.push(`visibility invalid: ${visibility}`);
+            if (templateRepo) {
+              const ownerPrefix = context.repo.owner + '/';
+              if (!templateRepo.startsWith(ownerPrefix)) errs.push(`templateRepo must start with ${ownerPrefix}`);
+            }
             if (errs.length) core.setFailed(errs.join('\n'));
-            core.summary.addHeading('Repository Service Generation Validation')
+            core.summary.addHeading('Repository Provisioning Validation')
               .addList(errs.length ? errs : ['All inputs valid'])
               .write();
             core.setOutput('owner', context.repo.owner);
@@ -157,22 +179,37 @@ jobs:
             const description = (core.getInput('description')||'').trim();
             const homepage = (core.getInput('homepage') || '').trim() || undefined;
             const isPrivate = (core.getInput('visibility')||'').trim().toLowerCase() !== 'public';
+            const templateRepo = (core.getInput('templateRepo')||'').trim();
             try {
               await github.rest.repos.get({ owner, repo: name });
               core.notice(`Repository already exists: ${owner}/${name}`);
             } catch (e) {
               if (e.status !== 404) throw e;
-              const created = await github.rest.repos.createInOrg({
-                org: owner,
-                name,
-                description,
-                homepage,
-                private: isPrivate,
-                auto_init: true,
-                has_issues: true,
-                has_projects: true,
-                has_wiki: false
-              });
+              let created;
+              if (templateRepo) {
+                const [tplOwner, tplName] = templateRepo.split('/');
+                created = await github.request('POST /repos/{template_owner}/{template_repo}/generate', {
+                  template_owner: tplOwner,
+                  template_repo: tplName,
+                  owner,
+                  name,
+                  description,
+                  private: isPrivate,
+                  include_all_branches: false
+                });
+              } else {
+                created = await github.rest.repos.createInOrg({
+                  org: owner,
+                  name,
+                  description,
+                  homepage,
+                  private: isPrivate,
+                  auto_init: true,
+                  has_issues: true,
+                  has_projects: true,
+                  has_wiki: false
+                });
+              }
               core.notice(`Created repository: ${created.data.html_url}`);
               try { await github.rest.repos.update({ owner, repo: name, default_branch: 'main' }); } catch(err){ core.warning(`Default branch not set: ${err.message}`); }
             }
@@ -191,7 +228,7 @@ jobs:
                 try { await github.rest.issues.createLabel({ owner, repo, name: l.name, color: l.color, description: l.description }); }
                 catch(e){ if(e.status===422) await github.rest.issues.updateLabel({ owner, repo, name: l.name, color: l.color, description: l.description }); else throw e; }
               }
-            } catch(err) { core.warning(`Labels not seeded: ${err.message}`); }
+            } catch(err) { core.warning(`Labels not seeded (missing or inaccessible): ${err.message}`); }
       - name: seed-initial-files
         uses: actions/github-script@v7
         with:
@@ -211,7 +248,9 @@ jobs:
               const b64=Buffer.from(content,'utf8').toString('base64');
               try { await github.rest.repos.createOrUpdateFileContents({ owner, repo, path, message, content: b64 }); } catch(e){ core.warning(`${path} not written: ${e.message}`); }
             }
-            await up('README.md', readme, 'chore: seed README');
+            // Skip README seeding if template used and README exists
+            const templateUsed = !!(core.getInput('templateRepo')||'').trim();
+            if (!templateUsed) await up('README.md', readme, 'chore: seed README');
             await up('meta/intent.yml', intent, 'chore: add intent manifest');
       - name: protect-main-branch
         uses: actions/github-script@v7

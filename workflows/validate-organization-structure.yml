@@ -1,0 +1,39 @@
+name: validate-organisation-structure
+
+on:
+  push:
+    paths:
+      - ".spectra/metadata.yml"
+      - "README.md"
+  pull_request:
+    paths:
+      - ".spectra/metadata.yml"
+      - "README.md"
+
+jobs:
+  validate-structure:
+    name: validate organisational metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: verify-nav-and-metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            function read(p){ try { return fs.readFileSync(p,'utf8'); } catch { return ''; } }
+            const readme = read('README.md');
+            const meta = read('.spectra/metadata.yml');
+            const issues=[]; const warnings=[];
+            if(!readme) issues.push('❌ README.md missing');
+            if(!/<!-- NAV_START -->[\s\S]*<!-- NAV_END -->/m.test(readme)) issues.push('❌ README navigation block (NAV_START / NAV_END) missing');
+            if(!/\bDream\b.*SPECTRA/.test(readme)) issues.push('❌ Dream must be SPECTRA');
+            if(meta){
+              if(!/dream:\s*SPECTRA/.test(meta)) issues.push('❌ metadata.yml dream != SPECTRA');
+              if(!/pillar:\s*[A-Z]/i.test(meta) && !/archetype:\s*[A-Z]/i.test(meta)) issues.push('❌ metadata.yml missing pillar or archetype');
+              if(!/domain:\s*[a-z][a-zA-Z0-9]*/.test(meta)) warnings.push('ℹ️ domain missing or not camelCase');
+            } else {
+              warnings.push('ℹ️ .spectra/metadata.yml not present');
+            }
+            if(issues.length){ core.setFailed(issues.concat(warnings).join('\n')); } else { console.log('✅ organisation metadata valid'); if(warnings.length) console.log(warnings.join('\n')); }

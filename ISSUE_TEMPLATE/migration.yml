@@ -1,0 +1,24 @@
+name: "🛤️ Migration"
+description: Plan transition from old system to new state.
+title: "🛤️ [Migration] <shortTitle>"
+labels: ["type:migration","status:planning"]
+body:
+  - type: textarea
+    id: currentState
+    attributes:
+      label: currentState
+      description: existing setup summary
+    validations: { required: true }
+  - type: textarea
+    id: targetState
+    attributes:
+      label: targetState
+      description: desired future state
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes:
+      label: steps
+      description: ordered migration steps
+      placeholder: "1.\n2.\n3."
+    validations: { required: true }

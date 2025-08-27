@@ -1,0 +1,23 @@
+name: "📌 Story"
+description: User or system story delivering a slice of value.
+title: "📌 [Story] <shortTitle>"
+labels: ["type:story","status:ready"]
+body:
+  - type: textarea
+    id: narrative
+    attributes:
+      label: narrative
+      description: "As a <role> I want <action> so that <value>"
+    validations: { required: true }
+  - type: textarea
+    id: acceptanceCriteria
+    attributes:
+      label: acceptanceCriteria
+      placeholder: "- [ ] condition one"
+    validations: { required: true }
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: generateTasksFromAcceptanceCriteria

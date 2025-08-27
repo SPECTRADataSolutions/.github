@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: ❓ General Question / Support
+    url: https://github.com/SPECTRADataSolutions/framework/discussions
+    about: Please ask and answer questions here.
+  - name: Spectra Standards
+    url: https://example.com/spectra-standards
+    about: Read Spectra governance and naming conventions before creating issues.

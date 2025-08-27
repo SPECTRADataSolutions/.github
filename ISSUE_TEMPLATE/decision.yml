@@ -1,0 +1,31 @@
+name: "🧠 Decision"
+description: Log a key governance or technical decision.
+title: "🧠 [Decision] <shortTitle>"
+labels: ["type:decision","status:final"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: context
+    validations: { required: true }
+  - type: textarea
+    id: decision
+    attributes:
+      label: decision
+    validations: { required: true }
+  - type: textarea
+    id: rationale
+    attributes:
+      label: rationale
+    validations: { required: true }
+  - type: textarea
+    id: consequences
+    attributes:
+      label: consequences
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: notifyAffectedRepos
+        - label: updateStandardsCatalog

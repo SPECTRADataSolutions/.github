@@ -1,0 +1,64 @@
+name: fetch-policy
+description: Locate and emit a policy file (raw + digest + JSON) from canonical search paths.
+inputs:
+  file:
+    description: Policy file name or relative path (e.g. pillars.policy.json)
+    required: true
+outputs:
+  content:
+    description: Raw file content (may be empty if not found)
+    value: ${{ steps.read-policy.outputs.content }}
+  json:
+    description: Minified JSON if .json file else '{}'
+    value: ${{ steps.read-policy.outputs.json }}
+  sha256:
+    description: SHA256 digest of content (blank if missing)
+    value: ${{ steps.read-policy.outputs.sha256 }}
+  path:
+    description: Resolved path
+    value: ${{ steps.read-policy.outputs.path }}
+  exists:
+    description: 'true if found'
+    value: ${{ steps.read-policy.outputs.exists }}
+runs:
+  using: composite
+  steps:
+    - name: read-policy
+      id: read-policy
+      shell: bash
+      run: |
+        set -euo pipefail
+        in="${{ inputs.file }}"
+        candidates=("$in" "policies/$in" "framework/policies/$in" "./framework/policies/$in")
+        found=""
+        for c in "${candidates[@]}"; do
+          if [ -f "$c" ]; then found="$c"; break; fi
+        done
+        if [ -z "$found" ]; then
+          echo "::warning::Policy file not found for input '$in'" >&2
+          echo 'exists=false' >> $GITHUB_OUTPUT
+          echo 'path=' >> $GITHUB_OUTPUT
+          echo 'sha256=' >> $GITHUB_OUTPUT
+          echo 'json={}' >> $GITHUB_OUTPUT
+          echo 'content<<EOF' >> $GITHUB_OUTPUT; echo '' >> $GITHUB_OUTPUT; echo 'EOF' >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        sha=$(sha256sum "$found" | awk '{print $1}')
+        echo "Resolved: $found (sha256=$sha)" >&2
+        echo 'exists=true' >> $GITHUB_OUTPUT
+        echo "path=$found" >> $GITHUB_OUTPUT
+        echo "sha256=$sha" >> $GITHUB_OUTPUT
+        echo 'content<<EOF' >> $GITHUB_OUTPUT
+        cat "$found" >> $GITHUB_OUTPUT
+        echo 'EOF' >> $GITHUB_OUTPUT
+        if echo "$found" | grep -qi '.json$'; then
+          if command -v jq >/dev/null 2>&1; then
+            jq -c . "$found" > /tmp/min.json || cp "$found" /tmp/min.json
+            echo "json=$(cat /tmp/min.json)" >> $GITHUB_OUTPUT
+          else
+            compact=$(tr -d '\n' < "$found" | tr -s ' ')
+            echo "json=$compact" >> $GITHUB_OUTPUT
+          fi
+        else
+            echo 'json={}' >> $GITHUB_OUTPUT
+        fi

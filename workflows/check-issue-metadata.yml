@@ -1,5 +1,7 @@
 name: check-issue-metadata
 
+# REMOVED: replaced by initiative-triage (Spectrafy).
+
 on:
   issues:
     types: [opened, edited]

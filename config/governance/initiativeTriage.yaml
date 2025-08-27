@@ -1,0 +1,27 @@
+defaultOwner: copilot
+ownerFallback: maintainer
+epicLabels:
+  status: planning
+  type: epic
+readiness:
+  minScoreFor:
+    ready: 80
+    refine: 60
+    needs-work: 0
+notes: |
+  Mapping file for initiative-triage workflow.
+  Extend with pillar/domain specific owners:
+  owners:
+    Guidance: [copilot]
+    Execution: [copilot]
+owners:
+  Guidance:
+    default: [copilot]
+  Execution:
+    default: [copilot]
+  Innovation:
+    default: [copilot]
+domains:
+  visionAndStrategyExecution:
+    owners: [copilot]
+

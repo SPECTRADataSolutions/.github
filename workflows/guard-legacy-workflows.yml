@@ -1,0 +1,40 @@
+name: guard-legacy-workflows
+
+# Spectrafy-Contract:
+#   responsibility: Enforce absence of banned legacy workflow filenames
+#   inputs:
+#     - push (trigger)
+#   outputs:
+#     - console summary (pass/fail listing offending names)
+#   metrics:
+#     - legacy_workflow_count: number of banned files detected
+#   idempotent: true
+#   autonomous: true
+#   ownership: governance
+#   replacementPolicy: immediate-remove-legacy
+
+on:
+  push:
+    paths:
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  schedule:
+    - cron: '13 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+            python-version: '3.12'
+      - name: enforce
+        run: |
+          python framework/scripts/governance/guard_legacy_names.py

@@ -1,0 +1,335 @@
+name: initiative-triage
+
+# Spectrafy-Contract:
+#   responsibility: Consolidated initiative triage (parse, validate, enrich, assign, epic generation)
+#   inputs:
+#     - event.issue (required) - Issue payload with initiative metadata
+#   outputs:
+#     - initiative_data.json - Parsed normalized metadata
+#     - readiness_assessment.json - Scored readiness + labels
+#     - lessons_data.json - Lessons similarity/confidence record
+#     - summaryCard.json - Persisted summary card artifact
+#   metrics:
+#     - readiness_score: Numeric readiness (0-100)
+#     - lessons_confidence: % similarity confidence
+#   idempotent: true
+#   autonomous: true
+#   ownership: governance
+#   replacementPolicy: immediate-remove-legacy
+
+# Canonical consolidated initiative triage workflow
+# Responsibilities: metadata validation, lessons & readiness analysis, label enforcement,
+# owner assignment, capability → epic generation, history indexing, summary & artifacts.
+# Replaces: analyze-initiative-proposals.yml, check-issue-metadata.yml,
+#           assign-initiative-owners.yml, create-initiative-epics.yml
+
+on:
+  issues:
+    types: [opened, edited, labeled, reopened]
+
+permissions:
+  contents: write   # commit summary cards / history index
+  issues: write     # comments, labels, epics, assignment
+
+concurrency:
+  group: initiative-triage-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    if: >-
+      contains(github.event.issue.labels.*.name, 'type:initiative') ||
+      startsWith(github.event.issue.title, '🚀 [Initiative]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: fetch-pillar-policy
+        id: pillarPolicy
+        uses: ./.github/actions/fetch-policy
+        with:
+          file: pillars.policy.json
+
+      - name: summarize-pillar-policy
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.summary.addHeading('Pillar Policy Integrity')
+              .addRaw(`sha256: ${{ steps.pillarPolicy.outputs.sha256 }} path: ${{ steps.pillarPolicy.outputs.path }}`)
+              .write();
+
+      - name: parse-issue
+        id: parse
+        run: |
+          python - <<'PY'
+          import os, re, json, pathlib
+          body = os.environ['BODY'] or ''
+          title = os.environ['TITLE'] or ''
+          def section(key, multi=False):
+              # Matches headings like ### key (case-insensitive) capturing until next ### or end
+              pattern = re.compile(rf"###\s*{re.escape(key)}\s*\n([^#]*)", re.I)
+              m = pattern.search(body)
+              if not m:
+                  return [] if multi else ''
+              raw = m.group(1).strip()
+              if multi:
+                  lines = [re.sub(r'^[-*\d+.]+\s*','',l).strip() for l in raw.splitlines() if l.strip()]
+                  return [l for l in lines if l]
+              return raw
+          data = {
+            'title': title,
+            'pillar': section('pillar') or section('archetype'),
+            'archetype': section('archetype'),
+            'domain': section('domain'),
+            'initiativeTitle': section('initiativeTitle') or title,
+            'purpose': section('purpose'),
+            'scope': section('scope'),
+            'capabilityAreas': section('capabilityAreas', multi=True),
+            'deliverables': section('deliverables', multi=True),
+            'successIndicators': section('successIndicators', multi=True)
+          }
+          pathlib.Path('initiative_data.json').write_text(json.dumps(data, indent=2))
+          PY
+        env:
+          BODY: ${{ github.event.issue.body }}
+          TITLE: ${{ github.event.issue.title }}
+
+      - name: validate-metadata
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const issue = context.payload.issue;
+            const data = JSON.parse(fs.readFileSync('initiative_data.json','utf8'));
+            const required = ['pillar','domain','initiativeTitle','purpose','scope','capabilityAreas','successIndicators'];
+            const missing = required.filter(k => !data[k] || (Array.isArray(data[k]) && data[k].length===0));
+            if (missing.length) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: issue.number,
+                body: `❌ Missing required fields: ${missing.join(', ')}`
+              });
+              core.setFailed('Missing required metadata');
+            }
+
+      - name: validate-structure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const raw = fs.readFileSync('initiative_data.json','utf8');
+            const data = JSON.parse(raw);
+            // Parse pillar policy
+            let validPillars = [];
+            let synonyms = {};
+            try {
+              const policyRaw = `${{ steps.pillarPolicy.outputs.content }}`;
+              const json = JSON.parse(policyRaw);
+              validPillars = json.canonical || [];
+              synonyms = json.synonyms || {};
+            } catch(e){
+              core.warning('Pillar policy parse failed: '+e.message);
+            }
+            if (synonyms[data.pillar]) data.pillar = synonyms[data.pillar];
+            if (validPillars.length && !validPillars.includes(data.pillar)) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: `❌ Invalid pillar: ${data.pillar}. Must be one of: ${validPillars.join(', ')}`
+              });
+              core.setFailed('Invalid pillar');
+              return;
+            }
+            if (data.domain && !/^[a-z][a-zA-Z]*$/.test(data.domain)) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: `❌ Domain must be single-word camelCase starting with lowercase: ${data.domain}`
+              });
+              core.setFailed('Invalid domain format');
+              return;
+            }
+            console.log('✅ Organisational structure validated');
+
+      - name: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: install-python-deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: build-lessons-index
+        run: |
+          if [ -f scripts/initiative_lessons_indexer.py ]; then
+            python scripts/initiative_lessons_indexer.py || echo 'index build failed (non-fatal)'
+          else
+            echo 'No lessons indexer present'
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: generate-lessons
+        run: |
+          python - <<'PY'
+          import json, sys, os
+          sys.path.insert(0,'scripts')
+          try:
+            from generate_lessons import InitiativeLessonsGenerator
+            data = json.load(open('initiative_data.json'))
+            gen = InitiativeLessonsGenerator()
+            lessons = gen.generate_lessons(data)
+            json.dump(lessons, open('lessons_data.json','w'), indent=2)
+            print('Generated lessons')
+          except Exception as e:
+            json.dump({'error': str(e), 'confidence': 0, 'similar_count': 0}, open('lessons_data.json','w'), indent=2)
+            print('Error generating lessons:', e)
+          PY
+
+      - name: assess-readiness
+        run: |
+          python - <<'PY'
+          import json, sys
+          sys.path.insert(0,'scripts')
+          try:
+            from label_readiness import InitiativeReadinessLabeller
+            data = json.load(open('initiative_data.json'))
+            lessons = json.load(open('lessons_data.json'))
+            labeller = InitiativeReadinessLabeller()
+            assess = labeller.assess_readiness(data, lessons)
+            json.dump(assess, open('readiness_assessment.json','w'), indent=2)
+            print('Readiness', assess.get('readiness_score'))
+          except Exception as e:
+            assess = { 'readiness_score': 50.0, 'readiness_level': 'needs-work', 'recommendations':[str(e)], 'labels_to_add':['readiness:needs-work'], 'labels_to_remove':[] }
+            json.dump(assess, open('readiness_assessment.json','w'), indent=2)
+            print('Error assessing readiness:', e)
+          PY
+
+      - name: post-lessons-comment
+        uses: actions/github-script@v7
+        with:
+            script: |
+              const fs = require('fs');
+              try {
+                const lessons = JSON.parse(fs.readFileSync('lessons_data.json','utf8'));
+                await github.rest.issues.createComment({
+                  ...context.repo,
+                  issue_number: context.issue.number,
+                  body: `🧠 **Lessons Analysis**\nConfidence: ${lessons.confidence||0}%\nSimilar initiatives: ${lessons.similar_count||0}`
+                });
+              } catch(e){ core.warning('Posting lessons comment failed: '+e.message); }
+
+      - name: apply-readiness-labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            try {
+              const assess = JSON.parse(fs.readFileSync('readiness_assessment.json','utf8'));
+              const add = assess.labels_to_add || [];
+              const remove = assess.labels_to_remove || [];
+              if (add.length) {
+                await github.rest.issues.addLabels({ ...context.repo, issue_number: context.issue.number, labels: add });
+              }
+              for (const r of remove) {
+                try { await github.rest.issues.removeLabel({ ...context.repo, issue_number: context.issue.number, name: r }); } catch(e) { /* ignore */ }
+              }
+              console.log('Labels updated');
+            } catch(e){ core.warning('Label application failed: '+e.message); }
+
+      - name: assign-owners
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let owners = ['copilot'];
+            try {
+              const cfg = fs.readFileSync('.github/config/governance/initiativeTriage.yaml','utf8');
+              // naive parse key: value lines
+              const m = [...cfg.matchAll(/defaultOwner:\s*(\S+)/g)];
+              if (m.length) owners = [m[0][1]];
+            } catch(e) { core.warning('Owner mapping load failed: '+e.message); }
+            try {
+              await github.rest.issues.addAssignees({ ...context.repo, issue_number: context.issue.number, assignees: owners });
+            } catch(e) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: context.issue.number, body: `⚠️ Could not auto-assign ${owners.join(', ')}. Ensure user(s) are collaborators.` });
+            }
+
+      - name: generate-initiative-id
+        id: ids
+        run: |
+          node -e "const fs=require('fs');const d=new Date().toISOString().slice(0,10);const data=JSON.parse(fs.readFileSync('initiative_data.json','utf8'));const slug=(data.initiativeTitle||'untitled').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');process.stdout.write(`initiativeId=${d}-${slug}`)" >> $GITHUB_OUTPUT
+
+      - name: create-epics
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('initiative_data.json','utf8'));
+            const initiativeId = '${{ steps.ids.outputs.initiativeId }}';
+            const pillar = data.pillar || 'Guidance';
+            const domain = data.domain || 'visionAndStrategyExecution';
+            const caps = data.capabilityAreas || [];
+            if (!caps.length) { console.log('No capability areas → skipping epic creation'); return; }
+            // Fetch existing issues w/ parent label to avoid duplicates
+            const { data: existing } = await github.rest.issues.listForRepo({ ...context.repo, state: 'open', labels: `parent:${initiativeId}` });
+            for (const cap of caps) {
+              const title = `🗂️ [Epic] ${cap}`;
+              if (existing.find(e => e.title === title)) { console.log('Skip existing epic', title); continue; }
+              await github.rest.issues.create({
+                ...context.repo,
+                title,
+                labels: ['type:epic','status:planning', `pillar:${pillar}`, `domain:${domain}`, `parent:${initiativeId}`],
+                body: `auto-created from initiative **${initiativeId}**\n\ncapability: \`${cap}\``
+              });
+            }
+
+      - name: commit-summary-card
+        run: |
+          mkdir -p outputs/${{ steps.ids.outputs.initiativeId }}
+          jq '{initiativeTitle, pillar, domain, capabilityAreas, successIndicators}' initiative_data.json > outputs/${{ steps.ids.outputs.initiativeId }}/summaryCard.json
+          if [ -f "analytics/initiatives-history.jsonl" ]; then touch analytics/initiatives-history.jsonl; else mkdir -p analytics; touch analytics/initiatives-history.jsonl; fi
+          cat initiative_data.json >> analytics/initiatives-history.jsonl
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add outputs/${{ steps.ids.outputs.initiativeId }}/summaryCard.json analytics/initiatives-history.jsonl || true
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(initiatives): add summary card & history update for ${{ steps.ids.outputs.initiativeId }}" || true
+            git push || true
+          else
+            echo 'No changes to commit'
+          fi
+
+      - name: summary
+        if: always()
+        run: |
+          echo "## 🚀 Initiative Triage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "**Initiative ID:** ${{ steps.ids.outputs.initiativeId }}" >> $GITHUB_STEP_SUMMARY
+            if [ -f lessons_data.json ]; then
+              confidence=$(jq -r '.confidence // 0' lessons_data.json)
+              similar=$(jq -r '.similar_count // 0' lessons_data.json)
+              echo "**Lessons:** ${confidence}% confidence from ${similar} similar" >> $GITHUB_STEP_SUMMARY
+            fi
+            if [ -f readiness_assessment.json ]; then
+              score=$(jq -r '.readiness_score // 0' readiness_assessment.json)
+              level=$(jq -r '.readiness_level // "unknown"' readiness_assessment.json)
+              echo "**Readiness:** ${score}/100 (${level})" >> $GITHUB_STEP_SUMMARY
+            fi
+          echo "**Epics Created:** $(echo '${{ toJson(steps.ids.outputs) }}' > /dev/null)" >> $GITHUB_STEP_SUMMARY
+          echo "**Owners Assigned:** see issue assignees" >> $GITHUB_STEP_SUMMARY
+
+      - name: artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: initiative-triage-${{ github.event.issue.number }}
+          path: |
+            initiative_data.json
+            lessons_data.json
+            readiness_assessment.json
+            outputs/${{ steps.ids.outputs.initiativeId }}/summaryCard.json
+            analytics/initiatives-history.jsonl
+          retention-days: 90

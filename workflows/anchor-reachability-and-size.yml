@@ -8,6 +8,7 @@
 # Key Outputs (from metrics step): coverage, total, total_mb, unreachable, oversized, oversize_list, unreachable_list, size_exceeded
 # Notes: Metrics logic resides in .github/scripts/anchor_metrics.sh for maintainability and to avoid YAML indentation brittleness.
 name: anchor-reachability-and-size
+# DEPRECATED: Replaced by anchor-integrity (consolidated). Removal after 2025-09-15.
 
 on:
   schedule:

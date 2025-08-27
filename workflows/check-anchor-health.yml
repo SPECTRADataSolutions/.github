@@ -1,4 +1,5 @@
 name: check-anchor-health
+# DEPRECATED: Replaced by anchor-integrity (consolidated). Removal after 2025-09-15.
 # Purpose: Validate context manifest anchors (reachability, size, mime) and raise an initiative issue on gaps.
 
 on:

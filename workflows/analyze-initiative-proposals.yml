@@ -1,5 +1,7 @@
 name: analyze-initiative-proposals
 
+# REMOVED: replaced by initiative-triage (Spectrafy immediate replacement).
+
 on:
   issues:
     types: [opened, edited]

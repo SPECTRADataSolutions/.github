@@ -1,0 +1,56 @@
+name: autonomy-scores
+
+# Spectrafy-Contract:
+#   responsibility: Compute & append Spectrafy autonomy scores for workflows
+#   inputs:
+#     - schedule/dispatch (triggers)
+#   outputs:
+#     - autonomy_scores.md (score table)
+#     - autonomy_scores.json (JSON summary)
+#   metrics:
+#     - autonomy_score_total: aggregated per workflow (0-6)
+#   idempotent: true
+#   autonomous: true
+#   ownership: governance
+#   replacementPolicy: immediate-remove-legacy
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '29 4 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: compute-scores
+        run: |
+          python framework/scripts/governance/autonomy_score.py > autonomy_scores.md
+          grep JSON autonomy_scores.md | sed 's/JSON=//' > autonomy_scores.json || true
+      - name: append-architecture
+        run: |
+          ARCH=framework/docs/governance/workflow_consolidation_architecture.md
+          echo "\n### Autonomy Scores Snapshot ($(date -u +%Y-%m-%dT%H:%MZ))\n" >> $ARCH
+          sed -n '1,40p' autonomy_scores.md >> $ARCH
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add $ARCH autonomy_scores.* || true
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(governance): append autonomy scores snapshot" || true
+            git push || true
+          fi
+      - name: upload-artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: autonomy-scores
+          path: |
+            autonomy_scores.md
+            autonomy_scores.json
+          retention-days: 14

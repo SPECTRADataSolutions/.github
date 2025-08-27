@@ -1,0 +1,7 @@
+name: delete-me-test-renamed
+on: {workflow_dispatch: {}}
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo renamed

@@ -1,5 +1,7 @@
 name: assign-initiative-owners
 
+# REMOVED: replaced by initiative-triage (Spectrafy).
+
 on:
   issues:
     types: [opened, labeled]

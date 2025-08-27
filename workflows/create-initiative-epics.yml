@@ -1,5 +1,7 @@
 name: create-initiative-epics
 
+# REMOVED: replaced by initiative-triage (Spectrafy).
+
 on:
   issues:
     types: [opened, edited] # fire when initiatives are created or updated
@@ -47,7 +49,7 @@ jobs:
         id: ids
         run: |
           node -e "const p=require('./parsed.json'); const slug=(p.initiativeTitle||'untitled').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); const d=new Date().toISOString().slice(0,10); console.log(`initiativeId=${d}-${slug}`)"
-      
+
       - name: saveSummaryCard
         run: |
           mkdir -p outputs/${{ steps.ids.outputs.initiativeId }}

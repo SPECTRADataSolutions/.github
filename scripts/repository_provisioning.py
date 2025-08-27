@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-"""
-Repository Provisioning Shim
+"""Compatibility shim for renamed provisioning module.
 
-This shim preserves backward compatibility while transitioning from the
-deprecated 'Repository Factory' terminology. It re-exports the implementation
-from repo_factory.py. New code should import RepositoryFactory from this module
-using the clearer provisioning nomenclature during the deprecation window.
+The canonical implementation now lives in `provision_repo.py`.
+Importing from this module will continue to work during the deprecation
+window, but consumers should migrate to:
+
+    from provision_repo import RepositoryProvisioner
+
+This shim will be removed after the deprecation period.
 """
-from repo_factory import RepositoryFactory  # noqa: F401
+from __future__ import annotations
+
+from provision_repo import RepositoryProvisioner, main  # type: ignore  # noqa: F401
+
+__all__ = ["RepositoryProvisioner", "main"]

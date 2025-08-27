@@ -1,9 +1,63 @@
 name: sync-label-list
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      pruneMissing:
+        description: "Delete labels in repo not present in labels.json"
+        required: false
+        default: 'false'
+  schedule:
+    - cron: '17 3 * * 1'
+
+permissions:
+  contents: read
+  issues: write
 
 jobs:
-  sync:
-    uses: SPECTRADataSolutions/framework/.github/workflows/sync-label-list.yml@main
-    secrets: inherit
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Load label spec
+        id: spec
+        run: |
+          if [ ! -f .github/labels.json ]; then echo "::error::Missing .github/labels.json"; exit 1; fi
+          echo 'json<<EOF' >> $GITHUB_OUTPUT
+          cat .github/labels.json >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+      - name: Sync labels
+        uses: actions/github-script@v7
+        env:
+          PRUNE: ${{ github.event.inputs.pruneMissing || 'false' }}
+        with:
+          script: |
+            const desired = JSON.parse(process.env['INPUT_JSON'] || '${{ steps.spec.outputs.json }}');
+            const repo = context.repo;
+            const existing = await github.paginate(github.rest.issues.listLabelsForRepo, { ...repo, per_page: 100 });
+            const byName = Object.fromEntries(existing.map(l => [l.name.toLowerCase(), l]));
+            const desiredNames = new Set();
+            for (const d of desired) {
+              if(!d.name){ core.warning('Skipping label with missing name'); continue; }
+              desiredNames.add(d.name.toLowerCase());
+              const current = byName[d.name.toLowerCase()];
+              if(!current){
+                await github.rest.issues.createLabel({ ...repo, name: d.name, color: (d.color||'ededed').replace('#',''), description: d.description?.slice(0,100) });
+                core.info(`Created label ${d.name}`);
+              } else {
+                const needUpdate = (d.color && d.color.replace('#','').toLowerCase() !== current.color.toLowerCase()) || (d.description || '') !== (current.description || '');
+                if(needUpdate){
+                  await github.rest.issues.updateLabel({ ...repo, name: current.name, new_name: d.name, color: (d.color||current.color).replace('#',''), description: d.description?.slice(0,100) });
+                  core.info(`Updated label ${d.name}`);
+                }
+              }
+            }
+            if(process.env.PRUNE === 'true'){
+              for(const l of existing){
+                if(!desiredNames.has(l.name.toLowerCase())){
+                  await github.rest.issues.deleteLabel({ ...repo, name: l.name });
+                  core.info(`Deleted obsolete label ${l.name}`);
+                }
+              }
+            }
+            core.info('Label sync complete');

@@ -58,8 +58,8 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
 
-      - name: build-history
-        run: python scripts/build_history.py
+      - name: build-lessons-index
+        run: python scripts/initiative_lessons_indexer.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

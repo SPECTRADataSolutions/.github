@@ -1,7 +1,7 @@
 {
   "detachmentScore": 100,
   "status": "\ud83c\udf1f EXCELLENT - Ready for extraction",
-  "timestamp": "2025-08-27T13:11:28.982400Z",
+  "timestamp": "2025-08-27T13:17:26.069090Z",
   "factors": [
     {
       "description": "Server directory absent (can extract later)",

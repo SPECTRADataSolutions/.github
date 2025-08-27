@@ -331,18 +331,18 @@ jobs:
             echo "Updated checksum file."
           fi
 
-git add "${{ env.MANIFEST_PATH }}" || true
-git add "${{ env.CHECKSUM_FILE }}" || true
+          git add "${{ env.MANIFEST_PATH }}" || true
+          git add "${{ env.CHECKSUM_FILE }}" || true
 
-if git diff --cached --quiet; then
-  echo "No staged changes to commit."
-  echo "branch=$BRANCH" >> $GITHUB_OUTPUT
-  exit 0
-fi
+          if git diff --cached --quiet; then
+            echo "No staged changes to commit."
+            echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+            exit 0
+          fi
 
-COMMIT_MSG="🔒 Pin refs & update checksums"$'\n\n'"Pinned floating refs to commit SHAs (immutable provenance) and refreshed path checksums for drift detection."$'\n\n'"Governance: Framework is Law – deterministic content integrity."
-git commit -m "$COMMIT_MSG"
-git push origin "$BRANCH"
+          COMMIT_MSG="🔒 Pin refs & update checksums"$'\n\n'"Pinned floating refs to commit SHAs (immutable provenance) and refreshed path checksums for drift detection."$'\n\n'"Governance: Framework is Law – deterministic content integrity."
+          git commit -m "$COMMIT_MSG"
+          git push origin "$BRANCH"
           echo "branch=$BRANCH" >> $GITHUB_OUTPUT
           echo "createdCommit=true" >> $GITHUB_OUTPUT
 

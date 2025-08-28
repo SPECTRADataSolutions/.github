@@ -1,0 +1,76 @@
+name: "🐛 Bug"
+description: Report a defect with clear steps and expected behaviour.
+title: "🐛 [Bug] <shortTitle>"
+labels: ["type:bug","status:triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug
+        Provide clear reproduction details. Severity & reproducibility guide triage.
+  - type: dropdown
+    id: pillar
+    attributes:
+      label: pillar
+      options: [Protection, Sustenance, Innovation, Execution, Engagement, Growth, Guidance]
+    validations: { required: true }
+  - type: input
+    id: domain
+    attributes:
+      label: domain
+      placeholder: "platformEngineering"
+    validations: { required: true }
+  - type: textarea
+    id: summary
+    attributes:
+      label: summary
+      description: short description
+    validations: { required: true }
+  - type: textarea
+    id: stepsToReproduce
+    attributes:
+      label: stepsToReproduce
+      placeholder: "1.\n2.\n3."
+    validations: { required: true }
+  - type: dropdown
+    id: severity
+    attributes:
+      label: severity
+      options: [Critical, High, Medium, Low]
+    validations: { required: true }
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: reproducibility
+      options: [Always, Often, Sometimes, Rarely, Once]
+    validations: { required: true }
+  - type: textarea
+    id: expectedBehaviour
+    attributes:
+      label: expectedBehaviour
+    validations: { required: true }
+  - type: textarea
+    id: actualBehaviour
+    attributes:
+      label: actualBehaviour
+    validations: { required: true }
+  - type: input
+    id: environment
+    attributes:
+      label: environment
+      placeholder: "os, browser, device, version"
+  - type: checkboxes
+    id: automationOptions
+    attributes:
+      label: automationOptions
+      options:
+        - label: createFixTask
+        - label: linkToIncidentIfExists
+  - type: checkboxes
+    id: submissionChecklist
+    attributes:
+      label: submissionChecklist
+      options:
+        - label: searchedExistingIssues
+        - label: providedReproSteps
+        - label: specifiedSeverityAndRepro

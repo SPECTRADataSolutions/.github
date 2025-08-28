@@ -36,8 +36,23 @@ This repository maintains a perfect detachment score, indicating optimal organiz
 ## 📁 Repository Structure
 
 .github/                    # Organization-wide GitHub configurations
-├── ISSUE_TEMPLATE/        # Standardized issue templates for all repositories
-├── workflows/             # Reusable governance workflows
+├── .github/ISSUE_TEMPLATE/ # Standardized issue templates for all repositories
+├── .github/workflow-templates/ # Reusable workflow templates for all repositories
+├── workflows/              # Governance workflows (legacy or project-specific)
+
+## 🛠️ Usage
+
+- **Issue templates**: Automatically available to all repos in the org from `.github/ISSUE_TEMPLATE/`.
+- **Pull request template**: Provided by `PULL_REQUEST_TEMPLATE.md` at the root.
+- **Reusable workflow templates**: Reference in your project repo workflows like this:
+
+```yaml
+jobs:
+	my_job:
+		uses: SPECTRADataSolutions/.github/.github/workflow-templates/my-template.yml@main
+```
+
+---
 ├── labels.json           # Canonical label definitions
 └── PULL_REQUEST_TEMPLATE.md
 

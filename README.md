@@ -48,8 +48,8 @@ This repository maintains a perfect detachment score, indicating optimal organiz
 
 ```yaml
 jobs:
-	my_job:
-		uses: SPECTRADataSolutions/.github/.github/workflow-templates/my-template.yml@main
+ my_job:
+  uses: SPECTRADataSolutions/.github/.github/workflow-templates/my-template.yml@main
 ```
 
 ---

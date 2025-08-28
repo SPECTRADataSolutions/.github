@@ -8,6 +8,9 @@ body:
       value: |
         ## 🚀 Initiative
         Provide purpose, scope, capability areas, and success indicators.
+        
+        ### Standards Guidance
+        ☁️ core — All cross-pillar, meta, or org-wide work is governed by core. Never categorise or label it as a pillar or archetype.
   - type: dropdown
     id: pillar
     attributes:

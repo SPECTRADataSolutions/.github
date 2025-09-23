@@ -1,0 +1,57 @@
+name: "🚀 Initiative"
+description: Large strategic or operational project
+title: "🚀 "
+labels: ["type:initiative"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Initiative
+        Describe a significant project or strategic effort.
+  
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Purpose and goals
+      description: What is this initiative trying to achieve?
+      placeholder: "This initiative aims to..."
+    validations: 
+      required: true
+  
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What's included and what's not?
+      placeholder: |
+        **In scope:**
+        - ...
+        
+        **Out of scope:**
+        - ...
+    validations: 
+      required: true
+  
+  - type: textarea
+    id: success_criteria
+    attributes:
+      label: Success criteria
+      description: How will we measure success?
+      placeholder: |
+        - [ ] Measurable outcome 1
+        - [ ] Measurable outcome 2
+        - [ ] User satisfaction improves by X%
+  
+  - type: input
+    id: timeline
+    attributes:
+      label: Target timeline
+      description: When should this be completed?
+      placeholder: "Q2 2024, 3 months, etc."
+  
+  - type: input
+    id: pillar
+    attributes:
+      label: SPECTRA Pillar (optional)
+      description: Which organizational pillar does this support?
+      placeholder: "Innovation, Growth, Protection, etc."

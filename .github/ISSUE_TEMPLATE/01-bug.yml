@@ -1,0 +1,57 @@
+name: "🐛 Bug Report"
+description: Report a problem or defect
+title: "🐛 "
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report
+        Describe the problem and how to reproduce it.
+  
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug
+      placeholder: "Describe the issue you encountered..."
+    validations: 
+      required: true
+  
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. See error
+    validations: 
+      required: true
+  
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen
+      placeholder: "I expected..."
+  
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, browser, version, etc.
+      placeholder: "Windows 11, Chrome 120, Node.js 18"
+  
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this issue?
+      options:
+        - Low - Minor inconvenience
+        - Medium - Affects functionality
+        - High - Blocks important work
+        - Critical - System is unusable
+      default: 1

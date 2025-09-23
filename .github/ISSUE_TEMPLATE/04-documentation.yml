@@ -1,0 +1,51 @@
+name: "📖 Documentation"
+description: Documentation updates, guides, or process improvements
+title: "📖 "
+labels: ["type:documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Documentation Request
+        Describe the documentation that needs to be created or updated.
+  
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Type of documentation
+      options:
+        - User guide or tutorial
+        - API documentation
+        - Process or procedure
+        - Architecture decision
+        - Troubleshooting guide
+        - Other
+    validations:
+      required: true
+  
+  - type: textarea
+    id: description
+    attributes:
+      label: What documentation is needed?
+      description: Describe what should be documented
+      placeholder: "We need documentation for..."
+    validations: 
+      required: true
+  
+  - type: textarea
+    id: audience
+    attributes:
+      label: Target audience
+      description: Who will use this documentation?
+      placeholder: "Developers, users, administrators, etc."
+  
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and outline
+      description: What topics should be covered?
+      placeholder: |
+        - Introduction
+        - Setup instructions
+        - Common use cases
+        - Troubleshooting

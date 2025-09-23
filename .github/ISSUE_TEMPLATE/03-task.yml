@@ -1,0 +1,43 @@
+name: "🛠️ Task"
+description: A specific piece of work to be done
+title: "🛠️ "
+labels: ["type:task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Task
+        Describe the work that needs to be done.
+  
+  - type: textarea
+    id: description
+    attributes:
+      label: What needs to be done?
+      description: Clear description of the task
+      placeholder: "This task involves..."
+    validations: 
+      required: true
+  
+  - type: textarea
+    id: context
+    attributes:
+      label: Why is this needed?
+      description: Background or context for the task
+      placeholder: "This is needed because..."
+  
+  - type: textarea
+    id: definition_of_done
+    attributes:
+      label: Definition of done
+      description: How will we know this is complete?
+      placeholder: |
+        - [ ] Task objective achieved
+        - [ ] Documentation updated if needed
+        - [ ] Changes tested and verified
+  
+  - type: input
+    id: estimated_effort
+    attributes:
+      label: Estimated effort
+      description: Optional time estimate
+      placeholder: "2-4 hours"

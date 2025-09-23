@@ -1,0 +1,45 @@
+name: "🌟 Feature Request"
+description: Suggest a new feature or enhancement
+title: "🌟 "
+labels: ["type:feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+        Describe the feature you'd like to see implemented.
+  
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the problem or pain point
+      placeholder: "Currently, it's difficult to..."
+    validations: 
+      required: true
+  
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like this to work?
+      placeholder: "I'd like to be able to..."
+    validations: 
+      required: true
+  
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches have you considered?
+      placeholder: "I also considered..."
+  
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Success criteria
+      description: How will we know this is complete?
+      placeholder: |
+        - [ ] Users can...
+        - [ ] The system should...
+        - [ ] Documentation includes...

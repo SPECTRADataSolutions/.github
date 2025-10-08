@@ -1,0 +1,36 @@
+name: "❓ Question"
+description: Ask for help or clarification
+title: "❓ "
+labels: ["type:question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Question
+        Ask for help, clarification, or guidance.
+  
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What would you like to know?
+      placeholder: "I'm trying to understand..."
+    validations: 
+      required: true
+  
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Additional background that might help
+      placeholder: "I'm working on... and I need to..."
+  
+  - type: textarea
+    id: attempted_solutions
+    attributes:
+      label: What have you tried?
+      description: Research or attempts you've already made
+      placeholder: |
+        - I looked at the documentation for...
+        - I tried...
+        - I searched for...

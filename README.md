@@ -36,8 +36,23 @@ This repository maintains a perfect detachment score, indicating optimal organiz
 ## 📁 Repository Structure
 
 .github/                    # Organization-wide GitHub configurations
-├── ISSUE_TEMPLATE/        # Standardized issue templates for all repositories
-├── workflows/             # Reusable governance workflows
+├── .github/ISSUE_TEMPLATE/ # Standardized issue templates for all repositories
+├── .github/workflow-templates/ # Reusable workflow templates for all repositories
+├── workflows/              # Governance workflows (legacy or project-specific)
+
+## 🛠️ Usage
+
+- **Issue templates**: Automatically available to all repos in the org from `.github/ISSUE_TEMPLATE/`.
+- **Pull request template**: Provided by `PULL_REQUEST_TEMPLATE.md` at the root.
+- **Reusable workflow templates**: Reference in your project repo workflows like this:
+
+```yaml
+jobs:
+ my_job:
+  uses: SPECTRADataSolutions/.github/.github/workflow-templates/my-template.yml@main
+```
+
+---
 ├── labels.json           # Canonical label definitions
 └── PULL_REQUEST_TEMPLATE.md
 
@@ -105,12 +120,14 @@ Enforcement of the Spectrafied 7×7×7 hierarchy:
 
 ### 📋 Issue Templates
 
-Comprehensive templates for all organizational needs:
+Streamlined, Copilot-friendly templates for efficient issue creation:
 
-- **Initiative**: Strategic initiatives with organizational metadata
-- **Feature/Bug/Change**: Standard development workflows
-- **Architecture/Design**: Technical decision documentation
-- **Security/Compliance**: Governance and risk management
+- **🐛 Bug Report**: Simple bug reporting with optional severity
+- **🌟 Feature Request**: Problem-solution focused development
+- **🛠️ Task**: Atomic work units with clear objectives
+- **📖 Documentation**: Guides, processes, and knowledge capture
+- **❓ Question**: Help requests and clarification
+- **🚀 Initiative**: Strategic projects and large efforts
 
 ### ⚙️ Reusable Workflows
 
@@ -144,9 +161,9 @@ Organization-wide automation:
 ### For Organization Members
 
 1. **Creating Repositories**: Use the Repository Provisioning workflow via slash commands / dispatch
-2. **Creating Issues**: Use appropriate templates from the ISSUE_TEMPLATE directory
-3. **Pull Requests**: Follow the standard PR template
-4. **Governance Compliance**: Ensure organizational metadata is correct
+2. **Creating Issues**: Choose from 6 streamlined templates designed for easy completion
+3. **Pull Requests**: Use the simplified PR template focused on essential information
+4. **Governance Compliance**: Organizational metadata is now optional and contextual
 
 ### For Repository Maintainers
 
@@ -183,7 +200,7 @@ Backend implementation for automated repository creation with governance complia
 ## 📊 Governance Metrics
 
 - **Spectrafy Score**: 100/100 (Perfect organizational optimization)
-- **Template Coverage**: 24 issue templates covering all organizational scenarios
+- **Template Coverage**: 6 optimized issue templates designed for efficiency and Copilot integration
 - **Workflow Automation**: 11 reusable workflows for continuous governance
 - **Documentation Completeness**: Comprehensive coverage of all governance aspects
 

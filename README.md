@@ -55,6 +55,33 @@ Where code becomes knowledge, and knowledge becomes decision.
 
 ---
 
+## 🔐 Spectra Assistant Tokens
+
+All seven SPECTRA organisations now publish shared GitHub App secrets:
+
+| Secret | Purpose |
+| --- | --- |
+| `SPECTRA_APP_ID` | Spectra Assistant GitHub App identifier (2172220). |
+| `SPECTRA_APP_INSTALLATION_ID` | Org-specific installation id (see GitHub → Settings → Secrets). |
+| `SPECTRA_APP_PRIVATE_KEY` | PEM-encoded private key used to mint short-lived installation tokens. |
+
+### Local helper
+
+Use `scripts/spectra_assistant_token.py` to mint a token without copy/pasting PEM blobs:
+
+1. `pip install -r scripts/requirements.txt`
+2. Export the secrets (or pass via `--app-id`, `--installation-id`, `--key-file`).
+3. Run `python scripts/spectra_assistant_token.py --format token > token.txt`
+4. `setx /M GITHUB_TOKEN (Get-Content token.txt)` or `export GITHUB_TOKEN=$(cat token.txt)`
+
+The helper accepts `--format text` (default) for a friendly summary, `--format json` for scripting, and auto-detects base64/private key inputs. Tokens expire within ~60 minutes, so mint a new one per session.
+
+### Actions usage
+
+Workflows reference the same secrets via `secrets.SPECTRA_APP_ID` etc. Pair the secrets with `tibdex/github-app-token` or the helper when a job needs Spectra Assistant privileges.
+
+---
+
 ## 🔭 Philosophy
 
 SPECTRA Data treats engineering as a language of truth.  

@@ -1,83 +1,69 @@
-## SPECTRA AI Coding Agent Instructions (Authoritative, MVP Scope)
+## SPECTRA Data Org Front Page (2025-11-22)
 
-Purpose: Enable immediate productive, safe contributions across the two core domains:
+### Mission & Posture
 
-- `framework/` (Python package: minimal methodology + manifest & stage validation CLI)
-- `execution/` (Operations control-plane: GitHub Actions automation & sprint orchestration)
+- Build and ship the knowledge + data layer for the cosmos: SpectraCLI, Context MCP, ingestion gateways, brand systems.
+- Provide the scaffolding primitives every org depends on (CLI, schemas, Spectrafy scoring, token tooling).
+- Keep multi-modal assets (data, MCP, branding) in lockstep so automation + storytelling stay consistent.
 
-### 1. Architecture & Domain Model
+| Indicator          | Signal                                                                         |
+| ------------------ | ------------------------------------------------------------------------------ |
+| CLI adoption       | 100% of Core manifests validated via `spectra` CLI.                            |
+| Spectrafy coverage | Governance score emitted for 4 active programmes this week.                    |
+| Branding freshness | Style guide updated Nov-2025; assets mirrored to Media vault.                  |
+| Token health       | Spectra Assistant PEM standardised; installation scope pending Projects admin. |
 
-- Lifecycle stages (ordered, monotonic if used): `Source → Parameters (alias: Prepare) → Extract → Clean → Transform → Refine → Analyse` (`spectra.methodology.stages`). Do NOT reorder existing canonical stages; unknown experimental labels are tolerated but ignored—never break monotonicity.
-- Manifest (JSON) holds `pipelines[]` each with ordered `activities` (id, activityType, inputs, outputs, config). Inputs always reference `upstreamId.outputName` and must resolve.
-- CLI (`spectra` entrypoint) is pure file operations: no network / side‑effects beyond local filesystem. Preserve this invariant (no hidden I/O, no external API calls).
-- Multi‑repo ecosystem: `execution/` embeds a read‑only `framework/` snapshot for contextual automation (Fabric auth actions, sprint workflows).
+### Canonical Model & Language
 
-### 2. Key Workflows & Commands
+- Lifecycle: `Source → Prepare → Extract → Clean → Transform → Refine → Analyse`.
+- Manifest discipline: ordered activities, resolved dependencies, alias `Parameters` → `Prepare` only when reading legacy files.
+- CLI purity remains non-negotiable.
+- British English for documentation + repo messaging.
 
-Python (framework):
+### Shortcut Glossary (Data view)
 
-1. Create env (Conda): `conda env create -f env.yml`; activate then `pip install -e .[dev]`.
-2. Run tests: `pytest` (expect minimal suite; governance tests auto-skip if `.spectra/` absent).
-3. Lint/format: `ruff check .` and `ruff format .` (only Ruff; Black/isort listed but Ruff handles style/imports). Line length 120.
-4. CLI examples (idempotent):
-   - `spectra init demo`
-   - `spectra add-activity demo transform --type notebook`
-   - `spectra order demo` / `spectra graph demo --format mermaid`
-   - `spectra validate` / `spectra schema`
+| Keyword        | Meaning                                                      | Repo                   |
+| -------------- | ------------------------------------------------------------ | ---------------------- |
+| **SpectraCLI** | `spectra` entrypoint (scaffold, validate, graph, spectrafy). | `Data/framework`       |
+| **Scaffold**   | `spectra init <name>` + `spectra add-activity`.              | `Data/framework`       |
+| **TokenMint**  | GitHub App token helper CLI/script.                          | `Data/.github/scripts` |
+| **ContextMCP** | Model Context Protocol server for AI clients.                | `Data/context`         |
+| **BrandKit**   | Style guides + assets powering Media releases.               | `Data/branding`        |
+| **Atlas**      | This file (Data edition).                                    | `Data/.github`         |
 
-Node (execution):
+### Portfolio (Atlas)
 
-- Formatting only: `npm run format:check` / `npm run format` (Prettier; respect repo `.prettierrc` in `package.json`). Do not introduce build tooling.
+| Nickname          | Repo             | Purpose                                             | Status                     |
+| ----------------- | ---------------- | --------------------------------------------------- | -------------------------- |
+| **SpectraCLI**    | `Data/framework` | Core CLI, schema validation, Spectrafy scoring.     | Stable; active dev.        |
+| **ContextMCP**    | `Data/context`   | MCP server + demos for AI integrations.             | Live; HTTP + STDIO.        |
+| **BridgeGateway** | `Data/bridge`    | Event ingestion & schema enforcement before Fabric. | Guardrails in place.       |
+| **BrandKit**      | `Data/branding`  | Brand pillars, style guide, assets.                 | Fresh as of Nov-2025.      |
+| **DesignSystem**  | `Data/design`    | Product/design documentation + references.          | Partnered with Design org. |
+| **GraphLab**      | `Data/graph`     | Graph experimentation playground.                   | R&D mode.                  |
+| **JiraAdapter**   | `Data/jira`      | Jira service definitions/tools.                     | Services directory active. |
+| **MediaVault**    | `Data/media`     | Automation around media assets.                     | Syncs with Branding.       |
+| **UnifiOps**      | `Data/unifi`     | Microsoft Fabric Unifi artefacts.                   | Use for Fabric workflows.  |
+| **XeroOps**       | `Data/xero`      | Finance connectors + automation.                    | Secrets via GitHub.        |
+| **ZephyrOps**     | `Data/zephyr`    | Experimental backlog (branch `dev`).                | Innovation lab.            |
 
-### 3. Governance & Scoring (Spectrafy)
+### Rituals & Automations
 
-- Audit script: `framework/scripts/spectrafy_audit.py` computes score (0–600) from categories: automation, standards, documentation, security, quality. Writes JSON artefacts under `.spectra/evidence/scores/` & updates README badge markers. When modifying scoring logic: keep deterministic, pure, and weights summing to 1.0 (`.spectra/scoring.yml`).
-- Exceptions with expired dates trigger penalties; do not silently ignore schema issues—extend `schema_validate` if adding mandatory keys.
+- **Scaffolding**: run SpectraCLI commands; finish with `spectra order` + `spectra validate`.
+- **Spectrafy**: `python scripts/spectrafy_audit.py` after scoring changes; capture `.spectra/evidence/scores/*`.
+- **Token minting**: `python Data/.github/scripts/spectra_assistant_token.py --format token`; feed to `gh auth login --with-token`.
+- **Brand releases**: update `Data/branding/styleGuide.md`, sync assets to Media vault, tag release.
+- **Context MCP deploy**: `pip install -e .`, `spectra-context-mcp --mode http`, or ship via `render.yaml`.
 
-### 4. Agent Contract & Safety Boundaries
+### Telemetry & Performance
 
-- See `framework/docs/meta/agentContract.md`. MUST preserve existing stage ids/order; MAY add experimental stage labels (ignored). Do NOT add irreversible side‑effects or network calls inside validation / CLI paths.
-- When adding a new activityType prefer updating `contracts/models.py` (if present) & extend schema generation—keep backwards compatible.
-- Never rename or delete canonical stages; add mapping logic only if aliasing (e.g., legacy `Prepare`).
+- Ruff + pytest mandatory on SpectraCLI contributions.
+- CLI dependency surface stays lean (`click` + stdlib) — document any change in `pyproject.toml` + `env.yml`.
+- Branding pipeline uses Shields badges to indicate freshness; keep README badge dates accurate.
+- MCP server serves STDIO + HTTP + JSON-RPC; keep sample assessments (`assess.py`) passing.
 
-### 5. Conventions
+### Focus Signals
 
-- Language: British English (e.g., “optimise”). Directory & file naming: `camelCase` for scaffolded organisational folders (`initRepo.py`).
-- Keep README content repository‑specific (see `docs/standards/markdownStandards.md`); avoid generic boilerplate.
-- Python style enforced solely via Ruff config in `pyproject.toml` (`ignore E501`, custom selects). Do not introduce secondary linters.
-- Prettier printWidth 120; keep Markdown prose wrapping as configured (no forced reflow unless formatting script).
-
-### 6. High‑Impact Files (Treat Carefully)
-
-- `framework/pyproject.toml` (scripts entrypoint `spectra` and dependency surface minimal: only `click`). Adding deps requires: justify necessity, keep lean; update `env.yml` & optional `dev` extras if needed.
-- `.github/CODEOWNERS` indicates guarded resources: modifying any listed special file (e.g., security workflows, VERSION, manifest governance) should remain minimal & scoped.
-- `framework/scripts/initRepo.py` defines scaffold layout; mirror its naming patterns when extending.
-
-### 7. Extension Patterns (Examples)
-
-- Add CLI command: implement pure function in `spectra/cli.py` (or adjacent module), register via `click` group, update README command table succinctly.
-- Add validation rule: extend `validation/core.py` (ensure deterministic ordering of reported issues, no external state).
-- Add manifest field: update JSON schema generator (`spectra schema`) & keep backward compatibility (optional field first; avoid breaking existing examples).
-
-### 8. Things NOT To Do
-
-- No network calls / cloud SDK usage inside framework core or audit script.
-- No speculative dependencies or large frameworks (stay lean MVP).
-- No reformatting wide swaths of Markdown beyond needed edits (respect authored layout & diagrams).
-- Do not embed secrets, tokens, or environment-specific paths.
-
-### 9. Quick Triage Checklist Before PR
-
-1. Tests pass (`pytest`).
-2. `ruff check .` clean; `ruff format .` run if structural Python changes.
-3. `spectra validate` still succeeds on sample manifest(s).
-4. If audit logic touched: run `python scripts/spectrafy_audit.py` within a repo containing `.spectra/` to confirm badge update & score output.
-5. No unintended dependency additions.
-
-### 10. Minimal Contribution Flow (Agent)
-
-Identify change → apply smallest diff → run local validation (above) → update README tables/examples only if semantics changed → avoid scope creep.
-
----
-
-Clarifications or missing primitives? Provide a focused diff proposal; avoid broad refactors unless explicitly requested.
+- Finish provisioning permissions so CLI-driven provisioning can run apply mode from Core workflows.
+- Publish more manifest exemplars under `docs/governance/` for downstream repos.
+- Keep Atlas updated whenever a new capability appears; reuse nicknames in commit subjects to aid prompt grounding.

@@ -22,15 +22,15 @@
 
 ### Shortcut Glossary (Data view)
 
-| Keyword        | Meaning                                                      | Repo                   |
-| -------------- | ------------------------------------------------------------ | ---------------------- |
-| **SpectraCLI** | `spectra` entrypoint (scaffold, validate, graph, spectrafy). | `Data/framework`       |
-| **Scaffold**   | `spectra init <name>` + `spectra add-activity`.              | `Data/framework`       |
-| **TokenMint**  | GitHub App token helper CLI/script.                          | `Data/.github/scripts` |
-| **ContextMCP** | Model Context Protocol server for AI clients.                | `Data/context`         |
-| **BrandKit**   | Style guides + assets powering Media releases.               | `Data/branding`        |
-| **Vault**      | Encrypted secret locker (`vault.ps1`/`vault.sh`).             | `SPECTRACoreSolutions/vault` |
-| **Atlas**      | This file (Data edition).                                    | `Data/.github`         |
+| Keyword        | Meaning                                                      | Repo                                                |
+| -------------- | ------------------------------------------------------------ | --------------------------------------------------- |
+| **SpectraCLI** | `spectra` entrypoint (scaffold, validate, graph, spectrafy). | `Data/framework`                                    |
+| **Scaffold**   | `spectra init <name>` + `spectra add-activity`.              | `Data/framework`                                    |
+| **TokenMint**  | GitHub App token helper CLI/script.                          | `Data/.github/scripts`                              |
+| **ContextMCP** | Model Context Protocol server for AI clients.                | `Data/context`                                      |
+| **BrandKit**   | Style guides + assets powering Media releases.               | `Data/branding`                                     |
+| **Vault**      | Encrypted secret locker (`vault.ps1`/`vault.sh`).            | `Core/Vault` (remote: `SPECTRACoreSolutions/vault`) |
+| **Atlas**      | This file (Data edition).                                    | `Data/.github`                                      |
 
 ### Portfolio (Atlas)
 
@@ -65,7 +65,7 @@
 
 ### Secret Handling
 
-- Credentials live in `SPECTRACoreSolutions/vault` as `age`-encrypted blobs named `SOURCE_DESTINATION_TYPE` (e.g., `SPECTRA_GITHUB_TOKEN`).
+- Credentials live in `Core/Vault` (remote: `SPECTRACoreSolutions/vault`) as `age`-encrypted blobs named `SOURCE_DESTINATION_TYPE` (e.g., `SPECTRA_GITHUB_TOKEN`).
 - Every addition or rotation must update both the encrypted file under `secrets/` and the registry entry in the same commit.
 - Load secrets via `. ./vault.ps1 use <NAME>` (PowerShell) or `source ./vault.sh use <NAME>` after exporting `SPECTRA_VAULT_AGE_KEY_PATH`; plaintext never belongs in Data repos or chat.
 

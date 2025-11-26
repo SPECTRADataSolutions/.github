@@ -1,0 +1,147 @@
+meta:
+  repo: .github
+  generatedAt: "2025-11-26T17:41:10.637590"
+  generatedBy: "context-generator v0.1"
+nodes:
+  -
+    id: ".github:readme"
+    title: Repository README
+    type: doc
+    path: README.md
+    summary: 💠 SPECTRA Data
+    owner: .github team
+    freshness: "2025-11-21T18:22:21.954806"
+    tags:
+      - overview
+  -
+    id: ".github:workflow:validate-context-artifacts"
+    title: "Workflow: Validate Context Artifacts"
+    type: workflow
+    path: ".github/workflows/validate-context-artifacts.yml"
+    summary: GitHub Actions workflow
+    owner: .github team
+    freshness: "2025-11-26T17:41:10.573494"
+    tags:
+      - workflow
+      - ci
+  -
+    id: ".github:doc:CODE_OF_CONDUCT"
+    title: "Doc: CODE_OF_CONDUCT.md"
+    type: doc
+    path: CODE_OF_CONDUCT.md
+    summary: code of conduct
+    owner: .github team
+    freshness: "2025-11-19T10:18:27.864757"
+    tags:
+      - doc
+  -
+    id: ".github:doc:CONTRIBUTING"
+    title: "Doc: CONTRIBUTING.md"
+    type: doc
+    path: CONTRIBUTING.md
+    summary: 🤝 Contributing to the SPECTRA Framework
+    owner: .github team
+    freshness: "2025-11-19T10:18:27.865757"
+    tags:
+      - doc
+  -
+    id: ".github:doc:copilot-instructions"
+    title: "Doc: copilot-instructions.md"
+    type: doc
+    path: "copilot-instructions.md"
+    summary: "SPECTRA Data Org Front Page (2025-11-22)"
+    owner: .github team
+    freshness: "2025-11-24T01:06:40.419861"
+    tags:
+      - doc
+  -
+    id: ".github:doc:DEPRECATED_WORKFLOWS"
+    title: "Doc: DEPRECATED_WORKFLOWS.md"
+    type: doc
+    path: DEPRECATED_WORKFLOWS.md
+    summary: Deprecated / Removed Workflows (Phase 1)
+    owner: .github team
+    freshness: "2025-11-19T10:18:27.865757"
+    tags:
+      - doc
+  -
+    id: ".github:doc:DISCOVERY_SCRIPT"
+    title: "Doc: DISCOVERY_SCRIPT.md"
+    type: doc
+    path: DISCOVERY_SCRIPT.md
+    summary: 🎴 Spectra Discovery Deck
+    owner: .github team
+    freshness: "2025-11-21T18:22:21.947808"
+    tags:
+      - doc
+  -
+    id: ".github:doc:OPTIMIZATION_EXAMPLES"
+    title: "Doc: OPTIMIZATION_EXAMPLES.md"
+    type: doc
+    path: OPTIMIZATION_EXAMPLES.md
+    summary: Template Optimization Examples
+    owner: .github team
+    freshness: "2025-11-19T10:18:27.865757"
+    tags:
+      - doc
+  -
+    id: ".github:doc:PROJECT_PROVISIONING_PLAN"
+    title: "Doc: PROJECT_PROVISIONING_PLAN.md"
+    type: doc
+    path: PROJECT_PROVISIONING_PLAN.md
+    summary: Project Provisioning Blueprint (Spectra Grade)
+    owner: .github team
+    freshness: "2025-11-21T18:22:21.947808"
+    tags:
+      - doc
+  -
+    id: ".github:doc:PULL_REQUEST_TEMPLATE"
+    title: "Doc: PULL_REQUEST_TEMPLATE.md"
+    type: doc
+    path: PULL_REQUEST_TEMPLATE.md
+    summary: Pull Request
+    owner: .github team
+    freshness: "2025-11-19T10:18:27.865757"
+    tags:
+      - doc
+  -
+    id: ".github:doc:README"
+    title: "Doc: README.md"
+    type: doc
+    path: README.md
+    summary: 💠 SPECTRA Data
+    owner: .github team
+    freshness: "2025-11-21T18:22:21.954806"
+    tags:
+      - doc
+  -
+    id: ".github:doc:SECURITY"
+    title: "Doc: SECURITY.md"
+    type: doc
+    path: SECURITY.md
+    summary: security
+    owner: .github team
+    freshness: "2025-11-19T10:18:27.866757"
+    tags:
+      - doc
+  -
+    id: ".github:doc:TEMPLATE_MIGRATION"
+    title: "Doc: TEMPLATE_MIGRATION.md"
+    type: doc
+    path: TEMPLATE_MIGRATION.md
+    summary: Template Migration Guide
+    owner: .github team
+    freshness: "2025-11-19T10:18:27.866757"
+    tags:
+      - doc
+  -
+    id: ".github:secrets-refs"
+    title: Secret references
+    type: "secrets-refs"
+    path: 
+    summary: "Files referencing credentialRef/vault: scripts/context/generate_context.py"
+    owner: .github team
+    freshness: "2025-11-26T17:41:10.637590"
+    tags:
+      - secrets
+      - "static-scan"

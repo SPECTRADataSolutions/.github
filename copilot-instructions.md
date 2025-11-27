@@ -55,6 +55,7 @@
 - **Token minting**: `python Data/.github/scripts/spectra_assistant_token.py --format token`; feed to `gh auth login --with-token`.
 - **Brand releases**: update `Data/branding/styleGuide.md`, sync assets to Media vault, tag release.
 - **Context MCP deploy**: `pip install -e .`, `spectra-context-mcp --mode http`, or ship via `render.yaml`.
+- **Descriptions**: use the template in `Data/framework/docs/standards/description-conventions.md` for Fabric `.platform` files, repo descriptions, and README purpose lines.
 
 ### Telemetry & Performance
 

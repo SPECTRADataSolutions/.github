@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: 💬 Discussions
-    url: https://github.com/SPECTRADataSolutions/framework/discussions
+    url: https://github.com/SPECTRADataSolutions/fabric-sdk/discussions
     about: For general questions, ideas, and community discussions
   - name: 🏛️ SPECTRA Framework
-    url: https://github.com/SPECTRADataSolutions/framework
+    url: https://github.com/SPECTRADataSolutions/fabric-sdk
     about: Main framework repository and documentation
